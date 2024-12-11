@@ -174,7 +174,7 @@ namespace TSMapEditor.UI.Windows
             lblCommandCaption.Text = hotkey.UIName;
             lblDescription.Text = "";
             lblCurrentHotkeyValue.Text = hotkey.Key.GetKeyDisplayString(true);
-            lblNewHotkeyValue.Text = "Press a key...";
+            lblNewHotkeyValue.Text = "按下一个快捷键...";
             lblDefaultHotkeyValue.Text = hotkey.DefaultKey.GetKeyDisplayString(true);
             lblCurrentlyAssignedTo.Text = "";
             newHotkeyInput.Key = hotkey.Key.Key;
@@ -204,11 +204,11 @@ namespace TSMapEditor.UI.Windows
                 {
                     if (string.IsNullOrEmpty(lblCurrentlyAssignedTo.Text))
                     {
-                        lblCurrentlyAssignedTo.Text = "Also assigned to: " + otherHotkey.UIName;
+                        lblCurrentlyAssignedTo.Text = "还分配给：" + otherHotkey.UIName;
                     }
                     else
                     {
-                        lblCurrentlyAssignedTo.Text += " (and more)";
+                        lblCurrentlyAssignedTo.Text += " (及更多)";
                     }
                 }
             }
@@ -216,7 +216,7 @@ namespace TSMapEditor.UI.Windows
 
         private void ClearInfo()
         {
-            lblCommandCaption.Text = "Select a command...";
+            lblCommandCaption.Text = "选择一个指令...";
             lblDescription.Text = "";
             lblCurrentHotkeyValue.Text = "";
             lblNewHotkeyValue.Text = "";

@@ -347,12 +347,12 @@ namespace TSMapEditor.UI
 
             map.MapManuallySaved += (s, e) =>
             {
-                notificationManager.AddNotification("Map saved.");
+                notificationManager.AddNotification("地图已保存");
                 RefreshWindowTitle();
                 CheckForIssuesAfterManualSave(s, e);
             };
 
-            map.MapAutoSaved += (s, e) => notificationManager.AddNotification("Map auto-saved.");
+            map.MapAutoSaved += (s, e) => notificationManager.AddNotification("地图已自动保存");
         }
 
 
@@ -379,8 +379,8 @@ namespace TSMapEditor.UI
 
                 string issuesString = string.Join(newline + newline, issues);
 
-                EditorMessageBox.Show(WindowManager, "Issues Found",
-                    "The map has been saved, but one or more issues have been found in the map. Please consider resolving them." + newline + newline + issuesString,
+                EditorMessageBox.Show(WindowManager, "发现问题",
+                    "地图已保存，但在地图中发现了一个或多个问题。请考虑解决这些问题。" + newline + newline + issuesString,
                     MessageBoxButtons.OK);
             }
         }
@@ -417,7 +417,7 @@ namespace TSMapEditor.UI
 
         private void StartLoadingMap()
         {
-            var messageBox = new EditorMessageBox(WindowManager, "Loading", "Please wait, loading map...", MessageBoxButtons.None);
+            var messageBox = new EditorMessageBox(WindowManager, "载入中", "请稍候，正在载入地图...", MessageBoxButtons.None);
             mapLoadDarkeningPanel = new DarkeningPanel(WindowManager);
             mapLoadDarkeningPanel.DrawOrder = int.MaxValue;
             mapLoadDarkeningPanel.UpdateOrder = int.MaxValue;
@@ -440,7 +440,7 @@ namespace TSMapEditor.UI
 
             if (error != null)
             {
-                EditorMessageBox.Show(WindowManager, "Failed to open map",
+                EditorMessageBox.Show(WindowManager, "打开地图失败",
                     error, MessageBoxButtons.OK);
                 loadMapStage = 0;
                 RemoveChild(mapLoadDarkeningPanel);
@@ -699,9 +699,9 @@ namespace TSMapEditor.UI
             {
                 if (mapFileWatcher.HandleModifyEvent())
                 {
-                    notificationManager.AddNotification("The map file has been modified outside of the editor. The map's INI data has been reloaded." + Environment.NewLine + Environment.NewLine +
-                        "If you made edits to visible map data (terrain, objects, overlay etc.) outside of the editor, you can" + Environment.NewLine +
-                        "re-load the map to apply the effects. If you only made changes to other INI data, you can ignore this message.");
+                    notificationManager.AddNotification("地图文件已在编辑器之外修改。地图的 INI 数据已重新加载。" + Environment.NewLine + Environment.NewLine +
+                        "如果您在编辑器之外对可见地图数据（地形、地形对象、覆盖物等）进行了编辑，您可以重载地图以应用效果。" + Environment.NewLine +
+                        "如果您只修改了其他 INI 数据，则可以忽略此信息。");
                 }
             }
         }
@@ -722,9 +722,9 @@ namespace TSMapEditor.UI
                 string error = autosaveTimer.Update(gameTime.ElapsedGameTime);
                 if (error != null)
                 {
-                    NotificationManager.AddNotification("Failed to auto-save the map." + Environment.NewLine + Environment.NewLine + 
-                        "Please make sure that you are not running the editor from a write-protected directory (such as Program Files)." + Environment.NewLine + Environment.NewLine + 
-                        "Returned OS error: " + error);
+                    NotificationManager.AddNotification("自动保存地图失败" + Environment.NewLine + Environment.NewLine +
+                        "请确保不是在受写保护的目录中运行编辑器。(例如 Program Files)。" + Environment.NewLine + Environment.NewLine +
+                        "操作系统错误： " + error);
                 }
 
                 UpdateMapFileWatcher();

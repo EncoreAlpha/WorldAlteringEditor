@@ -31,14 +31,14 @@ namespace TSMapEditor.UI.CursorActions
 
         public override void DrawPreview(Point2D cellCoords, Point2D cameraTopLeftPoint)
         {
-            string text = "Placement actions:" + Environment.NewLine +
-                "Click on building to place a base node." + Environment.NewLine +
-                "Hold SHIFT while clicking to also delete the source building." + Environment.NewLine +
-                "Hold CTRL while clicking to erase a base node." + Environment.NewLine + Environment.NewLine +
-                "Hold M while dragging a base node to move it." + Environment.NewLine + Environment.NewLine +
-                "Ordering actions:" + Environment.NewLine +
-                "Press E while hovering over a base node to shift it to be built earlier." + Environment.NewLine +
-                "Press D while hovering over a base node to shift it to be built later.";
+            string text = "放置操作:" + Environment.NewLine +
+                "单击建筑放置基地节点。" + Environment.NewLine +
+                "单击的同时按住 SHIFT 键可同时删除源建筑。" + Environment.NewLine +
+                "单击的同时按住 CTRL 键可擦除基地节点。" + Environment.NewLine + Environment.NewLine +
+                "按住 M 键，拖动基地节点可移动节点。" + Environment.NewLine + Environment.NewLine +
+                "排序操作:" + Environment.NewLine +
+                "将鼠标悬停在基地节点上时按 E 键可将其移至更早建筑的位置。" + Environment.NewLine +
+                "将鼠标悬停在基地节点上时按 D 键可将其移至更晚建筑的位置。";
 
             DrawText(cellCoords, cameraTopLeftPoint, 60, -240, text, UISettings.ActiveSettings.AltColor);
 

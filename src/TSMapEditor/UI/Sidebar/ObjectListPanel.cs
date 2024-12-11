@@ -225,7 +225,7 @@ namespace TSMapEditor.UI.Sidebar
 
                 if (string.IsNullOrWhiteSpace(categoriesString))
                 {
-                    categories.Add(new ObjectCategory("Uncategorized", Color.White));
+                    categories.Add(new ObjectCategory("未分类", Color.White));
                 }
                 else
                 {

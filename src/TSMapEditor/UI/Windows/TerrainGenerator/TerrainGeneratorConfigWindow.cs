@@ -48,7 +48,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
             var lblHeader = new XNALabel(WindowManager);
             lblHeader.Name = nameof(lblHeader);
             lblHeader.FontIndex = Constants.UIBoldFont;
-            lblHeader.Text = "TERRAIN GENERATOR CONFIGURATION";
+            lblHeader.Text = "地形生成器配置";
             lblHeader.Y = Constants.UIEmptyTopSpace;
             AddChild(lblHeader);
             lblHeader.CenterOnParentHorizontally();
@@ -57,7 +57,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
             lblPresets.Name = nameof(lblPresets);
             lblPresets.Y = lblHeader.Bottom + Constants.UIEmptyTopSpace;
             lblPresets.X = Constants.UIEmptySideSpace;
-            lblPresets.Text = "Load Preset Config:";
+            lblPresets.Text = "载入预设配置：";
             AddChild(lblPresets);
 
             ddPresets = new XNADropDown(WindowManager);
@@ -74,7 +74,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
             btnSaveConfig.Width = 160;
             btnSaveConfig.X = ddPresets.Right + Constants.UIHorizontalSpacing * 2;
             btnSaveConfig.Y = ddPresets.Y;
-            btnSaveConfig.Text = "Save Custom Preset...";
+            btnSaveConfig.Text = "保存自定义预设...";
             AddChild(btnSaveConfig);
             btnSaveConfig.LeftClick += BtnSaveConfig_LeftClick;
 
@@ -83,7 +83,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
             btnDeleteConfig.Width = 160;
             btnDeleteConfig.X = btnSaveConfig.Right + Constants.UIHorizontalSpacing;
             btnDeleteConfig.Y = btnSaveConfig.Y;
-            btnDeleteConfig.Text = "Delete Custom Preset...";
+            btnDeleteConfig.Text = "删除自定义预设...";
             AddChild(btnDeleteConfig);
             btnDeleteConfig.LeftClick += BtnDeleteConfig_LeftClick;
 
@@ -108,10 +108,10 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
             tabControl.Width = Width;
             tabControl.Height = idleTexture.Height;
             tabControl.FontIndex = Constants.UIBoldFont;
-            tabControl.AddTab("Terrain Types", idleTexture, selectedTexture);
-            tabControl.AddTab("Terrain Tiles", idleTexture, selectedTexture);
-            tabControl.AddTab("Overlays", idleTexture, selectedTexture);
-            tabControl.AddTab("Smudges", idleTexture, selectedTexture);
+            tabControl.AddTab("地形对象", idleTexture, selectedTexture);
+            tabControl.AddTab("地形图块", idleTexture, selectedTexture);
+            tabControl.AddTab("覆盖物", idleTexture, selectedTexture);
+            tabControl.AddTab("污染", idleTexture, selectedTexture);
             AddChild(tabControl);
             tabControl.SelectedIndexChanged += (s, e) => { HideAllPanels(); panels[tabControl.SelectedTab].Enable(); };
 
@@ -161,7 +161,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
             btnApply.Name = nameof(btnApply);
             btnApply.Y = terrainTypeGroupsPanel.Bottom + Constants.UIEmptyTopSpace;
             btnApply.Width = 100;
-            btnApply.Text = "Apply";
+            btnApply.Text = "应用";
             AddChild(btnApply);
             btnApply.CenterOnParentHorizontally();
             btnApply.LeftClick += BtnApply_LeftClick;
@@ -208,8 +208,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
 
             if (!success)
             {
-                EditorMessageBox.Show(WindowManager, "Failed to save presets", 
-                    "Failed to save terrain generator presets. Please see the map editor logfile for details.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "保存预设失败",
+                    "保存地形生成器预设失败。详情请查看地图编辑器日志文件。", MessageBoxButtons.OK);
             }
         }
 
@@ -227,8 +227,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
 
             if (!success)
             {
-                EditorMessageBox.Show(WindowManager, "Failed to save presets",
-                    "Failed to save terrain generator presets. Please see the map editor logfile for details.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "保存预设失败",
+                    "保存地形生成器预设失败。详情请查看地图编辑器日志文件。", MessageBoxButtons.OK);
             }
         }
 

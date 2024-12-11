@@ -68,7 +68,7 @@ namespace TSMapEditor.UI.Windows
             if (stagingINI == null)
                 throw new InvalidOperationException("Staging INI is null!");
 
-            string successMessage = "INI code successfully added to map.";
+            string successMessage = "INI 代码已成功添加到地图中。";
             successMessage = stagingINI.GetStringValue(EditorSection, "Success", successMessage);
             successMessage = Renderer.FixText(successMessage, Constants.UIDefaultFont, Width).Text;
 
@@ -76,7 +76,7 @@ namespace TSMapEditor.UI.Windows
 
             IniFile.ConsolidateIniFiles(map.LoadedINI, stagingINI);
 
-            EditorMessageBox.Show(WindowManager, "Code Applied", successMessage, MessageBoxButtons.OK);
+            EditorMessageBox.Show(WindowManager, "已应用代码", successMessage, MessageBoxButtons.OK);
         }
 
         public void Open()

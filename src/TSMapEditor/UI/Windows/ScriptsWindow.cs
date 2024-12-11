@@ -124,7 +124,7 @@ namespace TSMapEditor.UI.Windows
             var scriptContextMenu = new EditorContextMenu(WindowManager);
             scriptContextMenu.Name = nameof(scriptContextMenu);
             scriptContextMenu.Width = lbScriptTypes.Width;
-            scriptContextMenu.AddItem("View References", ShowScriptReferences);
+            scriptContextMenu.AddItem("查看已关联", ShowScriptReferences);
             AddChild(scriptContextMenu);
 
             lbScriptTypes.AllowRightClickUnselect = false;
@@ -160,11 +160,11 @@ namespace TSMapEditor.UI.Windows
             actionListContextMenu = new EditorContextMenu(WindowManager);
             actionListContextMenu.Name = nameof(actionListContextMenu);
             actionListContextMenu.Width = 150;
-            actionListContextMenu.AddItem("Move Up", MoveActionUp, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
-            actionListContextMenu.AddItem("Move Down", MoveActionDown, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
-            actionListContextMenu.AddItem("Clone Action", CloneAction, () => editedScript != null && lbActions.SelectedItem != null);
-            actionListContextMenu.AddItem("Insert New Action Here", InsertAction, () => editedScript != null && lbActions.SelectedItem != null);
-            actionListContextMenu.AddItem("Delete Action", ActionListContextMenu_Delete, () => editedScript != null && lbActions.SelectedItem != null);
+            actionListContextMenu.AddItem("上移", MoveActionUp, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
+            actionListContextMenu.AddItem("下移", MoveActionDown, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
+            actionListContextMenu.AddItem("复制", CloneAction, () => editedScript != null && lbActions.SelectedItem != null);
+            actionListContextMenu.AddItem("插入", InsertAction, () => editedScript != null && lbActions.SelectedItem != null);
+            actionListContextMenu.AddItem("删除", ActionListContextMenu_Delete, () => editedScript != null && lbActions.SelectedItem != null);
             AddChild(actionListContextMenu);
 
             lbActions.AllowRightClickUnselect = false;
@@ -269,7 +269,7 @@ namespace TSMapEditor.UI.Windows
             if (action.ParamType == TriggerParamType.Cell)
             {
                 editorState.CursorAction = selectCellCursorAction;
-                notificationManager.AddNotification("Select a cell from the map.");
+                notificationManager.AddNotification("从地图上选择一个单元格。");
             }
             else if (action.ParamType == TriggerParamType.BuildingWithProperty)
             {
@@ -288,8 +288,8 @@ namespace TSMapEditor.UI.Windows
 
             if (referringLocalTeamTypes.Count == 0 && referringGlobalTeamTypes.Count == 0)
             {
-                EditorMessageBox.Show(WindowManager, "No references found",
-                    $"The selected Script \"{editedScript.Name}\" ({editedScript.ININame}) is not used by any TeamTypes, either local (map) or global (AI.ini).", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未找到关联",
+                    $"所选脚本 \"{editedScript.Name}\" ({editedScript.ININame}) 未被任何作战小队使用，无论是局部 (map) 还是全局 (AI.ini)。", MessageBoxButtons.OK);
             }
             else
             {
@@ -297,8 +297,8 @@ namespace TSMapEditor.UI.Windows
                 referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Local TeamType \"{tt.Name}\" ({tt.ININame})"));
                 referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Global TeamType \"{tt.Name}\" ({tt.ININame})"));
 
-                EditorMessageBox.Show(WindowManager, "Script References",
-                    $"The selected Script \"{editedScript.Name}\" ({editedScript.ININame}) is used by the following TeamTypes:" + Environment.NewLine + Environment.NewLine +
+                EditorMessageBox.Show(WindowManager, "脚本关联",
+                    $"所选脚本 \"{editedScript.Name}\" ({editedScript.ININame}) 被以下作战小队使用：" + Environment.NewLine + Environment.NewLine +
                     stringBuilder.ToString(), MessageBoxButtons.OK);
             }
         }
@@ -323,10 +323,10 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var messageBox = EditorMessageBox.Show(WindowManager,
-                    "Confirm",
-                    $"Are you sure you wish to delete '{editedScript.Name}'?" + Environment.NewLine + Environment.NewLine +
-                    $"You'll need to manually fix any TeamTypes using the Script." + Environment.NewLine + Environment.NewLine +
-                    "(You can hold Shift to skip this confirmation dialog.)",
+                    "确认",
+                    $"您确定要删除 '{editedScript.Name}'?" + Environment.NewLine + Environment.NewLine +
+                    $"您需要手动修改任何使用该脚本的作战小队。" + Environment.NewLine + Environment.NewLine +
+                    "(您可以按住 Shift 键跳过该确认对话框)",
                     MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = _ => DeleteScript();
             }

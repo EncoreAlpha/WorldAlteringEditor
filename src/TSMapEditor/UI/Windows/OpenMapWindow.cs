@@ -41,7 +41,7 @@ namespace TSMapEditor.UI.Windows
             lblHeader.Name = nameof(lblHeader);
             lblHeader.X = Constants.UIEmptySideSpace;
             lblHeader.Y = Constants.UIEmptyTopSpace;
-            lblHeader.Text = "Select the map file to load:";
+            lblHeader.Text = "选择要加载的地图文件：";
             AddChild(lblHeader);
 
             lbFileList = new FileBrowserListBox(WindowManager);
@@ -59,7 +59,7 @@ namespace TSMapEditor.UI.Windows
             btnLoad.Width = 100;
             btnLoad.X = Width - Constants.UIEmptySideSpace - btnLoad.Width;
             btnLoad.Y = lbFileList.Bottom + Constants.UIEmptyTopSpace;
-            btnLoad.Text = "Open";
+            btnLoad.Text = "打开";
             AddChild(btnLoad);
             btnLoad.LeftClick += BtnLoad_LeftClick;
 
@@ -68,7 +68,7 @@ namespace TSMapEditor.UI.Windows
             btnCancel.Width = 100;
             btnCancel.X = Constants.UIEmptySideSpace;
             btnCancel.Y = btnLoad.Y;
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "取消";
             AddChild(btnCancel);
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
@@ -91,7 +91,7 @@ namespace TSMapEditor.UI.Windows
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                EditorMessageBox.Show(WindowManager, "No file selected", "Please select the map file to open.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未选择地图", "请选择要打开的地图文件。", MessageBoxButtons.OK);
                 return;
             }
 

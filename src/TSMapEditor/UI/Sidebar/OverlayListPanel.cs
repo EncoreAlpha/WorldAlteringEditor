@@ -189,7 +189,7 @@ namespace TSMapEditor.UI.Sidebar
 
             if (Map.EditorConfig.OverlayCollections.Count > 0)
             {
-                var collectionsCategory = new TreeViewCategory() { Text = "Collections" };
+                var collectionsCategory = new TreeViewCategory() { Text = "集合" };
                 categories.Add(collectionsCategory);
 
                 foreach (var collection in Map.EditorConfig.OverlayCollections)
@@ -225,7 +225,7 @@ namespace TSMapEditor.UI.Sidebar
 
             if (Map.EditorConfig.ConnectedOverlays.Count > 0)
             {
-                var connectedOverlaysCategory = new TreeViewCategory() { Text = "Connected Overlays" };
+                var connectedOverlaysCategory = new TreeViewCategory() { Text = "相连接的覆盖物" };
                 categories.Add(connectedOverlaysCategory);
 
                 foreach (var connectedOverlay in Map.EditorConfig.ConnectedOverlays)
@@ -260,7 +260,7 @@ namespace TSMapEditor.UI.Sidebar
 
                 if (string.IsNullOrEmpty(overlayType.EditorCategory))
                 {
-                    category = FindOrMakeCategory("Uncategorized", categories);
+                    category = FindOrMakeCategory("未分类", categories);
                 }
                 else
                 {

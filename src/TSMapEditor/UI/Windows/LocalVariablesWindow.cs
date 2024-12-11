@@ -83,7 +83,7 @@ namespace TSMapEditor.UI.Windows
         {
             if (editedLocalVariable == null)
             {
-                EditorMessageBox.Show(WindowManager, "Select a variable", "Please select a variable first.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "选择一个变量", "请先选择一个变量。", MessageBoxButtons.OK);
                 return;
             }
 
@@ -152,14 +152,14 @@ namespace TSMapEditor.UI.Windows
 
             if (list.Count == 0)
             {
-                EditorMessageBox.Show(WindowManager, "No usages found",
-                    $"No triggers or scripts make use of the selected local variable '{editedLocalVariable.Name}'", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未找到任何使用",
+                    $"没有触发或脚本使用选定的局部变量 '{editedLocalVariable.Name}'", MessageBoxButtons.OK);
             }
             else
             {
                 EditorMessageBox.Show(WindowManager,
-                    "Local Variable Usages",
-                    $"The following usages were found for the selected local variable '{editedLocalVariable.Name}':" + Environment.NewLine + Environment.NewLine +
+                    "局部变量使用",
+                    $"所选局部变量的使用情况如下 '{editedLocalVariable.Name}':" + Environment.NewLine + Environment.NewLine +
                     string.Join(Environment.NewLine, list.Select(e => "- " + e)),
                     MessageBoxButtons.OK);
             }

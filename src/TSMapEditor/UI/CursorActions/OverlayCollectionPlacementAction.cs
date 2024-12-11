@@ -23,7 +23,7 @@ namespace TSMapEditor.UI.CursorActions
             {
                 if (value.Entries.Length == 0)
                 {
-                    throw new InvalidOperationException($"覆盖物 collection {value.Name} 没有覆盖物条目！");
+                    throw new InvalidOperationException($"覆盖物集合 {value.Name} 没有覆盖物条目！");
                 }
 
                 _overlayCollection = value;

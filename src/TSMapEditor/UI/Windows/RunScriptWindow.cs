@@ -41,8 +41,8 @@ namespace TSMapEditor.UI.Windows
             string filePath = (string)lbScriptFiles.SelectedItem.Tag;
             if (!File.Exists(filePath))
             {
-                EditorMessageBox.Show(WindowManager, "Can't find file",
-                    "The selected file does not exist! Maybe it was deleted?", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "找不到文件",
+                    "所选文件不存在！可能被删除了？", MessageBoxButtons.OK);
 
                 return;
             }
@@ -54,21 +54,21 @@ namespace TSMapEditor.UI.Windows
             if (error != null)
             {
                 Logger.Log("Compilation error when attempting to run fetch script description: " + error);
-                EditorMessageBox.Show(WindowManager, "Error",
-                    "Compiling the script failed! Check its syntax, or contact its author for support." + Environment.NewLine + Environment.NewLine +
-                    "Returned error was: " + error, MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "错误",
+                    "编译脚本失败！请检查语法，或联系作者寻求支持。" + Environment.NewLine + Environment.NewLine +
+                    "返回的错误信息: " + error, MessageBoxButtons.OK);
                 return;
             }
 
             if (confirmation == null)
             {
-                EditorMessageBox.Show(WindowManager, "Error", "The script provides no description!", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "错误", "脚本没有提供说明！", MessageBoxButtons.OK);
                 return;
             }
 
             confirmation = Renderer.FixText(confirmation, Constants.UIDefaultFont, Width).Text;
 
-            var messageBox = EditorMessageBox.Show(WindowManager, "Are you sure?",
+            var messageBox = EditorMessageBox.Show(WindowManager, "您确定吗?",
                 confirmation, MessageBoxButtons.YesNo);
             messageBox.YesClickedAction = (_) => ApplyCode();
         }
@@ -81,7 +81,7 @@ namespace TSMapEditor.UI.Windows
             string result = ScriptRunner.RunScript(map, scriptPath);
             result = Renderer.FixText(result, Constants.UIDefaultFont, Width).Text;
 
-            EditorMessageBox.Show(WindowManager, "Result", result, MessageBoxButtons.OK);
+            EditorMessageBox.Show(WindowManager, "结果", result, MessageBoxButtons.OK);
             ScriptRun?.Invoke(this, EventArgs.Empty);
         }
 
@@ -94,7 +94,7 @@ namespace TSMapEditor.UI.Windows
             if (!Directory.Exists(directoryPath))
             {
                 Logger.Log("WAE scipts directory not found!");
-                EditorMessageBox.Show(WindowManager, "Error", "Scripts directory not found!\r\n\r\nExpected path: " + directoryPath, MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "错误", "未找到脚本目录！\r\n\r\n预期目录: " + directoryPath, MessageBoxButtons.OK);
                 return;
             }
 

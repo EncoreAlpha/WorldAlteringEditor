@@ -22,7 +22,7 @@ namespace TSMapEditor.UI.CursorActions
             {
                 if (value.Entries.Length == 0)
                 {
-                    throw new InvalidOperationException($"地形对象 collection {value.Name} 没有地形对象条目！");
+                    throw new InvalidOperationException($"地形对象集合 {value.Name} 没有地形对象条目！");
                 }
 
                 _terrainObjectCollection = value;

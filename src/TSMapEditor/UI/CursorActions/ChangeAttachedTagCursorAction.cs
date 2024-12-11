@@ -28,7 +28,7 @@ namespace TSMapEditor.UI.CursorActions
             TechnoBase cellTechno = mapCell.GetTechno();
             Color textColor = cellTechno == null || cellTechno.AttachedTag == TagToAttach ? Color.Gray : Color.HotPink;
 
-            const string text = "Attach Tag";
+            const string text = "关联标签";
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
             int x = cellTopLeftPoint.X - (int)(textDimensions.X - Constants.CellSizeX) / 2;
 

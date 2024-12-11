@@ -19,7 +19,7 @@ namespace TSMapEditor.UI
 {
     public class MainMenu : EditorPanel
     {
-        private const string DirectoryPrefix = "<DIR> ";
+        private const string DirectoryPrefix = "<目录> ";
         private const int BrowseButtonWidth = 70;
 
         public MainMenu(WindowManager windowManager) : base(windowManager)

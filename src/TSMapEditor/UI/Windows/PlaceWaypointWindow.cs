@@ -59,8 +59,8 @@ namespace TSMapEditor.UI.Windows
             if (map.Waypoints.Exists(w => w.Identifier == tbWaypointNumber.Value))
             {
                 EditorMessageBox.Show(WindowManager,
-                    "Waypoint already exists",
-                    $"A waypoint with the given number {tbWaypointNumber.Value} already exists on the map!",
+                    "路径点已存在",
+                    $"地图上已经存在编号为 {tbWaypointNumber.Value} 的路径点！",
                     MessageBoxButtons.OK);
 
                 return;
@@ -80,8 +80,8 @@ namespace TSMapEditor.UI.Windows
             if (map.Waypoints.Count == Constants.MaxWaypoint)
             {
                 EditorMessageBox.Show(WindowManager,
-                    "Maximum waypoints reached",
-                    "All valid waypoints on the map are already in use!",
+                    "路径点数量已到达极限",
+                    "地图上的所有有效路径点都已被使用！",
                     MessageBoxButtons.OK);
 
                 return;

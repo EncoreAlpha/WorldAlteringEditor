@@ -123,7 +123,7 @@ namespace TSMapEditor.UI.Windows
             var taskForceContextMenu = new EditorContextMenu(WindowManager);
             taskForceContextMenu.Name = nameof(taskForceContextMenu);
             taskForceContextMenu.Width = lbTaskForces.Width;
-            taskForceContextMenu.AddItem("View References", ShowTaskForceReferences);
+            taskForceContextMenu.AddItem("查看已关联", ShowTaskForceReferences);
             AddChild(taskForceContextMenu);
 
             lbTaskForces.AllowRightClickUnselect = false;
@@ -137,11 +137,11 @@ namespace TSMapEditor.UI.Windows
             unitListContextMenu = new XNAContextMenu(WindowManager);
             unitListContextMenu.Name = nameof(unitListContextMenu);
             unitListContextMenu.Width = 150;
-            unitListContextMenu.AddItem("Move Up", UnitListContextMenu_MoveUp, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && lbUnitEntries.SelectedIndex > 0);
-            unitListContextMenu.AddItem("Move Down", UnitListContextMenu_MoveDown, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && lbUnitEntries.SelectedIndex < lbUnitEntries.Items.Count - 1);
-            unitListContextMenu.AddItem("Clone Unit Entry", UnitListContextMenu_CloneEntry, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && editedTaskForce.HasFreeTechnoSlot());
-            unitListContextMenu.AddItem("Insert New Unit Here", UnitListContextMenu_Insert, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && editedTaskForce.HasFreeTechnoSlot());
-            unitListContextMenu.AddItem("Delete Unit Entry", UnitListContextMenu_Delete, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null);
+            unitListContextMenu.AddItem("上移", UnitListContextMenu_MoveUp, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && lbUnitEntries.SelectedIndex > 0);
+            unitListContextMenu.AddItem("下移", UnitListContextMenu_MoveDown, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && lbUnitEntries.SelectedIndex < lbUnitEntries.Items.Count - 1);
+            unitListContextMenu.AddItem("复制", UnitListContextMenu_CloneEntry, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && editedTaskForce.HasFreeTechnoSlot());
+            unitListContextMenu.AddItem("插入", UnitListContextMenu_Insert, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null && editedTaskForce.HasFreeTechnoSlot());
+            unitListContextMenu.AddItem("删除", UnitListContextMenu_Delete, () => editedTaskForce != null && lbUnitEntries.SelectedItem != null);
             AddChild(unitListContextMenu);
             lbUnitEntries.AllowRightClickUnselect = false;
             lbUnitEntries.RightClick += (s, e) => { if (editedTaskForce != null) { lbUnitEntries.SelectedIndex = lbUnitEntries.HoveredIndex; unitListContextMenu.Open(GetCursorPoint()); } };
@@ -268,10 +268,10 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var messageBox = EditorMessageBox.Show(WindowManager,
-                    "Confirm",
-                    $"Are you sure you wish to delete '{editedTaskForce.Name}'?" + Environment.NewLine + Environment.NewLine +
-                    $"You'll need to manually fix any TeamTypes using the TaskForce." + Environment.NewLine + Environment.NewLine +
-                    "(You can hold Shift to skip this confirmation dialog.)",
+                    "确认",
+                    $"您确定要删除 '{editedTaskForce.Name}'?" + Environment.NewLine + Environment.NewLine +
+                    $"您需要手动修改使用该特遣部队的作战小队." + Environment.NewLine + Environment.NewLine +
+                    "(您可以按住 Shift 键跳过该确认对话框)",
                     MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = _ => DeleteTaskForce();
             }
@@ -307,8 +307,8 @@ namespace TSMapEditor.UI.Windows
 
             if (referringLocalTeamTypes.Count == 0 && referringGlobalTeamTypes.Count == 0)
             {
-                EditorMessageBox.Show(WindowManager, "No references found",
-                    $"The selected TaskForce \"{editedTaskForce.Name}\" ({editedTaskForce.ININame}) is not used by any TeamTypes, either local (map) or global (AI.ini).", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未找到关联",
+                    $"所选特遣部队 \"{editedTaskForce.Name}\" ({editedTaskForce.ININame}) 未被任何作战小队使用，无论是局部 (map) 还是全局 (AI.ini)。", MessageBoxButtons.OK);
             }
             else
             {
@@ -316,8 +316,8 @@ namespace TSMapEditor.UI.Windows
                 referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Local TeamType \"{tt.Name}\" ({tt.ININame})"));
                 referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Global TeamType \"{tt.Name}\" ({tt.ININame})"));
 
-                EditorMessageBox.Show(WindowManager, "TaskForce References",
-                    $"The selected TaskForce \"{editedTaskForce.Name}\" ({editedTaskForce.ININame}) is used by the following TeamTypes:" + Environment.NewLine + Environment.NewLine +
+                EditorMessageBox.Show(WindowManager, "特遣部队关联",
+                    $"所选特遣部队 \"{editedTaskForce.Name}\" ({editedTaskForce.ININame}) 被以下作战小队使用：" + Environment.NewLine + Environment.NewLine +
                     stringBuilder.ToString(), MessageBoxButtons.OK);
             }
         }

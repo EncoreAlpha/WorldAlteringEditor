@@ -275,7 +275,7 @@ namespace TSMapEditor.UI
                     if (followerId > -1)
                     {
                         string followerName = unit.FollowerUnit.UnitType.GetEditorDisplayName();
-                        textRenderer.AddTextPart(new XNATextPart("跟随者: " + followerName + " at " + unit.FollowerUnit.Position, Constants.UIDefaultFont, Color.White));
+                        textRenderer.AddTextPart(new XNATextPart("跟随者: " + followerName + " 在 " + unit.FollowerUnit.Position, Constants.UIDefaultFont, Color.White));
                     }
                 }
             }

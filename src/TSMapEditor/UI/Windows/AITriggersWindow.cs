@@ -91,8 +91,8 @@ namespace TSMapEditor.UI.Windows
             var technoTypeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectTechnoTypeWindow);
             technoTypeDarkeningPanel.Hidden += TechnoTypeDarkeningPanel_Hidden;
 
-            ddActions.AddItem("Advanced...");
-            ddActions.AddItem(new XNADropDownItem() { Text = "Clone for Easier Difficulties", Tag = new Action(CloneForEasierDifficulties) });
+            ddActions.AddItem("高级...");
+            ddActions.AddItem(new XNADropDownItem() { Text = "为更简单的难度复制", Tag = new Action(CloneForEasierDifficulties) });
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;            
 

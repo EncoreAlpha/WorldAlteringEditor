@@ -53,8 +53,8 @@ namespace TSMapEditor.UI.Windows
         {
             if (string.IsNullOrWhiteSpace(tbHouseName.Text))
             {
-                EditorMessageBox.Show(WindowManager, "House Name Required",
-                    "Please input a name for the house.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "必须填写所属方名称",
+                    "请输入所属方名称。", MessageBoxButtons.OK);
 
                 return;
             }

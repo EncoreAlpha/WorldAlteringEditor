@@ -29,7 +29,7 @@ namespace TSMapEditor.UI.CursorActions
 
             cellCenterPoint = cellCenterPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
-            const string text = "Delete";
+            const string text = "删除";
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
             int x = cellCenterPoint.X - (int)(textDimensions.X / 2);
             int y = cellCenterPoint.Y - (int)(textDimensions.Y / 2);

@@ -106,7 +106,7 @@ namespace TSMapEditor.UI.Windows
 
             if (Constants.IsRA2YR)
             {
-                btnEditHouseType.Text = "Edit Country";
+                btnEditHouseType.Text = "编辑所属方";
                 newHouseWindow = new NewHouseWindow(WindowManager, map);
                 var newHouseWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, newHouseWindow);
                 newHouseWindowDarkeningPanel.Hidden += NewHouseWindowDarkeningPanel_Hidden;
@@ -195,9 +195,9 @@ namespace TSMapEditor.UI.Windows
             if (map.Houses.Count > 0)
             {
                 EditorMessageBox.Show(WindowManager,
-                    "Houses already exist",
-                    "Cannot generate standard because the map already has one or more houses specified." + Environment.NewLine + Environment.NewLine +
-                    "If you want to generate standard houses, please delete the existing houses first.", MessageBoxButtons.OK);
+                    "所属方已存在",
+                    "无法生成标准所属方，因为地图上已经指定了一个或多个所属方。" + Environment.NewLine + Environment.NewLine +
+                    "如果要生成标准所属方，请先删除现有所属方", MessageBoxButtons.OK);
 
                 return;
             }
@@ -217,14 +217,14 @@ namespace TSMapEditor.UI.Windows
         {
             if (editedHouse == null)
             {
-                EditorMessageBox.Show(WindowManager, "No House Selected", "Select a house first.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未选择所属方", "首先选择一个所属方。", MessageBoxButtons.OK);
                 return;
             }
 
             var dialog = EditorMessageBox.Show(WindowManager,
-                "Are you sure?",
-                "This enables the \"AI Repairs\" flag on all buildings of the house, which makes the AI repair them." + Environment.NewLine + Environment.NewLine +
-                "No un-do is available. Do you wish to continue?", MessageBoxButtons.YesNo);
+                "你确定吗？",
+                "这将在所有该所属方的建筑上启用 \"AI 修复\" 标志,使得 AI 修复这些建筑。" + Environment.NewLine + Environment.NewLine +
+                "无法撤销，您想继续吗？", MessageBoxButtons.YesNo);
             dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = true);
         }
 
@@ -232,14 +232,14 @@ namespace TSMapEditor.UI.Windows
         {
             if (editedHouse == null)
             {
-                EditorMessageBox.Show(WindowManager, "No House Selected", "Select a house first.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未选择所属方", "首先选择一个所属方。", MessageBoxButtons.OK);
                 return;
             }
 
             var dialog = EditorMessageBox.Show(WindowManager,
-                "Are you sure?",
-                "This disables the \"AI Repairs\" flag on all buildings of the house, which makes the AI NOT repair them." + Environment.NewLine + Environment.NewLine +
-                "No un-do is available. Do you wish to continue?", MessageBoxButtons.YesNo);
+                "你确定吗？",
+                "这将在所有该所属方的建筑上关闭 \"AI 修复\" 标志,使得 AI 不再修复这些建筑。" + Environment.NewLine + Environment.NewLine +
+                "无法撤销，您想继续吗？", MessageBoxButtons.YesNo);
             dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = false);
         }
 

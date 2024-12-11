@@ -31,7 +31,7 @@ namespace TSMapEditor.UI.Windows
             lblHeader.Name = nameof(lblHeader);
             lblHeader.X = Constants.UIEmptySideSpace;
             lblHeader.Y = Constants.UIEmptyTopSpace;
-            lblHeader.Text = "Select the destination that you want to save the map to.";
+            lblHeader.Text = "选择要保存地图的目的地。";
             AddChild(lblHeader);
             Width = lblHeader.Right + Constants.UIEmptySideSpace;
 
@@ -48,7 +48,7 @@ namespace TSMapEditor.UI.Windows
             lblFileName.Name = nameof(lblFileName);
             lblFileName.X = Constants.UIEmptySideSpace;
             lblFileName.Y = lbFileList.Bottom + Constants.UIVerticalSpacing;
-            lblFileName.Text = "File name:";
+            lblFileName.Text = "文件名:";
             AddChild(lblFileName);
 
             tbFileName = new EditorTextBox(WindowManager);
@@ -63,7 +63,7 @@ namespace TSMapEditor.UI.Windows
             btnSave.X = Constants.UIEmptySideSpace;
             btnSave.Y = tbFileName.Bottom + Constants.UIEmptyTopSpace;
             btnSave.Width = 100;
-            btnSave.Text = "Save";
+            btnSave.Text = "保存";
             AddChild(btnSave);
             btnSave.LeftClick += BtnSave_LeftClick;
 
@@ -72,7 +72,7 @@ namespace TSMapEditor.UI.Windows
             btnCancel.Width = 100;
             btnCancel.X = Width - Constants.UIEmptySideSpace - btnCancel.Width;
             btnCancel.Y = btnSave.Y;
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "取消";
             AddChild(btnCancel);
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
@@ -92,7 +92,7 @@ namespace TSMapEditor.UI.Windows
         {
             if (tbFileName.Text.Length == 0)
             {
-                EditorMessageBox.Show(WindowManager, "No file name given", "Please enter a name for the map file.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未给出文件名", "请输入地图文件的名称。", MessageBoxButtons.OK);
                 return;
             }
 

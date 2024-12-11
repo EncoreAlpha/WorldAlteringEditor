@@ -162,7 +162,7 @@ namespace TSMapEditor.UI.Sidebar
 
             if (Map.EditorConfig.TerrainObjectCollections.Count > 0)
             {
-                var collectionsCategory = new TreeViewCategory() { Text = "Collections" };
+                var collectionsCategory = new TreeViewCategory() { Text = "集合" };
                 categories.Add(collectionsCategory);
 
                 foreach (var collection in Map.EditorConfig.TerrainObjectCollections)
@@ -197,7 +197,7 @@ namespace TSMapEditor.UI.Sidebar
 
                 if (string.IsNullOrEmpty(terrainType.EditorCategory))
                 {
-                    category = FindOrMakeCategory("Uncategorized", categories);
+                    category = FindOrMakeCategory("未分类", categories);
                 }
                 else
                 {

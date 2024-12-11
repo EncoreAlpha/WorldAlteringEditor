@@ -73,7 +73,7 @@ namespace TSMapEditor.UI.CursorActions
 
             cellTopLeftPoint = cellTopLeftPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
-            const string text = "点击单元格绘制隧道后，可用以下选项:\r\n\r\n" +
+            const string text = "点击单元格绘制隧道后，可用以下操作:\r\n\r\n" +
                 "双击确认\r\n" +
                 "按住 Shift 键的同时双击创建双向隧道\r\n" +
                 "按 ESC 清除\r\n" +

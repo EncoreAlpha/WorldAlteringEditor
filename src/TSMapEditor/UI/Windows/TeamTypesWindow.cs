@@ -191,7 +191,7 @@ namespace TSMapEditor.UI.Windows
             var teamTypeContextMenu = new EditorContextMenu(WindowManager);
             teamTypeContextMenu.Name = nameof(teamTypeContextMenu);
             teamTypeContextMenu.Width = lbTeamTypes.Width;
-            teamTypeContextMenu.AddItem("View References", ShowTeamTypeReferences);
+            teamTypeContextMenu.AddItem("查看已关联", ShowTeamTypeReferences);
             AddChild(teamTypeContextMenu);
 
             lbTeamTypes.AllowRightClickUnselect = false;
@@ -286,12 +286,12 @@ namespace TSMapEditor.UI.Windows
 
                 if (refActionCount > 0)
                 {
-                    stringBuilder.AppendLine($"- Trigger \"{trigger.Name}\" ({trigger.ID}) in {refActionCount} action parameter(s)");
+                    stringBuilder.AppendLine($"- 触发 \"{trigger.Name}\" ({trigger.ID}) 的 {refActionCount} 结果参数");
                 }
 
                 if (refConditionCount > 0)
                 {
-                    stringBuilder.AppendLine($"- Trigger \"{trigger.Name}\" ({trigger.ID}) in {refConditionCount} event parameter(s)");
+                    stringBuilder.AppendLine($"- 触发 \"{trigger.Name}\" ({trigger.ID}) 的 {refConditionCount} 条件参数");
                 }
             }
 
@@ -299,30 +299,30 @@ namespace TSMapEditor.UI.Windows
             {
                 if (aiTrigger.PrimaryTeam == editedTeamType)
                 {
-                    stringBuilder.AppendLine($"- Local AITrigger \"{aiTrigger.Name}\" ({aiTrigger.ININame}) as primary team");
+                    stringBuilder.AppendLine($"- 局部AI触发 \"{aiTrigger.Name}\" ({aiTrigger.ININame}) 作为第一小队");
                 }
 
                 if (aiTrigger.SecondaryTeam == editedTeamType)
                 {
-                    stringBuilder.AppendLine($"- Local AITrigger \"{aiTrigger.Name}\" ({aiTrigger.ININame}) as secondary team");
+                    stringBuilder.AppendLine($"- 局部AI触发 \"{aiTrigger.Name}\" ({aiTrigger.ININame}) 作为第二小队");
                 }
             }
 
             var globalTeamType = map.Rules.TeamTypes.Find(tt => tt.ININame == editedTeamType.ININame);
             if (globalTeamType != null)
             {
-                stringBuilder.AppendLine($"- This TeamType overrides a global TeamType {globalTeamType.ININame}. As such, it maybe be used by global AI Triggers.");
+                stringBuilder.AppendLine($"- 这个作战小队覆盖了全局作战小队 {globalTeamType.ININame}. 因此，它可能会被全局AI触发使用");
             }
 
             if (stringBuilder.Length == 0)
             {
-                EditorMessageBox.Show(WindowManager, "No references found",
-                    $"The selected TeamType \"{editedTeamType.Name}\" ({editedTeamType.ININame}) is not used by any Triggers or AITriggers.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "未找到关联",
+                    $"所选作战小队 \"{editedTeamType.Name}\" ({editedTeamType.ININame}) 未被任何触发和AI触发使用", MessageBoxButtons.OK);
             }
             else
             {
-                EditorMessageBox.Show(WindowManager, "TeamType References",
-                    $"The selected TeamType \"{editedTeamType.Name}\" ({editedTeamType.ININame}) is used by the following scripting elements:" + Environment.NewLine + Environment.NewLine +
+                EditorMessageBox.Show(WindowManager, "作战小队关联",
+                    $"所选作战小队 \"{editedTeamType.Name}\" ({editedTeamType.ININame}) 被以下触发使用：" + Environment.NewLine + Environment.NewLine +
                     stringBuilder.ToString(), MessageBoxButtons.OK);
             }
         }
@@ -348,10 +348,10 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var messageBox = EditorMessageBox.Show(WindowManager,
-                    "Confirm",
-                    $"Are you sure you wish to delete '{editedTeamType.Name}'?" + Environment.NewLine + Environment.NewLine +
-                    $"You'll need to manually fix any Triggers and AITriggers using the TeamType." + Environment.NewLine + Environment.NewLine +
-                    "(You can hold Shift to skip this confirmation dialog.)",
+                    "确认",
+                    $"您确定要删除 '{editedTeamType.Name}'?" + Environment.NewLine + Environment.NewLine +
+                    $"您需要手动修复任何使用该作战小队的触发和AI触发。" + Environment.NewLine + Environment.NewLine +
+                    "(您可以按住 Shift 键跳过该确认对话框。)",
                     MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = _ => DeleteTeamType();
             }

@@ -38,7 +38,7 @@ namespace TSMapEditor.UI.CursorActions
 
             if (tile.HasTechnoThatPassesCheck(techno => techno.Owner != newOwner))
             {
-                const string text = "Change Owner";
+                const string text = "改变所属";
                 var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
                 int x = cellTopLeftPoint.X - (int)(textDimensions.X - Constants.CellSizeX) / 2;
 

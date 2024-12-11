@@ -43,8 +43,8 @@ namespace TSMapEditor.UI.Windows
             int newWidth = map.Size.X + tbExpandEast.Value + tbExpandWest.Value;
             if (newWidth <= 0 || newWidth > Constants.MaxMapWidth)
             {
-                EditorMessageBox.Show(WindowManager, "Invalid width",
-                    $"The given values would make the map's width {newWidth}.\r\nIt should be between 1 and {Constants.MaxMapWidth}.",
+                EditorMessageBox.Show(WindowManager, "无效宽度",
+                    $"给定的值将使地图的宽度 {newWidth}.\r\n它应该介于 1 和 {Constants.MaxMapWidth}之间",
                     MessageBoxButtons.OK);
 
                 return;
@@ -53,8 +53,8 @@ namespace TSMapEditor.UI.Windows
             int newHeight = map.Size.Y + tbExpandNorth.Value + tbExpandSouth.Value;
             if (newHeight <= 0 || newHeight > Constants.MaxMapHeight)
             {
-                EditorMessageBox.Show(WindowManager, "Invalid height",
-                    $"The given values would make the map's height {newHeight}.\r\nIt should be between 0 and {Constants.MaxMapHeight}.",
+                EditorMessageBox.Show(WindowManager, "无效长度",
+                    $"给定的值将使地图的长度 {newHeight}.\r\n它应该介于 0 和 {Constants.MaxMapHeight}之间",
                     MessageBoxButtons.OK);
 
                 return;
@@ -83,7 +83,7 @@ namespace TSMapEditor.UI.Windows
 
         public void Open()
         {
-            lblCurrentMapSize.Text = $"Current map size: {map.Size.X}x{map.Size.Y}";
+            lblCurrentMapSize.Text = $"当前地图大小： {map.Size.X}x{map.Size.Y}";
             Show();
         }
     }

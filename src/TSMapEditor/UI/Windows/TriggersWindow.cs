@@ -200,8 +200,8 @@ namespace TSMapEditor.UI.Windows
             {
                 triggerContextMenu.AddItem("Wrap in EVA disable/enable actions", WrapInEVADisableAndEnableActions);
             }
-            triggerContextMenu.AddItem("Clone for Easier Diffs", CloneForEasierDifficulties);
-            triggerContextMenu.AddItem("Clone for Easier Diffs (No Dependencies)", CloneForEasierDifficultiesWithoutDependencies);
+            triggerContextMenu.AddItem("为更简单的难度复制", CloneForEasierDifficulties);
+            triggerContextMenu.AddItem("为更简单的难度复制 (不带任何关联)", CloneForEasierDifficultiesWithoutDependencies);
             AddChild(triggerContextMenu);
 
             FindChild<EditorButton>("btnNewTrigger").LeftClick += BtnNewTrigger_LeftClick;
@@ -215,7 +215,7 @@ namespace TSMapEditor.UI.Windows
                 var contextMenuOption = triggerContextMenu.Items[i];
                 ddActions.AddItem(new XNADropDownItem() { Text = contextMenuOption.Text, Tag = contextMenuOption.SelectAction });
             }
-            ddActions.AddItem(new XNADropDownItem() { Text = "重生成触发ID", Tag = new Action(RegenerateIDs) });
+            ddActions.AddItem(new XNADropDownItem() { Text = "重置触发ID", Tag = new Action(RegenerateIDs) });
 
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;
@@ -386,8 +386,8 @@ namespace TSMapEditor.UI.Windows
             if (tag == null)
                 return;
 
-            var messageBox = EditorMessageBox.Show(WindowManager, "Are you sure?",
-                $"This will delete all CellTags related to trigger \"{editedTrigger.Name}\". No un-do is available. Do you want to continue?",
+            var messageBox = EditorMessageBox.Show(WindowManager, "您确定吗？",
+                $"这将删除所有与触发 \"{editedTrigger.Name}\"相关的单元标记。无法取消操作。您想继续吗？",
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ =>
@@ -415,10 +415,10 @@ namespace TSMapEditor.UI.Windows
 
             if (tag == null)
             {
-                EditorMessageBox.Show(WindowManager, "No tag found",
-                    $"The selected trigger '{editedTrigger.Name}' has no" +
-                    $"associated tag. As such, it cannot be attached to any objects." + Environment.NewLine + Environment.NewLine +
-                    "This should never happen, have you modified the map with another editor?",
+                EditorMessageBox.Show(WindowManager, "未找到标签",
+                    $"所选触发 '{editedTrigger.Name}' 没有" +
+                    $"关联标签。 因此，它不能关联（未启用关联触发情况下）在任何物体上。" + Environment.NewLine + Environment.NewLine +
+                    "",
                     MessageBoxButtons.OK);
 
                 return;
@@ -587,11 +587,11 @@ namespace TSMapEditor.UI.Windows
 
         private void RegenerateIDs()
         {
-            var messageBox = EditorMessageBox.Show(WindowManager, "Are you sure?",
-                "This will re-generate the internal IDs (01000000, 01000001 etc.) for ALL* of your map's script elements" + Environment.NewLine +
-                "that start their ID with 0100 (all editor-generated script elements do)." + Environment.NewLine + Environment.NewLine +
-                "It might make the list more sensible in case there are deleted triggers. However, this feature is" + Environment.NewLine +
-                "experimental and if it goes wrong, it can destroy all of your scripting. Do you want to continue?",
+            var messageBox = EditorMessageBox.Show(WindowManager, "您确定吗？",
+                "这将为您地图上所有的触发重新生成内部 ID (01000000, 01000001 等等) 。" + Environment.NewLine +
+                "以 0100 开头的 ID（所有编辑器生成的脚本元素都是如此）。" + Environment.NewLine + Environment.NewLine +
+                "这可能会使列表更加合理（有删除过的触发后）。" + Environment.NewLine +
+                "不过，该功能是试验性的，如果出错，可能会破坏您的所有触发。您想继续吗？",
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => map.RegenerateInternalIds();
@@ -605,13 +605,13 @@ namespace TSMapEditor.UI.Windows
                 return;
 
             var messageBox = EditorMessageBox.Show(WindowManager,
-                "Are you sure?",
-                "Cloning this trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
-                "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals" + Environment.NewLine +
-                "with respective globals of easier difficulties." + Environment.NewLine + Environment.NewLine +
-                "In case the trigger references TeamTypes, duplicates of the TeamTypes" + Environment.NewLine +
-                "and their TaskForces are also created for the easier-difficulty triggers." + Environment.NewLine + Environment.NewLine +
-                "No un-do is available. Do you want to continue?", MessageBoxButtons.YesNo);
+                "您确定吗？",
+                "为更简单的难度复制将为中等难度和简单难度创建此触发的副本。" + Environment.NewLine +
+                "如果触发关联了作战小队，则也会为更简单的难度的触发创建作战小队及其特遣部队的副本。" + Environment.NewLine +
+                "" + Environment.NewLine + Environment.NewLine +
+                "" + Environment.NewLine +
+                "" + Environment.NewLine + Environment.NewLine +
+                "无法撤销，您想继续吗?", MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties(true);
         }
@@ -622,11 +622,11 @@ namespace TSMapEditor.UI.Windows
                 return;
 
             var messageBox = EditorMessageBox.Show(WindowManager,
-                "Are you sure?",
-                "Cloning this trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
-                "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals" + Environment.NewLine +
-                "with respective globals of easier difficulties." + Environment.NewLine + Environment.NewLine +
-                "No un-do is available. Do you want to continue?", MessageBoxButtons.YesNo);
+                "您确定吗？",
+                "为更简单的难度复制将为中等难度和简单难度创建此触发的副本。" + Environment.NewLine +
+                "如果触发关联了作战小队，该选项不会创建所关联的作战小队及其特遣部队的副本。" + Environment.NewLine +
+                "" + Environment.NewLine + Environment.NewLine +
+                "无法撤销，您想继续吗?", MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties(false);
         }

@@ -18,7 +18,7 @@ namespace TSMapEditor.UI.Controls
 
     public class FileBrowserListBox : EditorListBox
     {
-        private const string DirectoryPrefix = "<DIR> ";
+        private const string DirectoryPrefix = "<目录> ";
 
         public FileBrowserListBox(WindowManager windowManager) : base(windowManager)
         {
