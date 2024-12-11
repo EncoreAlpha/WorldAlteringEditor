@@ -5,15 +5,15 @@
     /// </summary>
     public enum SidebarMode
     {
-        None = 0,
-        Aircraft = 1,
-        Buildings = 2,
-        Vehicles = 3,
-        Naval = 4,
-        Infantry = 5,
-        TerrainObjects = 6,
-        Overlay = 7,
-        Smudges = 8,
+        无 = 0,
+        飞行器 = 1,
+        建筑物 = 2,
+        载具 = 3,
+        海军 = 4,
+        步兵 = 5,
+        地形对象 = 6,
+        覆盖物 = 7,
+        污染 = 8,
         SidebarModeCount
     }
 }

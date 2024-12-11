@@ -73,12 +73,12 @@ namespace TSMapEditor.UI.CursorActions
 
             cellTopLeftPoint = cellTopLeftPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
-            const string text = "Click on cells to draw a tunnel. Once ready, use one of the options below:\r\n\r\n" +
-                "Double-click to confirm\r\n" +
-                "Double-click while holding Shift to create bidirectional tunnel\r\n" +
-                "Press ESC to clear\r\n" +
-                "Press B to step back\r\n" +
-                "Right-click to exit";
+            const string text = "点击单元格绘制隧道后，可用以下选项:\r\n\r\n" +
+                "双击确认\r\n" +
+                "按住 Shift 键的同时双击创建双向隧道\r\n" +
+                "按 ESC 清除\r\n" +
+                "按 B 撤销\r\n" +
+                "右键单击退出";
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
             int x = cellTopLeftPoint.X - (int)(textDimensions.X - Constants.CellSizeX) / 2;
 
@@ -215,7 +215,7 @@ namespace TSMapEditor.UI.CursorActions
                     }
 
                     if (!nextTubeDirection.HasValue)
-                        throw new ApplicationException("Unable to find tunnel tube direction! From: " + previousStep + " To: " + newPoint);
+                        throw new ApplicationException("无法找到隧道方向！从: " + previousStep + " 到: " + newPoint);
 
                     tube.Directions.Add(nextTubeDirection.Value);
                     tubeCells.Add(newPoint);

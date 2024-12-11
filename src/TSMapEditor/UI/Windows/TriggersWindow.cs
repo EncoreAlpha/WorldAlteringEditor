@@ -182,9 +182,9 @@ namespace TSMapEditor.UI.Windows
             AddChild(ctxActionParameterPresetValues);
             ctxActionParameterPresetValues.OptionSelected += CtxActionParameterPresetValues_OptionSelected;
 
-            ddType.AddItem("0 - one-time, single-object condition");
-            ddType.AddItem("1 - one-time, multi-object condition");
-            ddType.AddItem("2 - repeating, single-object condition");
+            ddType.AddItem("0 - 一次性、单一对象条件");
+            ddType.AddItem("1 - 一次性、多对象条件");
+            ddType.AddItem("2 - 重复、单一对象条件");
 
             lbEvents.AllowMultiLineItems = false;
             lbActions.AllowMultiLineItems = false;
@@ -192,10 +192,10 @@ namespace TSMapEditor.UI.Windows
             var triggerContextMenu = new EditorContextMenu(WindowManager);
             triggerContextMenu.Name = nameof(triggerContextMenu);
             triggerContextMenu.Width = 270;
-            triggerContextMenu.AddItem("Place CellTag", PlaceCellTag);
-            triggerContextMenu.AddItem("Clear CellTags", ClearCellTags);
-            triggerContextMenu.AddItem("Attach to Objects", AttachTagToObjects);
-            triggerContextMenu.AddItem("View References", ShowReferences);
+            triggerContextMenu.AddItem("放置单元标记", PlaceCellTag);
+            triggerContextMenu.AddItem("清除单元标记", ClearCellTags);
+            triggerContextMenu.AddItem("关联到对象", AttachTagToObjects);
+            triggerContextMenu.AddItem("查看已关联列表", ShowReferences);
             if (!Constants.IsRA2YR)
             {
                 triggerContextMenu.AddItem("Wrap in EVA disable/enable actions", WrapInEVADisableAndEnableActions);
@@ -208,14 +208,14 @@ namespace TSMapEditor.UI.Windows
             FindChild<EditorButton>("btnDeleteTrigger").LeftClick += BtnDeleteTrigger_LeftClick;
             FindChild<EditorButton>("btnCloneTrigger").LeftClick += BtnCloneTrigger_LeftClick;
             ddActions = FindChild<XNADropDown>(nameof(ddActions));
-            ddActions.AddItem("Advanced...");
+            ddActions.AddItem("高级...");
             // Add context menu options to Advanced menu for backwards compatibility
             for (int i = 0; i < triggerContextMenu.Items.Count; i++)
             {
                 var contextMenuOption = triggerContextMenu.Items[i];
                 ddActions.AddItem(new XNADropDownItem() { Text = contextMenuOption.Text, Tag = contextMenuOption.SelectAction });
             }
-            ddActions.AddItem(new XNADropDownItem() { Text = "Re-generate Trigger IDs", Tag = new Action(RegenerateIDs) });
+            ddActions.AddItem(new XNADropDownItem() { Text = "重生成触发ID", Tag = new Action(RegenerateIDs) });
 
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;
@@ -308,10 +308,10 @@ namespace TSMapEditor.UI.Windows
             eventContextMenu = new EditorContextMenu(WindowManager);
             eventContextMenu.Name = nameof(eventContextMenu);
             eventContextMenu.Width = lbEvents.Width;
-            eventContextMenu.AddItem("Move Up", EventContextMenu_MoveUp, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex > 0);
-            eventContextMenu.AddItem("Move Down", EventContextMenu_MoveDown, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex < lbEvents.Items.Count - 1);
-            eventContextMenu.AddItem("Clone Event", EventContextMenu_CloneEvent, () => editedTrigger != null && lbEvents.SelectedItem != null);
-            eventContextMenu.AddItem("Delete Event", () => BtnDeleteEvent_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem("上移", EventContextMenu_MoveUp, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex > 0);
+            eventContextMenu.AddItem("下移", EventContextMenu_MoveDown, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex < lbEvents.Items.Count - 1);
+            eventContextMenu.AddItem("复制", EventContextMenu_CloneEvent, () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem("删除", () => BtnDeleteEvent_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbEvents.SelectedItem != null);
             AddChild(eventContextMenu);
 
             lbEvents.AllowRightClickUnselect = false;
@@ -320,10 +320,10 @@ namespace TSMapEditor.UI.Windows
             actionContextMenu = new EditorContextMenu(WindowManager);
             actionContextMenu.Name = nameof(actionContextMenu);
             actionContextMenu.Width = lbActions.Width;
-            actionContextMenu.AddItem("Move Up", ActionContextMenu_MoveUp, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
-            actionContextMenu.AddItem("Move Down", ActionContextMenu_MoveDown, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
-            actionContextMenu.AddItem("Clone Action", ActionContextMenu_CloneAction, () => editedTrigger != null && lbActions.SelectedItem != null);
-            actionContextMenu.AddItem("Delete Action", () => BtnDeleteAction_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem("上移", ActionContextMenu_MoveUp, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
+            actionContextMenu.AddItem("下移", ActionContextMenu_MoveDown, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
+            actionContextMenu.AddItem("复制", ActionContextMenu_CloneAction, () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem("删除", () => BtnDeleteAction_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbActions.SelectedItem != null);
             AddChild(actionContextMenu);
 
             lbActions.AllowRightClickUnselect = false;
@@ -332,10 +332,10 @@ namespace TSMapEditor.UI.Windows
             var sortContextMenu = new EditorContextMenu(WindowManager);
             sortContextMenu.Name = nameof(sortContextMenu);
             sortContextMenu.Width = lbTriggers.Width;
-            sortContextMenu.AddItem("Sort by ID", () => TriggerSortMode = TriggerSortMode.ID);
-            sortContextMenu.AddItem("Sort by Name", () => TriggerSortMode = TriggerSortMode.Name);
-            sortContextMenu.AddItem("Sort by Color", () => TriggerSortMode = TriggerSortMode.Color);
-            sortContextMenu.AddItem("Sort by Color, then by Name", () => TriggerSortMode = TriggerSortMode.ColorThenName);
+            sortContextMenu.AddItem("根据ID排序", () => TriggerSortMode = TriggerSortMode.ID);
+            sortContextMenu.AddItem("根据名称排序", () => TriggerSortMode = TriggerSortMode.Name);
+            sortContextMenu.AddItem("根据颜色排序", () => TriggerSortMode = TriggerSortMode.Color);
+            sortContextMenu.AddItem("先根据颜色,再根据名称排序", () => TriggerSortMode = TriggerSortMode.ColorThenName);
             AddChild(sortContextMenu);
 
             FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
@@ -1347,9 +1347,9 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var msgBox = EditorMessageBox.Show(WindowManager,
-                    "Are you sure?",
-                    "Do you really want to delete trigger \"" + editedTrigger.Name + "\"?" + Environment.NewLine + Environment.NewLine +
-                    "(You can hold Shift to skip this confirmation dialog.)", MessageBoxButtons.YesNo);
+                    "你确定吗?",
+                    "你真的想删除触发 \"" + editedTrigger.Name + "\"?" + Environment.NewLine + Environment.NewLine +
+                    "(您可以按住 Shift 键跳过该确认对话框。)", MessageBoxButtons.YesNo);
 
                 msgBox.YesClickedAction = _ => DeleteTrigger();
             }
@@ -1642,7 +1642,7 @@ namespace TSMapEditor.UI.Windows
                 ddType.AllowDropDown = false;
 
                 if (ddType.Items.Count < 4)
-                    ddType.AddItem("Error: No tag exists for this trigger!");
+                    ddType.AddItem("错误： 此触发不存在标签！");
             }
             else
             {
@@ -1772,7 +1772,7 @@ namespace TSMapEditor.UI.Windows
             TriggerActionType triggerActionType = map.EditorConfig.TriggerActionTypes.GetValueOrDefault(triggerAction.ActionIndex);
 
             selActionType.Text = triggerAction.ActionIndex + " " + (triggerActionType == null ? "Unknown" : triggerActionType.Name);
-            panelActionDescription.Text = triggerActionType == null ? "Unknown action. It has most likely been added with another editor." : triggerActionType.Description;
+            panelActionDescription.Text = triggerActionType == null ? "未知结果。很可能是用其他编辑器添加的。" : triggerActionType.Description;
 
             lbActionParameters.Clear();
             if (triggerActionType == null)
@@ -1919,7 +1919,7 @@ namespace TSMapEditor.UI.Windows
             TriggerEventType triggerEventType = map.EditorConfig.TriggerEventTypes.GetValueOrDefault(triggerCondition.ConditionIndex);
 
             selEventType.Text = triggerCondition.ConditionIndex + " " + (triggerEventType == null ? "Unknown" : triggerEventType.Name);
-            panelEventDescription.Text = triggerEventType == null ? "Unknown event. It has most likely been added with another editor." : triggerEventType.Description;
+            panelEventDescription.Text = triggerEventType == null ? "未知条件。很可能是用其他编辑器添加的。" : triggerEventType.Description;
 
             lbEventParameters.Clear();
             if (triggerEventType == null)

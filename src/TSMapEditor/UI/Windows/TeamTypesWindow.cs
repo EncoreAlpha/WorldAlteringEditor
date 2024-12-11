@@ -180,10 +180,10 @@ namespace TSMapEditor.UI.Windows
             var sortContextMenu = new EditorContextMenu(WindowManager);
             sortContextMenu.Name = nameof(sortContextMenu);
             sortContextMenu.Width = lbTeamTypes.Width;
-            sortContextMenu.AddItem("Sort by ID", () => TeamTypeSortMode = TeamTypeSortMode.ID);
-            sortContextMenu.AddItem("Sort by Name", () => TeamTypeSortMode = TeamTypeSortMode.Name);
-            sortContextMenu.AddItem("Sort by Color", () => TeamTypeSortMode = TeamTypeSortMode.Color);
-            sortContextMenu.AddItem("Sort by Color, then by Name", () => TeamTypeSortMode = TeamTypeSortMode.ColorThenName);
+            sortContextMenu.AddItem("根据ID排序", () => TeamTypeSortMode = TeamTypeSortMode.ID);
+            sortContextMenu.AddItem("根据名称排序", () => TeamTypeSortMode = TeamTypeSortMode.Name);
+            sortContextMenu.AddItem("根据颜色排序", () => TeamTypeSortMode = TeamTypeSortMode.Color);
+            sortContextMenu.AddItem("先根据颜色,再根据名称排序", () => TeamTypeSortMode = TeamTypeSortMode.ColorThenName);
             AddChild(sortContextMenu);
 
             FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());

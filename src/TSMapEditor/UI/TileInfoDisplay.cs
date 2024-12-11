@@ -78,39 +78,39 @@ namespace TSMapEditor.UI
 
             if (editorState.CursorAction != null)
             {
-                textRenderer.AddTextLine(new XNATextPart("Selected tool: ", Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextLine(new XNATextPart("工具: ", Constants.UIDefaultFont, subtleTextColor));
                 textRenderer.AddTextPart(new XNATextPart(editorState.CursorAction.GetName(), Constants.UIDefaultFont, baseTextColor));
             }
             else
             {
-                textRenderer.AddTextLine(new XNATextPart("No tool selected", Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextLine(new XNATextPart("无", Constants.UIDefaultFont, subtleTextColor));
             }
 
             textRenderer.AddTextLine(new XNATextPart(MapTile.X + ", " + MapTile.Y, Constants.UIDefaultFont, baseTextColor));
 
             TileImage tileGraphics = theaterGraphics.GetTileGraphics(MapTile.TileIndex);
             TileSet tileSet = theaterGraphics.Theater.TileSets[tileGraphics.TileSetId];
-            textRenderer.AddTextLine(new XNATextPart("TileSet: ", Constants.UIDefaultFont, subtleTextColor));
+            textRenderer.AddTextLine(new XNATextPart("图块类型: ", Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart(tileSet.SetName + " (" + tileGraphics.TileSetId + ")", Constants.UIDefaultFont, baseTextColor));
-            textRenderer.AddTextPart(new XNATextPart("Tile #: ", Constants.UIDefaultFont, subtleTextColor));
+            textRenderer.AddTextPart(new XNATextPart("图块 #: ", Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart((MapTile.TileIndex - tileSet.StartTileIndex).ToString(CultureInfo.InvariantCulture), Constants.UIDefaultFont, baseTextColor));
 
             MGTMPImage subCellImage = MapTile.SubTileIndex < tileGraphics.TMPImages.Length ? tileGraphics.TMPImages[MapTile.SubTileIndex] : null;
             string terrainType = subCellImage != null && subCellImage.TmpImage != null ? Helpers.LandTypeToString(subCellImage.TmpImage.TerrainType) : "Unknown";
 
-            textRenderer.AddTextLine(new XNATextPart("Terrain Type: ", Constants.UIDefaultFont, subtleTextColor));
+            textRenderer.AddTextLine(new XNATextPart("地形: ", Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart(terrainType, Constants.UIDefaultFont, baseTextColor));
 
             if (!Constants.IsFlatWorld)
             {
-                textRenderer.AddTextLine(new XNATextPart("Height: ", Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextLine(new XNATextPart("地表高度: ", Constants.UIDefaultFont, subtleTextColor));
                 textRenderer.AddTextPart(new XNATextPart(MapTile.Level.ToString(), Constants.UIDefaultFont, baseTextColor));
             }
 
             CellTag cellTag = MapTile.CellTag;
             if (cellTag != null)
             {
-                textRenderer.AddTextLine(new XNATextPart("CellTag: ",
+                textRenderer.AddTextLine(new XNATextPart("单元标记: ",
                     Constants.UIDefaultFont, subtleTextColor));
                 textRenderer.AddTextPart(new XNATextPart(cellTag.Tag.Name + " (" + cellTag.Tag.ID + ")",
                     Constants.UIDefaultFont, cellTag.Tag.Trigger.EditorColor == null ? baseTextColor : cellTag.Tag.Trigger.XNAColor));
@@ -120,18 +120,18 @@ namespace TSMapEditor.UI
             if (overlay != null)
             {
                 textRenderer.AddTextLine(new XNATextPart(
-                    "Overlay: ",
+                    "覆盖物: ",
                     Constants.UIDefaultFont, subtleTextColor));
 
                 textRenderer.AddTextPart(new XNATextPart(
-                    overlay.OverlayType.Name + " (" + overlay.OverlayType.Index + " " + overlay.OverlayType.ININame + "), Frame: " + overlay.FrameIndex + ", Terrain Type: " + overlay.OverlayType.Land,
+                    overlay.OverlayType.Name + " (" + overlay.OverlayType.Index + " " + overlay.OverlayType.ININame + "), 帧: " + overlay.FrameIndex + ", 类型: " + overlay.OverlayType.Land,
                     Constants.UIDefaultFont, baseTextColor));
             }
 
-            MapTile.DoForAllAircraft(aircraft => AddObjectInformation("Aircraft: ", aircraft));
-            MapTile.DoForAllVehicles(unit => AddObjectInformation("Vehicle: ", unit));
-            MapTile.DoForAllBuildings(structure => AddObjectInformation("Structure: ", structure));
-            MapTile.DoForAllInfantry(inf => AddObjectInformation("Infantry: ", inf));
+            MapTile.DoForAllAircraft(aircraft => AddObjectInformation("飞行器: ", aircraft));
+            MapTile.DoForAllVehicles(unit => AddObjectInformation("载具: ", unit));
+            MapTile.DoForAllBuildings(structure => AddObjectInformation("建筑物: ", structure));
+            MapTile.DoForAllInfantry(inf => AddObjectInformation("步兵: ", inf));
             MapTile.DoForAllWaypoints(waypoint => AddWaypointInfo(waypoint));
 
             textRenderer.PrepareTextParts();
@@ -205,7 +205,7 @@ namespace TSMapEditor.UI
                 }
 
                 if (usageFound)
-                    usages.Add("trigger '" + trigger.Name + "', ");
+                    usages.Add("触发 '" + trigger.Name + "', ");
             }
 
             foreach (Script script in map.Scripts)
@@ -221,7 +221,7 @@ namespace TSMapEditor.UI
 
                     if (scriptAction.ParamType == TriggerParamType.Waypoint && actionEntry.Argument == waypoint.Identifier)
                     {
-                        usages.Add("script '" + script.Name + "', ");
+                        usages.Add("脚本 '" + script.Name + "', ");
                     }
                 }
             }
@@ -230,7 +230,7 @@ namespace TSMapEditor.UI
             {
                 if (team.Waypoint == Helpers.WaypointNumberToAlphabeticalString(waypoint.Identifier))
                 {
-                    usages.Add("team '" + team.Name + "', ");
+                    usages.Add("小队 '" + team.Name + "', ");
                 }
             }
 
@@ -239,7 +239,7 @@ namespace TSMapEditor.UI
                 string lastUsage = usages[usages.Count - 1];
                 usages[usages.Count - 1] = lastUsage.Substring(0, lastUsage.Length - 2);
 
-                textRenderer.AddTextLine(new XNATextPart("Usages of waypoint " + waypoint.Identifier + ":", Constants.UIDefaultFont, Color.Gray));
+                textRenderer.AddTextLine(new XNATextPart("路径点使用 " + waypoint.Identifier + ":", Constants.UIDefaultFont, Color.Gray));
 
                 foreach (var usage in usages)
                 {
@@ -253,21 +253,21 @@ namespace TSMapEditor.UI
             textRenderer.AddTextPart(new XNATextPart(Environment.NewLine));
             textRenderer.AddTextLine(new XNATextPart(objectTypeLabel,
                 Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart(techno.ObjectType.Name + " (" + techno.ObjectType.ININame + "), Owner:",
+            textRenderer.AddTextPart(new XNATextPart(techno.ObjectType.Name + " (" + techno.ObjectType.ININame + "), 归属于:",
                     Constants.UIDefaultFont, Color.White));
             textRenderer.AddTextPart(new XNATextPart(techno.Owner.ININame, Constants.UIBoldFont, techno.Owner.XNAColor));
 
             if (techno.IsFoot())
             {
                 var technoAsFoot = techno as Foot<T>;
-                textRenderer.AddTextPart(new XNATextPart("Mission: " + technoAsFoot.Mission, Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart("状态: " + technoAsFoot.Mission, Constants.UIDefaultFont, Color.White));
             }
 
             if (techno.WhatAmI() == RTTIType.Unit)
             {
                 var unit = techno as Unit;
                 int id = map.Units.IndexOf(unit);
-                textRenderer.AddTextPart(new XNATextPart("Facing: " + techno.Facing, Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart("朝向: " + techno.Facing, Constants.UIDefaultFont, Color.White));
 
                 if (unit.FollowerUnit != null)
                 {
@@ -275,7 +275,7 @@ namespace TSMapEditor.UI
                     if (followerId > -1)
                     {
                         string followerName = unit.FollowerUnit.UnitType.GetEditorDisplayName();
-                        textRenderer.AddTextPart(new XNATextPart("Follower: " + followerName + " at " + unit.FollowerUnit.Position, Constants.UIDefaultFont, Color.White));
+                        textRenderer.AddTextPart(new XNATextPart("跟随者: " + followerName + " at " + unit.FollowerUnit.Position, Constants.UIDefaultFont, Color.White));
                     }
                 }
             }
@@ -283,7 +283,7 @@ namespace TSMapEditor.UI
             if (techno.AttachedTag != null)
             {
                 textRenderer.AddTextPart(new XNATextPart(",", Constants.UIDefaultFont, Color.White));
-                textRenderer.AddTextPart(new XNATextPart("Tag:", Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart("标签:", Constants.UIDefaultFont, Color.White));
                 textRenderer.AddTextPart(new XNATextPart(techno.AttachedTag.Name + " (" + techno.AttachedTag.ID + ")", Constants.UIBoldFont, Color.White));
             }
         }

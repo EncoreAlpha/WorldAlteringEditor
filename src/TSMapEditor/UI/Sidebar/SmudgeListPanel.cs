@@ -42,7 +42,7 @@ namespace TSMapEditor.UI.Sidebar
             SearchBox.Y = Constants.UIEmptyTopSpace;
             SearchBox.Width = Width - Constants.UIEmptySideSpace * 2;
             SearchBox.Height = Constants.UITextBoxHeight;
-            SearchBox.Suggestion = "Search smudge... (CTRL + F)";
+            SearchBox.Suggestion = "搜索污染... (CTRL + F)";
             AddChild(SearchBox);
             SearchBox.TextChanged += SearchBox_TextChanged;
             SearchBox.EnterPressed += SearchBox_EnterPressed;
@@ -167,7 +167,7 @@ namespace TSMapEditor.UI.Sidebar
 
             categories.Add(new TreeViewCategory()
             {
-                Text = "Erase Smudges",
+                Text = "擦除污染",
                 Tag = new object()
             });
 

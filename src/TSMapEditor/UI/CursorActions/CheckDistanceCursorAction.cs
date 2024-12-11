@@ -52,7 +52,7 @@ namespace TSMapEditor.UI.CursorActions
 
             if (source == null)
             {
-                DrawText(cellCoords, cameraTopLeftPoint, "Click to select source coordinate, or right-click to exit", sourceColor);
+                DrawText(cellCoords, cameraTopLeftPoint, "单击选择源坐标，或右击退出", sourceColor);
                 return;
             }
 
@@ -80,7 +80,7 @@ namespace TSMapEditor.UI.CursorActions
                 Renderer.FillRectangle(GetDrawRectangleForMarker(pathCellCenterPoint), Color.Yellow);
             }
 
-            string text = "Path Length In Cells: " + pathLength + "\r\n\r\nClick to select new source coordinate, or right-click to exit";
+            string text = "以单元格为单位的路径长度: " + pathLength + "\r\n\r\n单击选择新源坐标，或右击退出";
             DrawText(cellCoords, cameraTopLeftPoint, text, pathColor);
         }
 

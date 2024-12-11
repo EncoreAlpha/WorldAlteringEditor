@@ -107,13 +107,13 @@ namespace TSMapEditor.UI.CursorActions
 
             if (source == null)
             {
-                DrawText(cellCoords, cameraTopLeftPoint, "Click to select source coordinate, or right-click to exit", sourceColor);
+                DrawText(cellCoords, cameraTopLeftPoint, "单击选择源坐标，或右击退出", sourceColor);
                 return;
             }
 
             string instruction = Environment.NewLine + Environment.NewLine +
-                "Current mode: " + (isInfantry ? "Infantry" : "Vehicle") + " (switch by pressing I)" + Environment.NewLine + Environment.NewLine +
-                "Current movement zone: " + movementZone + " (cycle between Land, Water and both by pressing C)";
+                "当前模式: " + (isInfantry ? "步兵" : "载具") + " (通过按 I 切换)" + Environment.NewLine + Environment.NewLine +
+                "当前移动区域: " + movementZone + " (按 C 在<陆地>、<水域>和<两者>之间切换)";
 
             Func<Point2D, Map, Point2D> getCellCenterPoint = Is2DMode ? CellMath.CellCenterPointFromCellCoords : CellMath.CellCenterPointFromCellCoords_3D;
 
@@ -142,9 +142,9 @@ namespace TSMapEditor.UI.CursorActions
             string text;
 
             if (pathCellCoords.Count == 0)
-                text = "No path found!\r\n\r\nClick to select new source coordinate, or right-click to exit" + instruction;
+                text = "找不到路径!\r\n\r\n单击选择新源坐标，或右击退出" + instruction;
             else
-                text = "Path Length In Cells: " + pathCellCoords.Count + "\r\n\r\nClick to select new source coordinate, or right-click to exit" + instruction;
+                text = "以单元格为单位的路径长度: " + pathCellCoords.Count + "\r\n\r\n单击选择新源坐标，或右击退出" + instruction;
 
             DrawText(cellCoords, cameraTopLeftPoint, text, pathColor);
         }

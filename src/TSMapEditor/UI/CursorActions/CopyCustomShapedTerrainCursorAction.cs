@@ -146,9 +146,9 @@ namespace TSMapEditor.UI.CursorActions
                 }
             }
 
-            string text = "Press left click on cells to mark them to be copied." + Environment.NewLine + Environment.NewLine +
-                    "Hold SHIFT while pressing to remove cells." + Environment.NewLine + Environment.NewLine +
-                    "Press ENTER when ready to copy the cells to the clipboard.";
+            string text = "左键单击单元格，标记要复制的单元格。" + Environment.NewLine + Environment.NewLine +
+                    "按住 SHIFT 键的同时单击可删除单元格。" + Environment.NewLine + Environment.NewLine +
+                    "准备好后按 ENTER 键，将单元格复制到剪贴板。";
 
             DrawText(cellCoords, cameraTopLeftPoint, 90, -200, text, Color.Yellow);
         }

@@ -95,14 +95,14 @@ namespace TSMapEditor.UI
             var lblHeader = new XNALabel(WindowManager);
             lblHeader.Name = nameof(lblHeader);
             lblHeader.FontIndex = Constants.UIBoldFont;
-            lblHeader.Text = "Settings";
+            lblHeader.Text = "设置";
             lblHeader.Y = Constants.UIEmptyTopSpace;
             AddChild(lblHeader);
             lblHeader.CenterOnParentHorizontally();
 
             var lblRenderScale = new XNALabel(WindowManager);
             lblRenderScale.Name = nameof(lblRenderScale);
-            lblRenderScale.Text = "Render Scale:";
+            lblRenderScale.Text = "渲染比例:";
             lblRenderScale.X = Constants.UIEmptySideSpace;
             lblRenderScale.Y = lblHeader.Bottom + Constants.UIEmptyTopSpace + 1;
             AddChild(lblRenderScale);
@@ -130,7 +130,7 @@ namespace TSMapEditor.UI
 
             var lblTheme = new XNALabel(WindowManager);
             lblTheme.Name = nameof(lblTheme);
-            lblTheme.Text = "Theme:";
+            lblTheme.Text = "主题:";
             lblTheme.X = lblRenderScale.X;
             lblTheme.Y = ddRenderScale.Bottom + Constants.UIEmptyTopSpace;
             AddChild(lblTheme);
@@ -146,7 +146,7 @@ namespace TSMapEditor.UI
 
             var lblScrollRate = new XNALabel(WindowManager);
             lblScrollRate.Name = nameof(lblScrollRate);
-            lblScrollRate.Text = "Scroll Rate:";
+            lblScrollRate.Text = "滚动速率:";
             lblScrollRate.X = lblRenderScale.X;
             lblScrollRate.Y = ddTheme.Bottom + Constants.UIEmptyTopSpace;
             AddChild(lblScrollRate);
@@ -157,7 +157,7 @@ namespace TSMapEditor.UI
             ddScrollRate.Y = lblScrollRate.Y - 1;
             ddScrollRate.Width = ddRenderScale.Width;
             AddChild(ddScrollRate);
-            var scrollRateNames = new string[] { "Fastest", "Faster", "Fast", "Normal", "Slow", "Slower", "Slowest" };
+            var scrollRateNames = new string[] { "最快", "很快", "快", "正常", "慢", "很慢", "最慢" };
             var scrollRateValues = new int[] { 21, 18, 15, 12, 9, 6, 3 };
             for (int i = 0; i < scrollRateNames.Length; i++)
             {
@@ -168,26 +168,26 @@ namespace TSMapEditor.UI
             chkBorderless.Name = nameof(chkBorderless);
             chkBorderless.X = Constants.UIEmptySideSpace;
             chkBorderless.Y = ddScrollRate.Bottom + Constants.UIVerticalSpacing;
-            chkBorderless.Text = "Start In Borderless Mode";
+            chkBorderless.Text = "无边框模式";
             AddChild(chkBorderless);
 
             chkUseBoldFont = new XNACheckBox(WindowManager);
             chkUseBoldFont.Name = nameof(chkUseBoldFont);
             chkUseBoldFont.X = Constants.UIEmptySideSpace;
             chkUseBoldFont.Y = chkBorderless.Bottom + Constants.UIVerticalSpacing;
-            chkUseBoldFont.Text = "Use Bold Font";
+            chkUseBoldFont.Text = "使用粗体";
             AddChild(chkUseBoldFont);
 
             chkGraphicsLevel = new XNACheckBox(WindowManager);
             chkGraphicsLevel.Name = nameof(chkGraphicsLevel);
             chkGraphicsLevel.X = Constants.UIEmptySideSpace;
             chkGraphicsLevel.Y = chkUseBoldFont.Bottom + Constants.UIVerticalSpacing;
-            chkGraphicsLevel.Text = "Enhanced Graphical Quality";
+            chkGraphicsLevel.Text = "增强的图形质量";
             AddChild(chkGraphicsLevel);
 
             var lblTextEditorPath = new XNALabel(WindowManager);
             lblTextEditorPath.Name = nameof(lblTextEditorPath);
-            lblTextEditorPath.Text = "Text Editor Path:";
+            lblTextEditorPath.Text = "文本编辑器路径:";
             lblTextEditorPath.X = Constants.UIEmptySideSpace;
             lblTextEditorPath.Y = chkGraphicsLevel.Bottom + Constants.UIVerticalSpacing * 2;
             AddChild(lblTextEditorPath);

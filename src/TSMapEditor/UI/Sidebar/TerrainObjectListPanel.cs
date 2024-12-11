@@ -43,7 +43,7 @@ namespace TSMapEditor.UI.Sidebar
             SearchBox.Y = Constants.UIEmptyTopSpace;
             SearchBox.Width = Width - Constants.UIEmptySideSpace * 2;
             SearchBox.Height = Constants.UITextBoxHeight;
-            SearchBox.Suggestion = "Search object... (CTRL + F)";
+            SearchBox.Suggestion = "搜索地形对象... (CTRL + F)";
             AddChild(SearchBox);
             SearchBox.TextChanged += SearchBox_TextChanged;
             SearchBox.EnterPressed += SearchBox_EnterPressed;

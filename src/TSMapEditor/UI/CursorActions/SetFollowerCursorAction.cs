@@ -29,7 +29,7 @@ namespace TSMapEditor.UI.CursorActions
             Point2D cellTopLeftPoint = CellMath.CellTopLeftPointFromCellCoords_3D(cellCoords, CursorActionTarget.Map) - cameraTopLeftPoint;
             cellTopLeftPoint = cellTopLeftPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
-            const string text = "Left-click on a unit to set it as Follower\r\n\r\nPress ESC to clear follower";
+            const string text = "左键单击一个单位，将其设置为被跟随者\r\n\r\n按 ESC 清除被跟随者";
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
             int x = cellTopLeftPoint.X + (int)(Constants.CellSizeX - textDimensions.X) / 2;
             int y = cellTopLeftPoint.Y + (int)(Constants.CellSizeY - textDimensions.Y) / 2;

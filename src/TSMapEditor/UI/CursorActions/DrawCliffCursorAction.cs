@@ -44,13 +44,13 @@ namespace TSMapEditor.UI.CursorActions
 
         public override void DrawPreview(Point2D cellCoords, Point2D cameraTopLeftPoint)
         {
-            const string mainText = "Click on a cell to place a new vertex.\r\n\r\n" +
-                "ENTER to confirm\r\n" +
-                "Backspace to go back one step\r\n";
+            const string mainText = "单击单元格来放置新顶点。\r\n\r\n" +
+                "按 ENTER 键确认\r\n" +
+                "按 Backspace 键撤销一步\r\n";
 
-            const string tabText = "TAB to toggle between front and back sides\r\n";
-            const string pageUpDownText = "PageUp to raise the tiles, PageDown to lower them\r\n";
-            const string exitText = "Right-click or ESC to exit";
+            const string tabText = "按 TAB 键在正面和背面之间切换\r\n";
+            const string pageUpDownText = "按 PageUp 可以升高地形，按 PageDown 可以降低地形\r\n";
+            const string exitText = "单击右键或 ESC 退出";
 
             string text = (Constants.IsFlatWorld, cliffType.FrontOnly) switch
             {

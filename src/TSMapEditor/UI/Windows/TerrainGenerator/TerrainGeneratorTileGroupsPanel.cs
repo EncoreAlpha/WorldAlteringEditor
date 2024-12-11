@@ -56,7 +56,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblTileSet.X = Constants.UIEmptySideSpace;
                 lblTileSet.Y = y;
                 lblTileSet.FontIndex = Constants.UIBoldFont;
-                lblTileSet.Text = $"Tile Set (Group #{i + 1})";
+                lblTileSet.Text = $"图块 (组 #{i + 1})";
                 AddChild(lblTileSet);
 
                 var selTileSet = new EditorPopUpSelector(WindowManager);
@@ -72,7 +72,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblTileIndices.Name = nameof(lblTileIndices) + i;
                 lblTileIndices.X = selTileSet.Right + Constants.UIHorizontalSpacing;
                 lblTileIndices.Y = lblTileSet.Y;
-                lblTileIndices.Text = $"Indexes of tiles to place (leave blank for all)";
+                lblTileIndices.Text = $"要放置的图块的索引（全部留空）";
                 AddChild(lblTileIndices);
 
                 var tbTileIndices = new EditorTextBox(WindowManager);
@@ -87,7 +87,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblOpenChance.Name = nameof(lblOpenChance) + i;
                 lblOpenChance.X = tbTileIndices.Right + Constants.UIHorizontalSpacing;
                 lblOpenChance.Y = lblTileSet.Y;
-                lblOpenChance.Text = "Open cell chance:";
+                lblOpenChance.Text = "空白单元格概率";
                 AddChild(lblOpenChance);
 
                 var tbOpenChance = new EditorNumberTextBox(WindowManager);
@@ -103,7 +103,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblOccupiedChance.Name = nameof(lblOccupiedChance) + i;
                 lblOccupiedChance.X = tbOpenChance.Right + Constants.UIHorizontalSpacing;
                 lblOccupiedChance.Y = lblOpenChance.Y;
-                lblOccupiedChance.Text = "Occupied cell chance:";
+                lblOccupiedChance.Text = "占据单元格概率";
                 AddChild(lblOccupiedChance);
 
                 var tbOccupiedChance = new EditorNumberTextBox(WindowManager);
@@ -157,8 +157,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
 
                     if (invalidElement != 0) // this can never be 0 if an invalid element exists, because each valid tileset has at least 1 tile
                     {
-                        EditorMessageBox.Show(WindowManager, "Generator Config Error",
-                            $"Tile with index '{ invalidElement }' does not exist in tile set '{ tileSet.SetName }'!", MessageBoxButtons.OK);
+                        EditorMessageBox.Show(WindowManager, "生成器配置失败",
+                            $"一个图块索引为 '{ invalidElement }' 的不存在于 '{ tileSet.SetName }'!", MessageBoxButtons.OK);
                         return null;
                     }
                 }

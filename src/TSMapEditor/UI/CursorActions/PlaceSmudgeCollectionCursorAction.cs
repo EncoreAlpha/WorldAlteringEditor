@@ -24,7 +24,7 @@ namespace TSMapEditor.UI.CursorActions
             {
                 if (value.Entries.Length == 0)
                 {
-                    throw new InvalidOperationException($"Smudge collection {value.Name} has no smudge entries!");
+                    throw new InvalidOperationException($"污染 collection {value.Name} 没有污染条目！");
                 }
 
                 _smudgeCollection = value;

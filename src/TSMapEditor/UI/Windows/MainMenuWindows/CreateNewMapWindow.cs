@@ -77,31 +77,31 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
         {
             if (tbWidth.Value < MinMapSize)
             {
-                EditorMessageBox.Show(WindowManager, "Map too narrow", "Map width must be at least " + MinMapSize + " cells.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "地图太窄", "地图宽度至少 " + MinMapSize + " 单元格.", MessageBoxButtons.OK);
                 return;
             }
 
             if (tbHeight.Value < MinMapSize)
             {
-                EditorMessageBox.Show(WindowManager, "Map too small", "Map height must be at least " + MinMapSize + " cells.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "地图太小", "地图长度至少 " + MinMapSize + " 单元格.", MessageBoxButtons.OK);
                 return;
             }
 
             if (tbWidth.Value > Constants.MaxMapWidth)
             {
-                EditorMessageBox.Show(WindowManager, "Map too wide", "Map width cannot exceed " + Constants.MaxMapWidth + " cells.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "地图太宽", "地图宽度不能超过 " + Constants.MaxMapWidth + " 单元格.", MessageBoxButtons.OK);
                 return;
             }
 
             if (tbHeight.Value > Constants.MaxMapHeight)
             {
-                EditorMessageBox.Show(WindowManager, "Map too long", "Map height cannot exceed " + Constants.MaxMapHeight + " cells.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "地图太长", "地图长度不能超过 " + Constants.MaxMapHeight + " 单元格.", MessageBoxButtons.OK);
                 return;
             }
 
             if (tbWidth.Value + tbHeight.Value > MaxMapSize)
             {
-                EditorMessageBox.Show(WindowManager, "Map too large", "Map width + height cannot exceed " + MaxMapSize + " cells.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, "地图太大", "地图 <宽度> + <长度> 不能超过 " + MaxMapSize + " 单元格.", MessageBoxButtons.OK);
                 return;
             }
 

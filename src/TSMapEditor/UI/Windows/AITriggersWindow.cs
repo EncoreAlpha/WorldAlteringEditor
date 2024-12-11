@@ -105,18 +105,18 @@ namespace TSMapEditor.UI.Windows
                 return;
 
             var messageBox = EditorMessageBox.Show(WindowManager,
-                "Are you sure?",
-                "Cloning this AI trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
-                "of this AI trigger for Medium and Easy difficulties, setting the difficulty" + Environment.NewLine +
-                "setting for each AI trigger to Medium and Easy, respectively." + Environment.NewLine +
-                "This will set the current AI trigger's difficulty to Hard only." + Environment.NewLine + Environment.NewLine +
-                "In case the AI trigger references a Primary or Secondary TeamTypes," + Environment.NewLine +
-                "those TeamTypes and their TaskForoces would be duplicated for easier difficulties." + Environment.NewLine +
-                "If those duplicates already exist, this action will set the AI triggers to use those " + Environment.NewLine +
-                "TeamTypes instead." + Environment.NewLine + Environment.NewLine +
-                "The script assumes that this AI Trigger has the words 'H' or 'Hard'" + Environment.NewLine +
-                "in their name and in their respective TeamTypes and TaskForces." + Environment.NewLine + Environment.NewLine +
-                "No un-do is available. Do you want to continue?", MessageBoxButtons.YesNo);
+                "你确定吗？",
+                "为低难度复制此AI触发将创建副本，副本将每个AI触发" + Environment.NewLine +
+                "的难度设置分别设为 <中等> 和 <简单>。" + Environment.NewLine +
+                "这将把当前AI触发的难度设置为 <困难>。" + Environment.NewLine +
+                "如果AI触发设置了第一或第二作战小队，则" + Environment.NewLine + Environment.NewLine +
+                "这些作战小队及其特遣部队将被复制到低难度中。," + Environment.NewLine +
+                "如果这些副本已经存在，此操作将设置AI触发使用这些作战小队。" + Environment.NewLine +
+                "脚本假定该AI触发的名称及其各自的 <作战小队> 和 <特遣部队> 中含有 <H> 或 <Hard> 字样。" + Environment.NewLine +
+                "" + Environment.NewLine + Environment.NewLine +
+                "" + Environment.NewLine +
+                "" + Environment.NewLine + Environment.NewLine +
+                "无法撤销。你想继续吗？", MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties();
         }

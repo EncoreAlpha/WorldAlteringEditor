@@ -46,7 +46,7 @@ namespace TSMapEditor.UI.Sidebar
             SearchBox.Y = Constants.UIEmptyTopSpace;
             SearchBox.Width = Width - Constants.UIEmptySideSpace * 2;
             SearchBox.Height = Constants.UITextBoxHeight;
-            SearchBox.Suggestion = "Search overlay... (CTRL + F)";
+            SearchBox.Suggestion = "搜索覆盖物... (CTRL + F)";
             AddChild(SearchBox);
             SearchBox.TextChanged += SearchBox_TextChanged;
             SearchBox.EnterPressed += SearchBox_EnterPressed;
@@ -183,7 +183,7 @@ namespace TSMapEditor.UI.Sidebar
 
             categories.Add(new TreeViewCategory()
             {
-                Text = "Erase Overlay",
+                Text = "擦除覆盖物",
                 Tag = new object()
             });
 

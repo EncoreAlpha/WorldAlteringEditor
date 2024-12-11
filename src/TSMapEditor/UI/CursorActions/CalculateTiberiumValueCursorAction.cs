@@ -35,7 +35,7 @@ namespace TSMapEditor.UI.CursorActions
         {
             if (StartCellCoords == null)
             {
-                DrawText(cellCoords, cameraTopLeftPoint, 60, -150, "Click to select starting cell to calculate from.", Color.Yellow);
+                DrawText(cellCoords, cameraTopLeftPoint, 60, -150, "点击选择要计算的起始单元格。", Color.Yellow);
                 return;
             }
 
@@ -64,8 +64,8 @@ namespace TSMapEditor.UI.CursorActions
             Renderer.DrawLine(corner1.ToXNAVector(), endPoint.ToXNAVector(), lineColor, thickness);
             Renderer.DrawLine(corner2.ToXNAVector(), endPoint.ToXNAVector(), lineColor, thickness);
 
-            string text = "Click to select starting cell to calculate from." + Environment.NewLine + Environment.NewLine +
-                "Value in current area: " + GetTiberiumValue(startY, endY, startX, endX) + " credits";
+            string text = "点击选择要计算的起始单元格。" + Environment.NewLine + Environment.NewLine +
+                "当前区域价值: " + GetTiberiumValue(startY, endY, startX, endX) + " 单位";
             DrawText(cellCoords, cameraTopLeftPoint, 60, -150, text, Color.Yellow);
         }
 

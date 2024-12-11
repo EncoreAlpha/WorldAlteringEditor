@@ -43,7 +43,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblTerrainTypes.X = Constants.UIEmptySideSpace;
                 lblTerrainTypes.Y = y;
                 lblTerrainTypes.FontIndex = Constants.UIBoldFont;
-                lblTerrainTypes.Text = $"Terrain Types (Group #{i + 1})";
+                lblTerrainTypes.Text = $"地形对象 (组 #{i + 1})";
                 AddChild(lblTerrainTypes);
 
                 var tbTerrainTypes = new EditorTextBox(WindowManager);
@@ -58,7 +58,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblOpenChance.Name = nameof(lblOpenChance) + i;
                 lblOpenChance.X = tbTerrainTypes.Right + Constants.UIHorizontalSpacing;
                 lblOpenChance.Y = lblTerrainTypes.Y;
-                lblOpenChance.Text = "Open cell chance:";
+                lblOpenChance.Text = "空白单元格概率";
                 AddChild(lblOpenChance);
 
                 var tbOpenChance = new EditorNumberTextBox(WindowManager);
@@ -74,7 +74,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblOccupiedChance.Name = nameof(lblOccupiedChance) + i;
                 lblOccupiedChance.X = tbOpenChance.Right + Constants.UIHorizontalSpacing;
                 lblOccupiedChance.Y = lblOpenChance.Y;
-                lblOccupiedChance.Text = "Occupied cell chance:";
+                lblOccupiedChance.Text = "占据单元格概率";
                 AddChild(lblOccupiedChance);
 
                 var tbOccupiedChance = new EditorNumberTextBox(WindowManager);
@@ -111,8 +111,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                     var terrainType = map.Rules.TerrainTypes.Find(tt => tt.ININame == parts[a]);
                     if (terrainType == null)
                     {
-                        EditorMessageBox.Show(WindowManager, "Generator Config Error",
-                            $"Specified terrain type '{ parts[a] }' does not exist!", MessageBoxButtons.OK);
+                        EditorMessageBox.Show(WindowManager, "生成器配置失败",
+                            $"指定地形对象 '{ parts[a] }' 并不存在!", MessageBoxButtons.OK);
                         return null;
                     }
                     terrainTypes.Add(terrainType);

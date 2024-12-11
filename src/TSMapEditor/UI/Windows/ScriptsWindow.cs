@@ -113,10 +113,10 @@ namespace TSMapEditor.UI.Windows
             var sortContextMenu = new EditorContextMenu(WindowManager);
             sortContextMenu.Name = nameof(sortContextMenu);
             sortContextMenu.Width = lbScriptTypes.Width;
-            sortContextMenu.AddItem("Sort by ID", () => ScriptSortMode = ScriptSortMode.ID);
-            sortContextMenu.AddItem("Sort by Name", () => ScriptSortMode = ScriptSortMode.Name);
-            sortContextMenu.AddItem("Sort by Color", () => ScriptSortMode = ScriptSortMode.Color);
-            sortContextMenu.AddItem("Sort by Color, then by Name", () => ScriptSortMode = ScriptSortMode.ColorThenName);
+            sortContextMenu.AddItem("根据ID排序", () => ScriptSortMode = ScriptSortMode.ID);
+            sortContextMenu.AddItem("根据名称排序", () => ScriptSortMode = ScriptSortMode.Name);
+            sortContextMenu.AddItem("根据颜色排序", () => ScriptSortMode = ScriptSortMode.Color);
+            sortContextMenu.AddItem("先根据颜色,再根据名称排序", () => ScriptSortMode = ScriptSortMode.ColorThenName);
             AddChild(sortContextMenu);
 
             FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());

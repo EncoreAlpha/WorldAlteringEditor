@@ -43,7 +43,7 @@ namespace TSMapEditor.UI.CursorActions
 
             cellTopLeftPoint = cellTopLeftPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
-            const string text = "Hold left click to draw bridge.\r\n\r\nENTER to confirm\r\nBackspace to clear\r\nRight-click or ESC to exit";
+            const string text = "按住左键绘制桥梁。\r\n\r\n按 ENTER 键确认\r\n按 Backspace 清除\r\n单击右键或 ESC 退出";
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
             int x = cellTopLeftPoint.X - (int)(textDimensions.X - Constants.CellSizeX) / 2;
 

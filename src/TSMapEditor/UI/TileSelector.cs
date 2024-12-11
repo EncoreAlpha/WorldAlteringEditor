@@ -58,7 +58,7 @@ namespace TSMapEditor.UI
             tbSearch = new EditorSuggestionTextBox(WindowManager);
             tbSearch.Name = nameof(tbSearch);
             tbSearch.Width = TileSetListWidth;
-            tbSearch.Suggestion = "Search TileSet...";
+            tbSearch.Suggestion = "搜索地形...";
             AddChild(tbSearch);
             UIHelpers.AddSearchTipsBoxToControl(tbSearch);
             tbSearch.TextChanged += TbSearch_TextChanged;
