@@ -385,6 +385,8 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         protected virtual float GetObjectBottomCornerXPos(T gameObject, PositionedTexture texture) => 0.5f;
 
+        protected virtual double GetExtraLight(T gameObject) => 0.0;
+
         protected void DrawShapeImage(T gameObject, ShapeImage image, int frameIndex, Color color,
             bool drawRemap, Color remapColor, bool affectedByLighting, bool affectedByAmbient, Point2D drawPoint,
             float depthAddition = 0f, float textureWidthCenterPoint = 0.5f)
@@ -402,19 +404,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             Rectangle drawingBounds = GetTextureDrawCoords(gameObject, frame, drawPoint);
 
-            double extraLight = 0.0;
-            switch (gameObject.WhatAmI())
-            {
-                case RTTIType.Unit:
-                    extraLight = Map.Rules.ExtraUnitLight;
-                    break;
-                case RTTIType.Infantry:
-                    extraLight = Map.Rules.ExtraInfantryLight;
-                    break;
-                case RTTIType.Aircraft:
-                    extraLight = Map.Rules.ExtraAircraftLight;
-                    break;
-            }
+            double extraLight = GetExtraLight(gameObject);
 
             Vector4 lighting = Vector4.One;
             var mapCell = Map.GetTile(gameObject.Position);
@@ -455,16 +445,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             if (drawRemap)
                 remapFrame = model.GetRemapFrame(facing, ramp, false);
 
-            double extraLight = 0.0;
-            switch (gameObject.WhatAmI())
-            {
-                case RTTIType.Unit:
-                    extraLight = Map.Rules.ExtraUnitLight;
-                    break;
-                case RTTIType.Aircraft:
-                    extraLight = Map.Rules.ExtraAircraftLight;
-                    break;
-            }
+            double extraLight = GetExtraLight(gameObject);
 
             Vector4 lighting = Vector4.One;
             var mapCell = Map.GetTile(gameObject.Position);

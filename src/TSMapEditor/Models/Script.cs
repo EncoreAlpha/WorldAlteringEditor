@@ -141,7 +141,7 @@ namespace TSMapEditor.Models
             for (int i = 0; i < MaxActionCount; i++)
             {
                 if (!scriptSection.KeyExists(i.ToString()))
-                    break;
+                    continue;
 
                 var scriptActionEntry = ScriptActionEntry.ParseScriptActionEntry(scriptSection.GetStringValue(i.ToString(), "-1,-1"));
                 if (scriptActionEntry != null)

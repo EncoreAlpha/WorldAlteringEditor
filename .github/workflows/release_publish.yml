@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  release-tsclient:
+  release-ts:
     runs-on: windows-latest
 
     steps:
@@ -23,7 +23,7 @@ jobs:
       shell: pwsh
 
     - name: Pack compiled binaries
-      run: 7z a -tzip -r WorldAlteringEditor_TSClient.zip "D:\a\WorldAlteringEditor\WorldAlteringEditor\Build\*.*"
+      run: 7z a -tzip -r WorldAlteringEditor_TiberianSun.zip "D:\a\WorldAlteringEditor\WorldAlteringEditor\Build\*.*"
 
     - name: Upload compiled binaries
       uses: actions/upload-release-asset@v1
@@ -31,8 +31,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: 'WorldAlteringEditor_TSClient.zip'
-        asset_name: WorldAlteringEditor_TSClient.zip
+        asset_path: 'WorldAlteringEditor_TiberianSun.zip'
+        asset_name: WorldAlteringEditor_TiberianSun.zip
         asset_content_type: application/zip
         
         
@@ -66,32 +66,3 @@ jobs:
         asset_name: WorldAlteringEditor_YurisRevenge.zip
         asset_content_type: application/zip
 
-  release-steamts:
-    runs-on: windows-latest
-
-    steps:
-    - uses: actions/checkout@v3.1.0
-      with:
-        ref: steamts
-
-    - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v3.0.3
-      with:
-        dotnet-version: '8.x.x'
-
-    - name: Build Editor
-      run: ./build.ps1
-      shell: pwsh
-
-    - name: Pack compiled binaries
-      run: 7z a -tzip -r WorldAlteringEditor_TS_Steam.zip "D:\a\WorldAlteringEditor\WorldAlteringEditor\Build\*.*"
-
-    - name: Upload compiled binaries
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: 'WorldAlteringEditor_TS_Steam.zip'
-        asset_name: WorldAlteringEditor_TS_Steam.zip
-        asset_content_type: application/zip

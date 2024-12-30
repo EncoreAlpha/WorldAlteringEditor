@@ -453,7 +453,7 @@ namespace TSMapEditor.UI.Windows
         {
             ddHouse.Items.Clear();
             ddHouse.AddItem(Constants.NoneValue1);
-            map.GetHouseTypes().ForEach(ht => ddHouse.AddItem(ht.ININame, ht.XNAColor));
+            map.GetHouseTypes().ForEach(ht => ddHouse.AddItem(ht.ININame, Helpers.GetHouseTypeUITextColor(ht)));
         }
 
         private void ListTeamTypes()

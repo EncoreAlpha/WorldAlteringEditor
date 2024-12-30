@@ -5,7 +5,7 @@ namespace TSMapEditor
 {
     public static class Constants
     {
-        public const string ReleaseVersion = "1.3.5";
+        public const string ReleaseVersion = "1.3.8";
 
         public static int CellSizeX = 48;
         public static int CellSizeY = 24;
@@ -28,9 +28,8 @@ namespace TSMapEditor
         public static bool WarnOfTooManyTriggerActions = true;
         public static bool DefaultPreview = false;
 
-        public static string ExpectedClientExecutableName = "DTA.exe";
+        public static string[] ExpectedClientExecutableNames = new string[] { "DTA.exe" };
         public static string GameRegistryInstallPath = "SOFTWARE\\DawnOfTheTiberiumAge";
-        public static bool InstallPathAtHKLM = false;
         public static string OpenFileDialogFilter = "TS maps|*.map|All files|*.*";
 
         public static bool EnableIniInclude = false;
@@ -144,9 +143,13 @@ namespace TSMapEditor
             WarnOfTooManyTriggerActions = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(WarnOfTooManyTriggerActions), WarnOfTooManyTriggerActions);
             DefaultPreview = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(DefaultPreview), DefaultPreview);
 
-            ExpectedClientExecutableName = constantsIni.GetStringValue(ConstantsSectionName, nameof(ExpectedClientExecutableName), ExpectedClientExecutableName);
+            // Check two keys for backwards compatibility
+            if (constantsIni.KeyExists(ConstantsSectionName, "ExpectedClientExecutableName"))
+                ExpectedClientExecutableNames = constantsIni.GetSection(ConstantsSectionName).GetListValue("ExpectedClientExecutableName", ',', s => s).ToArray();
+            else
+                ExpectedClientExecutableNames = constantsIni.GetSection(ConstantsSectionName).GetListValue(nameof(ExpectedClientExecutableNames), ',', s => s).ToArray();
+
             GameRegistryInstallPath = constantsIni.GetStringValue(ConstantsSectionName, nameof(GameRegistryInstallPath), GameRegistryInstallPath);
-            InstallPathAtHKLM = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(InstallPathAtHKLM), InstallPathAtHKLM);
             OpenFileDialogFilter = constantsIni.GetStringValue(ConstantsSectionName, nameof(OpenFileDialogFilter), OpenFileDialogFilter);
 
             EnableIniInclude = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(EnableIniInclude), EnableIniInclude);

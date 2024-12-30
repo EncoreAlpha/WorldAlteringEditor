@@ -24,9 +24,32 @@ namespace TSMapEditor.Mutations
         public bool CanUndo() => UndoList.Count > 0;
 
         /// <summary>
-        /// Undoes the last mutation to the map.
+        /// Undoes the last mutation performed to the map, or the last chain of mutations
+        /// if multiple mutations have the same <see cref="Mutation.EventID"/>.
         /// </summary>
         public void Undo()
+        {
+            if (!CanUndo())
+                return;
+
+            int lastMutationEventId = UndoList[UndoList.Count - 1].EventID;
+
+            if (lastMutationEventId < 0)
+            {
+                UndoOne();
+                return;
+            }
+
+            while (CanUndo() && UndoList[UndoList.Count - 1].EventID == lastMutationEventId)
+            {
+                UndoOne();
+            }
+        }
+
+        /// <summary>
+        /// Undoes the last mutation performed to the map.
+        /// </summary>
+        public void UndoOne()
         {
             if (!CanUndo())
                 return;

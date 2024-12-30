@@ -1546,7 +1546,7 @@ namespace TSMapEditor.UI.Windows
         private void RefreshHouses()
         {
             ddHouseType.Items.Clear();
-            map.GetHouseTypes().ForEach(ht => ddHouseType.AddItem(ht.ININame, ht.XNAColor));
+            map.GetHouseTypes().ForEach(ht => ddHouseType.AddItem(ht.ININame, Helpers.GetHouseTypeUITextColor(ht)));
         }
 
         private void ListTriggers()
@@ -2054,7 +2054,7 @@ namespace TSMapEditor.UI.Windows
                         if (houseType == null)
                             goto case TriggerParamType.Unused;
 
-                        return houseType.XNAColor;
+                        return Helpers.GetHouseTypeUITextColor(houseType);
                     }
                     goto case TriggerParamType.Unused;
                 case TriggerParamType.House:

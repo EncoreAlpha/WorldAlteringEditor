@@ -1,6 +1,6 @@
 [![Donate on Ko-Fi](https://img.shields.io/badge/Donate-KoFi-green.svg)](https://ko-fi.com/rampastring)
 [![Donate on Patreon](https://img.shields.io/badge/Donate-Patreon-red.svg)](https://www.patreon.com/rampastring)
-[![GitHub Releases](https://img.shields.io/github/downloads/CnCNet/WorldAlteringEditor/total.svg)](https://github.com/Rampastring/WorldAlteringEditor/releases)
+[![GitHub Releases](https://img.shields.io/github/downloads/CnCNet/WorldAlteringEditor/total.svg)](https://github.com/CnCNet/WorldAlteringEditor/releases)
 
 # C&C World-Altering Editor (WAE)
 
@@ -10,7 +10,7 @@ Modern open-source map and scenario editor for
 - Command & Conquer: Tiberian Sun
 - [Dawn of the Tiberium Age (DTA)](https://www.moddb.com/mods/the-dawn-of-the-tiberium-age)
 
-## Motivation
+## About
 
 The World-Altering Editor is a new map editor for the second-generation classic Command & Conquer games,
 designed to replace the old FinalSun/FinalAlert2 (FS/FA2) map editor developed in the TS/RA2 modding community in the early 2000s.

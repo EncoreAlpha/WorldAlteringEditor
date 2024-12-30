@@ -39,7 +39,7 @@ namespace TSMapEditor.Models.ArtConfig
 
             // Hackity hackity hack hack
             // In DTA WalkFrames defaults to 1 instead of 15
-            if (Constants.ExpectedClientExecutableName == "DTA.exe")
+            if (Constants.ExpectedClientExecutableNames[0] == "DTA.exe")
                 WalkFrames = 1;
 
             WalkFrames = iniSection.GetIntValue(nameof(WalkFrames), WalkFrames);

@@ -423,15 +423,20 @@ namespace TSMapEditor.Models
 
             bool frontOnly = cliffSection.GetBooleanValue("FrontOnly", false);
 
-            return new CliffType(iniFile, sectionName, cliffName, frontOnly, allowedTheaters);
+            Color? color = null;
+            if (cliffSection.KeyExists("Color"))
+                color = cliffSection.GetColorValue("Color", Microsoft.Xna.Framework.Color.White);
+
+            return new CliffType(iniFile, sectionName, cliffName, frontOnly, allowedTheaters, color);
         }
 
-        private CliffType(IniFile iniFile, string iniName, string name, bool frontOnly, List<string> allowedTheaters)
+        private CliffType(IniFile iniFile, string iniName, string name, bool frontOnly, List<string> allowedTheaters, Color? color)
         {
             IniName = iniName;
             Name = name;
             AllowedTheaters = allowedTheaters;
             FrontOnly = frontOnly;
+            Color = color;
 
             Tiles = new List<CliffTile>();
 
@@ -455,6 +460,7 @@ namespace TSMapEditor.Models
         public string Name { get; }
         public bool FrontOnly { get; }
         public bool IsLegal { get; set; } = true;
+        public Color? Color { get; set; }
         public List<string> AllowedTheaters { get; set; }
         public List<CliffTile> Tiles { get; }
     }

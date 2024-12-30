@@ -143,6 +143,16 @@ namespace TSMapEditor.UI
         private Point lastClickedPoint;
         private Point pressedDownPoint;
 
+        /// <summary>
+        /// Records whether the mouse was on the map UI when the left mouse button was pressed down.
+        /// If not, we should not send mousedown inputs to cursor actions when the mouse is moved;
+        /// the user is likely dragging a window or other control that can result in the cursor
+        /// temporarily entering this control's area with the left mouse button down.
+        /// </summary>
+        private bool leftPressedDownOnControl = false;
+
+        private int currentEventID = 0;
+
         private MapView mapView;
 
 
@@ -466,6 +476,18 @@ namespace TSMapEditor.UI
             base.OnMouseEnter();
         }
 
+        public override void OnMouseLeftDown()
+        {
+            base.OnMouseLeftDown();
+            leftPressedDownOnControl = true;
+
+            if (CursorAction != null)
+            {
+                currentEventID++;
+                CursorAction.EventID = currentEventID;
+            }
+        }
+
         public override void OnMouseMove()
         {
             base.OnMouseMove();
@@ -474,7 +496,7 @@ namespace TSMapEditor.UI
             {
                 if (Cursor.LeftDown)
                 {
-                    if (tileUnderCursor != null)
+                    if (leftPressedDownOnControl && tileUnderCursor != null)
                     {
                         if (lastTileUnderCursor != tileUnderCursor || !CursorAction.OnlyUniqueCellEvents)
                             CursorAction.LeftDown(tileUnderCursor.CoordsToPoint());
@@ -570,6 +592,9 @@ namespace TSMapEditor.UI
                 Camera.KeyboardUpdate(Keyboard, scrollRate);
             }
 
+            if (leftPressedDownOnControl && !Cursor.LeftDown)
+                leftPressedDownOnControl = false;
+
             windowController.MinimapWindow.CameraRectangle = new Rectangle(Camera.TopLeftPoint.ToXNAPoint(), new Point2D(Width, Height).ScaleBy(1.0 / Camera.ZoomLevel).ToXNAPoint());
 
             Point2D cursorMapPoint = GetCursorMapPoint();
@@ -636,8 +661,12 @@ namespace TSMapEditor.UI
             if (tile == null)
                 return;
 
+            BrushSize singleTileBrushSize = Map.EditorConfig.BrushSizes.Find(bs => bs.Width == 1 && bs.Height == 1);
+            if (singleTileBrushSize == null)
+                throw new InvalidOperationException($"{nameof(DeleteObjectFromCell)}: 1x1 sized brush not found!");
+
             if (Map.HasObjectToDelete(cellCoords, EditorState.DeletionMode))
-                MutationManager.PerformMutation(new DeleteObjectMutation(MutationTarget, tile.CoordsToPoint(), EditorState.DeletionMode));
+                MutationManager.PerformMutation(new DeleteObjectMutation(MutationTarget, tile.CoordsToPoint(), singleTileBrushSize, EditorState.DeletionMode));
 
             AddRefreshPoint(cellCoords, 2);
         }

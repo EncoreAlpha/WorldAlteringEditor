@@ -197,7 +197,7 @@ namespace TSMapEditor.Models
             for (int i = 0; i < MaxTechnoCount; i++)
             {
                 if (!taskforceSection.KeyExists(i.ToString()))
-                    break;
+                    continue;
 
                 string value = taskforceSection.GetStringValue(i.ToString(), null);
                 if (string.IsNullOrWhiteSpace(value))

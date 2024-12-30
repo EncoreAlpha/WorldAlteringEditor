@@ -90,6 +90,12 @@ namespace TSMapEditor.Models
             // Check all the light sources and how they affect this light
             foreach (var source in LightSources)
             {
+                // Sources with intensity of 0.0 don't get any light applied
+                if (source.Source.ObjectType.LightIntensity == 0.0)
+                    continue;
+
+                var buildingType = source.Source.ObjectType;
+
                 double distanceRatio = 1.0 - (source.DistanceInLeptons / source.Source.ObjectType.LightVisibility);
 
                 // Intensity modifies the cell ambient value.
@@ -97,13 +103,32 @@ namespace TSMapEditor.Models
                 // lit by the light post, the overall ambient level becomes 0.5 + 1.0 = 1.5
                 cellAmbient += source.Source.ObjectType.LightIntensity * distanceRatio;
 
-                // Apply tint. Tint does NOT depend on LightIntensity, but is independent of it
-                // (as long as LightIntensity != 0).
-                // Strength of tint depends on strength of global tint. For example, adding local red of 1.0
-                // to global red of 1.5 leads to a much smaller change than if the local red was added to global red of 0.5.
-                double redStrength = (source.Source.ObjectType.LightRedTint / redDivisor) * distanceRatio;
-                double greenStrength = (source.Source.ObjectType.LightGreenTint / greenDivisor) * distanceRatio;
-                double blueStrength = (source.Source.ObjectType.LightBlueTint / blueDivisor) * distanceRatio;
+                double redStrength;
+                double greenStrength;
+                double blueStrength;
+
+                if (lightingPreviewMode == LightingPreviewMode.Normal)
+                {
+                    // Apply tint. Tint does NOT depend on LightIntensity, but is independent of it
+                    // (as long as LightIntensity != 0).
+                    // Strength of tint depends on strength of global tint. For example, adding local red of 1.0
+                    // to global red of 1.5 leads to a much smaller change than if the local red was added to global red of 0.5.
+                    redStrength = (buildingType.LightRedTint / redDivisor) * distanceRatio;
+                    greenStrength = (buildingType.LightGreenTint / greenDivisor) * distanceRatio;
+                    blueStrength = (buildingType.LightBlueTint / blueDivisor) * distanceRatio;
+                }
+                else
+                {
+                    // We are previewing Ion Storm or Psychic Dominator lighting.
+                    // In this mode, the game normalizes all lighting color tints to the strongest tint.
+
+                    double highest = Math.Max(Math.Max(buildingType.LightRedTint, buildingType.LightGreenTint), buildingType.LightBlueTint);
+                    double highestDivisor = Math.Max(Math.Max(redDivisor, greenDivisor), blueDivisor);
+
+                    redStrength = (highest / highestDivisor) * distanceRatio;
+                    greenStrength = redStrength;
+                    blueStrength = redStrength;
+                }
 
                 cellR += redStrength;
                 cellG += greenStrength;

@@ -26,6 +26,8 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             return Constants.DepthEpsilon * ObjectDepthAdjustments.Infantry;
         }
 
+        protected override double GetExtraLight(Infantry gameObject) => Map.Rules.ExtraInfantryLight;
+
         public override Point2D GetDrawPoint(Infantry gameObject)
         {
             Point2D drawPoint = base.GetDrawPoint(gameObject);

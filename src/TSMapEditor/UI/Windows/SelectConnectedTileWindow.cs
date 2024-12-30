@@ -45,7 +45,7 @@ namespace TSMapEditor.UI.Windows
                          cliff.AllowedTheaters.Exists(theaterName => theaterName.Equals(map.TheaterName, StringComparison.OrdinalIgnoreCase))))
             {
                 if (cliff.IsLegal)
-                    lbObjectList.AddItem(new XNAListBoxItem() { Text = cliff.Name, Tag = cliff });
+                    lbObjectList.AddItem(new XNAListBoxItem() { Text = cliff.Name, Tag = cliff, TextColor = cliff.Color.GetValueOrDefault(lbObjectList.DefaultItemColor) });
             }
         }
     }

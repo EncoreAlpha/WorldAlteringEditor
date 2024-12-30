@@ -16,9 +16,11 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
     /// </summary>
     public class FlattenGroundMutation : AlterElevationMutationBase
     {
-        public FlattenGroundMutation(IMutationTarget mutationTarget, Point2D originCell, BrushSize brushSize, int desiredHeightLevel) : base(mutationTarget, originCell, brushSize)
+        public FlattenGroundMutation(IMutationTarget mutationTarget, Point2D originCell, BrushSize brushSize,
+            int desiredHeightLevel, int eventId) : base(mutationTarget, originCell, brushSize)
         {
             this.desiredHeightLevel = desiredHeightLevel;
+            EventID = eventId;
         }
 
         private readonly int desiredHeightLevel;
@@ -27,6 +29,8 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
 
         private void FlattenGround()
         {
+            Clear();
+
             int xSize = BrushSize.Width;
             int ySize = BrushSize.Height;
 

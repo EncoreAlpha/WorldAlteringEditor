@@ -111,7 +111,7 @@ namespace TSMapEditor.UI.Windows
                 houseType => ddParentCountry.AddItem(new XNADropDownItem() 
             { 
                 Text = houseType.ININame,
-                TextColor = houseType.XNAColor,
+                TextColor = Helpers.GetHouseTypeUITextColor(houseType),
                 Tag = houseType 
             }));
         }

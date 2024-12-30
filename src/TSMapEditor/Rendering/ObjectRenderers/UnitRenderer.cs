@@ -58,6 +58,8 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             return Constants.DepthEpsilon * ObjectDepthAdjustments.Vehicle;
         }
 
+        protected override double GetExtraLight(Unit gameObject) => Map.Rules.ExtraUnitLight;
+
         protected override void Render(Unit gameObject, Point2D drawPoint, in CommonDrawParams drawParams)
         {
             bool affectedByLighting = RenderDependencies.EditorState.IsLighting;

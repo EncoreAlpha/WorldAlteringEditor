@@ -36,6 +36,14 @@ namespace TSMapEditor.UI
         public void ExitAction() => OnExitingAction?.Invoke(this, EventArgs.Empty);
 
         /// <summary>
+        /// The event ID to forward to mutations performed by the cursor action
+        /// in case it is desirable for the Undo/Redo system to undo multiple mutations
+        /// performed by the cursor action with one Undo pass. If not, the cursor
+        /// action can ignore this.
+        /// </summary>
+        public int EventID { get; set; }
+
+        /// <summary>
         /// Override in derived classes to enable this cursor action to receive
         /// keyboard events through <see cref="OnKeyPressed"/>.
         /// </summary>

@@ -205,7 +205,7 @@ namespace TSMapEditor.UI.Windows
             if (!map.Rules.RulesHouseTypes.Contains(editedCountry))
             {
                 foreach (var houseType in map.Rules.RulesHouseTypes)
-                    ddParentCountry.AddItem(new XNADropDownItem() { Text = houseType.ININame, Tag = houseType.ININame, TextColor = houseType.XNAColor });
+                    ddParentCountry.AddItem(new XNADropDownItem() { Text = houseType.ININame, Tag = houseType.ININame, TextColor = Helpers.GetHouseTypeUITextColor(houseType)});
 
                 ddParentCountry.SelectedIndex = map.Rules.RulesHouseTypes.FindIndex(c => c.ININame == editedCountry.ParentCountry);
                 ddParentCountry.AllowDropDown = true;

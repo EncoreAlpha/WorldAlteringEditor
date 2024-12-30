@@ -82,7 +82,7 @@ namespace TSMapEditor.UI.CursorActions.HeightActions
                 return;
             }
 
-            CursorActionTarget.MutationManager.PerformMutation(new FlattenGroundMutation(MutationTarget, cellCoords, CursorActionTarget.BrushSize, desiredHeightLevel));
+            CursorActionTarget.MutationManager.PerformMutation(new FlattenGroundMutation(MutationTarget, cellCoords, CursorActionTarget.BrushSize, desiredHeightLevel, EventID));
         }
 
         public override void LeftUpOnMouseMove(Point2D cellCoords)

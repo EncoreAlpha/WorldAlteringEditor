@@ -27,6 +27,8 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             return Constants.DepthEpsilon * ObjectDepthAdjustments.Aircraft;
         }
 
+        protected override double GetExtraLight(Aircraft gameObject) => Map.Rules.ExtraAircraftLight;
+
         protected override void Render(Aircraft gameObject, Point2D drawPoint, in CommonDrawParams drawParams)
         {
             DrawVoxelModel(gameObject, drawParams.MainVoxel,

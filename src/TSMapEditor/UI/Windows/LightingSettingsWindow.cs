@@ -138,8 +138,6 @@ namespace TSMapEditor.UI.Windows
             state.LightingPreviewState = (LightingPreviewMode)ddLightingPreview.SelectedIndex;
 
             map.Lighting.RefreshLightingColors();
-
-            Hide();
         }
     }
 }

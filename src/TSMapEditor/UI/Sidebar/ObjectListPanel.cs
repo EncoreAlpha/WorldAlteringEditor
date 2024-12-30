@@ -335,7 +335,7 @@ namespace TSMapEditor.UI.Sidebar
             ddOwner.SelectedIndexChanged -= DdOwner_SelectedIndexChanged;
 
             ddOwner.Items.Clear();
-            Map.GetHouses().ForEach(h => ddOwner.AddItem(h.ININame, h.XNAColor));
+            Map.GetHouses().ForEach(h => ddOwner.AddItem(h.ININame, Helpers.GetHouseUITextColor(h)));
             ddOwner.SelectedIndex = Map.GetHouses().FindIndex(h => h == EditorState.ObjectOwner);
 
             ddOwner.SelectedIndexChanged += DdOwner_SelectedIndexChanged;

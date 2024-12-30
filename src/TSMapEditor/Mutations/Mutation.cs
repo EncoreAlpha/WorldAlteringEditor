@@ -27,6 +27,8 @@ namespace TSMapEditor.Mutations
 
         public abstract void Undo();
 
+        public int EventID { get; protected set; } = -1;
+
 
         private static readonly Point2D[] surroundingTiles = new Point2D[] { new Point2D(-1, 0), new Point2D(1, 0), new Point2D(0, -1), new Point2D(0, 1) };
 

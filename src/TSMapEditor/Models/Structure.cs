@@ -321,6 +321,8 @@ namespace TSMapEditor.Models
         {
             var clone = MemberwiseClone() as Structure;
 
+            clone.Upgrades = Upgrades.ToArray();
+
             clone.Anims = Anims.Select(anim => anim.Clone() as Animation).ToArray();
             foreach (var anim in clone.Anims)
                 anim.ParentBuilding = clone;

@@ -371,6 +371,9 @@ namespace TSMapEditor
             return houseType.XNAColor;
         }
 
+        /// <summary>
+        /// Checks whether a color should be considered too dark to be readable in the user-interface.
+        /// </summary>
         public static bool IsColorDark(Color color) => color.R < 32 && color.G < 32 && color.B < 64;
 
         public static void FindDefaultSideForNewHouseType(HouseType houseType, Rules rules)

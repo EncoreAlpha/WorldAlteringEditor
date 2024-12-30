@@ -2,6 +2,8 @@
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using TSMapEditor.Models;
 using TSMapEditor.Rendering;
 using TSMapEditor.UI.CursorActions;
@@ -33,6 +35,18 @@ namespace TSMapEditor.UI.Sidebar
 
         private ICursorActionTarget cursorActionTarget;
 
+        static List<string> sidebarModeNames = new List<string>
+        {
+            "Buildings",
+            "Infantry",
+            "Vehicles",
+            "Aircraft",
+            "Naval",
+            "Terrain Objects",
+            "Overlays",
+            "Smudges"
+        };
+
         public override void Initialize()
         {
             Name = nameof(EditorSidebar);
@@ -44,35 +58,37 @@ namespace TSMapEditor.UI.Sidebar
             lbSelection.Width = Width;
             lbSelection.FontIndex = Constants.UIBoldFont;
 
-            for (int i = 1; i < (int)SidebarMode.SidebarModeCount; i++)
+            Debug.Assert(sidebarModeNames.Count == (int)SidebarMode.SidebarModeCount);
+
+            for (int i = 0; i < (int)SidebarMode.SidebarModeCount; i++)
             {
                 SidebarMode sidebarMode = (SidebarMode)i;
-                lbSelection.AddItem(new XNAListBoxItem() { Text = sidebarMode.ToString(), Tag = sidebarMode });
+                lbSelection.AddItem(new XNAListBoxItem() { Text = sidebarModeNames[i], Tag = sidebarMode });
             }
 
             lbSelection.Height = lbSelection.Items.Count * lbSelection.LineHeight + 5;
             AddChild(lbSelection);
             lbSelection.EnableScrollbar = false;
 
-            var aircraftListPanel = new AircraftListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget);
-            aircraftListPanel.Name = nameof(aircraftListPanel);
-            InitPanel(aircraftListPanel);
-
             var buildingListPanel = new BuildingListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget);
             buildingListPanel.Name = nameof(buildingListPanel);
             InitPanel(buildingListPanel);
+
+            var infantryListPanel = new InfantryListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget);
+            infantryListPanel.Name = nameof(infantryListPanel);
+            InitPanel(infantryListPanel);
 
             var unitListPanel = new UnitListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget, false);
             unitListPanel.Name = nameof(unitListPanel);
             InitPanel(unitListPanel);
 
+            var aircraftListPanel = new AircraftListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget);
+            aircraftListPanel.Name = nameof(aircraftListPanel);
+            InitPanel(aircraftListPanel);
+
             var navalUnitListPanel = new UnitListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget, true);
             navalUnitListPanel.Name = nameof(navalUnitListPanel);
             InitPanel(navalUnitListPanel);
-
-            var infantryListPanel = new InfantryListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget);
-            infantryListPanel.Name = nameof(infantryListPanel);
-            InitPanel(infantryListPanel);
 
             var terrainObjectListPanel = new TerrainObjectListPanel(WindowManager, editorState, map, theaterGraphics, cursorActionTarget);
             terrainObjectListPanel.Name = nameof(terrainObjectListPanel);
@@ -88,11 +104,11 @@ namespace TSMapEditor.UI.Sidebar
 
             modePanels = new XNAPanel[]
             {
-                aircraftListPanel,
                 buildingListPanel,
-                unitListPanel,
-                navalUnitListPanel,
                 infantryListPanel,
+                unitListPanel,
+                aircraftListPanel,
+                navalUnitListPanel,
                 terrainObjectListPanel,
                 overlayListPanel,
                 smudgeListPanel
@@ -105,14 +121,14 @@ namespace TSMapEditor.UI.Sidebar
             // This is less extensible than using events, but with events we'd have to store
             // the delegates to be able to unsubscribe from them later on.
             // Thus, this results in neater code.
-            KeyboardCommands.Instance.AircraftMenu.Action = () => lbSelection.SelectedIndex = 0;
-            KeyboardCommands.Instance.BuildingMenu.Action = () => lbSelection.SelectedIndex = 1;
-            KeyboardCommands.Instance.VehicleMenu.Action = () => lbSelection.SelectedIndex = 2;
-            KeyboardCommands.Instance.NavalMenu.Action = () => lbSelection.SelectedIndex = 3;
-            KeyboardCommands.Instance.InfantryMenu.Action = () => lbSelection.SelectedIndex = 4;
-            KeyboardCommands.Instance.TerrainObjectMenu.Action = () => lbSelection.SelectedIndex = 5;
-            KeyboardCommands.Instance.OverlayMenu.Action = () => lbSelection.SelectedIndex = 6;
-            KeyboardCommands.Instance.SmudgeMenu.Action = () => lbSelection.SelectedIndex = 7;
+            KeyboardCommands.Instance.BuildingMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.Buildings;
+            KeyboardCommands.Instance.InfantryMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.Infantry;
+            KeyboardCommands.Instance.VehicleMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.Vehicles;
+            KeyboardCommands.Instance.AircraftMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.Aircraft;
+            KeyboardCommands.Instance.NavalMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.Naval;
+            KeyboardCommands.Instance.TerrainObjectMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.TerrainObjects;
+            KeyboardCommands.Instance.OverlayMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.Overlay;
+            KeyboardCommands.Instance.SmudgeMenu.Action = () => lbSelection.SelectedIndex = (int)SidebarMode.Smudges;
 
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
             WindowManager.RenderResolutionChanged += WindowManager_RenderResolutionChanged;

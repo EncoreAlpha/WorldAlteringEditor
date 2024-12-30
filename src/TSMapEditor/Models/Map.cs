@@ -575,11 +575,10 @@ namespace TSMapEditor.Models
                 ShiftObjectsInList(house.BaseNodes, eastShift, southShift);
             }
 
-            // Tubes are slightly more complicated...
+            // Shift tunnel tubes
             Tubes.ForEach(tube =>
             {
-                tube.ShiftPosition(eastShift, -eastShift);
-                tube.ShiftPosition(southShift, southShift);
+                tube.ShiftPosition(eastShift, southShift);
             });
 
 

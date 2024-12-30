@@ -201,6 +201,9 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
         private void InputTerrainGeneratorPresetNameWindow_SaveAccepted(object sender, string presetName)
         {
             var config = GatherConfiguration(presetName);
+            if (config == null)
+                return;
+
             terrainGeneratorUserPresets.AddConfig(config);
             InitUserPresets();
 

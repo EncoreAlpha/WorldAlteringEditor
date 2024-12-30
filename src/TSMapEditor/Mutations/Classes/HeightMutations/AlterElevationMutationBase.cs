@@ -33,6 +33,14 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
             return Map.TheaterInstance.Theater.TileSets[Map.TheaterInstance.GetTileSetId(cell.TileIndex)].Morphable;
         }
 
+        protected void Clear()
+        {
+            cellsToProcess.Clear();
+            processedCellsThisIteration.Clear();
+            totalProcessedCells.Clear();
+            undoData.Clear();
+        }
+
         /// <summary>
         /// Adds a cell's data to the undo data structure.
         /// Does nothing if the cell has already been added to the undo data structure.
