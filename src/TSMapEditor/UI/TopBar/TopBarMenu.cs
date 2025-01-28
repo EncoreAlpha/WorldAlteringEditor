@@ -84,8 +84,8 @@ namespace TSMapEditor.UI.TopBar
                 () => !string.IsNullOrWhiteSpace(map.LoadedINI.FileName),
                 null, null);
             fileContextMenu.AddItem(" ", null, () => false, null, null);
-            fileContextMenu.AddItem("生成全息图...", ExtractMegamap);
-            fileContextMenu.AddItem("为地图写入预览图...", WriteMapPreview);
+            fileContextMenu.AddItem("生成全息图...", () => windowController.MegamapGenerationOptionsWindow.Open(false));
+            fileContextMenu.AddItem("为地图生成预览...", WriteMapPreviewConfirmation);
             fileContextMenu.AddItem(" ", null, () => false, null, null, null);
             fileContextMenu.AddItem("用文本编辑器打开", OpenWithTextEditor, () => !string.IsNullOrWhiteSpace(map.LoadedINI.FileName));
             fileContextMenu.AddItem(" ", null, () => false, null, null);
@@ -306,29 +306,7 @@ namespace TSMapEditor.UI.TopBar
             }
         }
 
-        private void ExtractMegamap()
-        {
-#if WINDOWS
-            string initialPath = string.IsNullOrWhiteSpace(UserSettings.Instance.LastScenarioPath.GetValue()) ? UserSettings.Instance.GameDirectory : UserSettings.Instance.LastScenarioPath.GetValue();
-
-            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-            {
-                saveFileDialog.InitialDirectory = Path.GetDirectoryName(initialPath);
-                saveFileDialog.FileName = Path.ChangeExtension(Path.GetFileName(initialPath), ".png");
-                saveFileDialog.Filter = "PNG files|*.png|All files|*.*";
-                saveFileDialog.RestoreDirectory = true;
-
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    mapUI.ExtractMegamapTo(saveFileDialog.FileName);
-                }
-            }
-#else
-            mapUI.ExtractMegamapTo(Path.Combine(Environment.CurrentDirectory, "megamap.png"));
-#endif
-        }
-
-        private void WriteMapPreview()
+        private void WriteMapPreviewConfirmation()
         {
             var messageBox = EditorMessageBox.Show(WindowManager, "确认",
                 "这将把当前的小地图作为地图预览写入地图文件。" + Environment.NewLine + Environment.NewLine +
@@ -340,7 +318,7 @@ namespace TSMapEditor.UI.TopBar
                 "注意: 预览图在你保存之前不会写入地图" + Environment.NewLine + 
                 "", Windows.MessageBoxButtons.YesNo);
 
-            messageBox.YesClickedAction = _ => mapUI.AddPreviewToMap();
+            messageBox.YesClickedAction = _ => windowController.MegamapGenerationOptionsWindow.Open(true);
         }
 
         private void RepeatLastConnectedTile()

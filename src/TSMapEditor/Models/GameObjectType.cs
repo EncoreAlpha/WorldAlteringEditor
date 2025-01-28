@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TSMapEditor.Rendering;
 
 namespace TSMapEditor.Models
 {
@@ -19,6 +20,8 @@ namespace TSMapEditor.Models
         public string Name { get; set; }
         public string FSName { get; set; }
         public string EditorCategory { get; set; }
+        public string AlphaImage { get; set; }
+        public ShapeImage AlphaShape { get; set; }
         public bool EditorVisible { get; set; } = true;
 
         public bool InvisibleInGame { get; set; }

@@ -38,7 +38,12 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
 
             var gameConfigIniFiles = new GameConfigINIFiles(gameDirectory, ccFileManager);
 
-            var tutorialLines = new TutorialLines(Path.Combine(gameDirectory, Constants.TutorialIniPath), a => windowManager.AddCallback(a, null));
+            // Search for tutorial lines from all directories specified in the file manager configuration
+            string tutorialsPath = ccFileManager.FindFileFromDirectories(Constants.TutorialIniPath);
+            if (tutorialsPath == null)
+                tutorialsPath = Path.Combine(gameDirectory, Constants.TutorialIniPath);
+
+            var tutorialLines = new TutorialLines(tutorialsPath, a => windowManager.AddCallback(a, null));
             var themes = new Themes(IniFileEx.FromPathOrMix(Constants.ThemeIniPath, gameDirectory, ccFileManager));
             var evaSpeeches = new EvaSpeeches(IniFileEx.FromPathOrMix(Constants.EvaIniPath, gameDirectory, ccFileManager));
             var sounds = new Sounds(IniFileEx.FromPathOrMix(Constants.SoundIniPath, gameDirectory, ccFileManager));

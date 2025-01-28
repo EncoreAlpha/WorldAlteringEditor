@@ -18,6 +18,7 @@ namespace TSMapEditor.Models
         public string Image { get; set; }
         public OverlayArtConfig ArtConfig { get; } = new OverlayArtConfig();
         public IArtConfig GetArtConfig() => ArtConfig;
+        public bool Crate { get; set; }
         public bool WaterBound { get; set; }
         public bool Wall { get; set; }
         public bool RadarInvisible { get; set; }

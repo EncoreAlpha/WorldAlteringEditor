@@ -402,6 +402,50 @@ namespace TSMapEditor.Rendering
         private const string TURRET_FILE_SUFFIX = "TUR";
         private const string BARREL_FILE_SUFFIX = "BARL";
 
+        private Random random = new Random();
+
+        public Theater Theater { get; }
+
+        private CCFileManager fileManager;
+
+        public readonly XNAPalette TheaterPalette;
+        private readonly XNAPalette unitPalette;
+        private readonly XNAPalette tiberiumPalette;
+        private readonly XNAPalette animPalette;
+        private readonly XNAPalette alphaPalette;
+        private readonly VplFile vplFile;
+
+        private readonly List<XNAPalette> palettes = new List<XNAPalette>();
+
+        private List<TileImage[]> terrainGraphicsList = new List<TileImage[]>();
+        private List<TileImage[]> mmTerrainGraphicsList = new List<TileImage[]>();
+        private List<bool> hasMMGraphics = new List<bool>();
+
+        public int TileCount => terrainGraphicsList.Count;
+
+        public TileImage GetTileGraphics(int id) => terrainGraphicsList[id][random.Next(terrainGraphicsList[id].Length)];
+        public TileImage GetTileGraphics(int id, int randomId) => terrainGraphicsList[id][randomId];
+        public TileImage GetMarbleMadnessTileGraphics(int id) => mmTerrainGraphicsList[id][0];
+        public bool HasSeparateMarbleMadnessTileGraphics(int id) => hasMMGraphics[id];
+
+        public ITileImage GetTile(int id) => GetTileGraphics(id);
+
+        public ShapeImage[] TerrainObjectTextures { get; set; }
+        public ShapeImage[] BuildingTextures { get; set; }
+        public ShapeImage[] BuildingBibTextures { get; set; }
+        public VoxelModel[] BuildingTurretModels { get; set; }
+        public VoxelModel[] BuildingBarrelModels { get; set; }
+        public ShapeImage[] UnitTextures { get; set; }
+        public VoxelModel[] UnitModels { get; set; }
+        public VoxelModel[] UnitTurretModels { get; set; }
+        public VoxelModel[] UnitBarrelModels { get; set; }
+        public VoxelModel[] AircraftModels { get; set; }
+        public ShapeImage[] InfantryTextures { get; set; }
+        public ShapeImage[] OverlayTextures { get; set; }
+        public ShapeImage[] SmudgeTextures { get; set; }
+        public ShapeImage[] AnimTextures { get; set; }
+        public Dictionary<string, ShapeImage> AlphaImages { get; set; } = new Dictionary<string, ShapeImage>();
+
         public TheaterGraphics(GraphicsDevice graphicsDevice, Theater theater, CCFileManager fileManager, Rules rules)
         {
             this.graphicsDevice = graphicsDevice;
@@ -413,6 +457,11 @@ namespace TSMapEditor.Rendering
             animPalette = GetPaletteOrFail("anim.pal", true);
             tiberiumPalette = string.IsNullOrEmpty(Theater.TiberiumPaletteName) ? TheaterPalette : GetPaletteOrFail(Theater.TiberiumPaletteName, false);
             vplFile = GetVplFile();
+
+            RGBColor[] alphaPaletteColors = new RGBColor[Palette.LENGTH];
+            for (int i = 0; i < alphaPaletteColors.Length; i++)
+                alphaPaletteColors[i] = new RGBColor((byte)i, (byte)i, (byte)i);
+            alphaPalette = new XNAPalette("AlphaPalette", alphaPaletteColors, graphicsDevice, false);
 
             if (UserSettings.Instance.MultithreadedTextureLoading)
             {
@@ -430,7 +479,8 @@ namespace TSMapEditor.Rendering
                 var task12 = Task.Factory.StartNew(() => ReadOverlayTextures(rules.OverlayTypes));
                 var task13 = Task.Factory.StartNew(() => ReadSmudgeTextures(rules.SmudgeTypes));
                 var task14 = Task.Factory.StartNew(() => ReadAnimTextures(rules.AnimTypes));
-                Task.WaitAll(task1, task2, task3, task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14);
+                var task15 = Task.Factory.StartNew(() => ReadAlphaImages(rules));
+                Task.WaitAll(task1, task2, task3, task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14, task15);
             }
             else
             {
@@ -448,46 +498,14 @@ namespace TSMapEditor.Rendering
                 ReadOverlayTextures(rules.OverlayTypes);
                 ReadSmudgeTextures(rules.SmudgeTypes);
                 ReadAnimTextures(rules.AnimTypes);
+                ReadAlphaImages(rules);
             }
-
-            LoadBuildingZData();
         }
 
         private readonly GraphicsDevice graphicsDevice;
 
 
         private static string[] NewTheaterHardcodedPrefixes = new string[] { "CA", "CT", "GA", "GT", "NA", "NT" };
-
-        private void LoadBuildingZData()
-        {
-            return;
-
-            /*
-            var buildingZData = fileManager.LoadFile("BUILDNGZ.SHP");
-
-            byte[] rgbBuffer = new byte[256 * 3];
-            for (int i = 0; i < 256; i++)
-            {
-                rgbBuffer[i * 3] = (byte)(i / 4);
-                rgbBuffer[(i * 3) + 1] = (byte)(i / 4);
-                rgbBuffer[(i * 3) + 2] = (byte)(i / 4);
-            }
-
-            // for (int i = 16; i < 108; i++)
-            // {
-            //     byte color = (byte)((i - 16) * (256 / 92.0));
-            //     rgbBuffer[i * 3] = (byte)(color / 4);
-            //     rgbBuffer[(i * 3) + 1] = (byte)(color / 4);
-            //     rgbBuffer[(i * 3) + 2] = (byte)(color / 4);
-            // }
-
-            var palette = new Palette(rgbBuffer);
-
-            var shpFile = new ShpFile();
-            shpFile.ParseFromBuffer(buildingZData);
-            BuildingZ = new ShapeImage(graphicsDevice, shpFile, buildingZData, palette);
-            */
-        }
 
         private void ReadTileTextures()
         {
@@ -758,6 +776,42 @@ namespace TSMapEditor.Rendering
             }
 
             Logger.Log("Finished loading building textures.");
+        }
+
+        public void ReadAlphaImages(Rules rules)
+        {
+            Logger.Log("Loading alpha image textures.");
+
+            List<GameObjectType> gameObjectTypes = new List<GameObjectType>(rules.BuildingTypes);
+            gameObjectTypes.AddRange(rules.TerrainTypes);
+
+            for (int i = 0; i < gameObjectTypes.Count; i++)
+            {
+                var gameObjectType = gameObjectTypes[i];
+
+                if (string.IsNullOrWhiteSpace(gameObjectType.AlphaImage))
+                    continue;
+
+                if (AlphaImages.TryGetValue(gameObjectType.AlphaImage, out ShapeImage value))
+                {
+                    gameObjectType.AlphaShape = value;
+                    continue;
+                }
+
+                string shpFileName = gameObjectType.AlphaImage + SHP_FILE_EXTENSION;
+
+                var alphaShapeData = fileManager.LoadFile(shpFileName);
+                if (alphaShapeData == null)
+                    continue;
+
+                var shpFile = new ShpFile(shpFileName);
+                shpFile.ParseFromBuffer(alphaShapeData);
+                var shapeImage = new ShapeImage(graphicsDevice, shpFile, alphaShapeData, alphaPalette, false);
+                AlphaImages.Add(gameObjectType.AlphaImage, shapeImage);
+                gameObjectType.AlphaShape = shapeImage;
+            }
+
+            Logger.Log("Finished loading alpha image textures.");
         }
 
         public void ReadBuildingTurretModels(List<BuildingType> buildingTypes)
@@ -1373,33 +1427,6 @@ namespace TSMapEditor.Rendering
             Array.ForEach(AircraftModels, m => m?.ClearFrames());
         }
 
-        private Random random = new Random();
-
-        public Theater Theater { get; }
-
-        private CCFileManager fileManager;
-
-        public readonly XNAPalette TheaterPalette;
-        private readonly XNAPalette unitPalette;
-        private readonly XNAPalette tiberiumPalette;
-        private readonly XNAPalette animPalette;
-        private readonly VplFile vplFile;
-
-        private readonly List<XNAPalette> palettes = new List<XNAPalette>();
-
-        private List<TileImage[]> terrainGraphicsList = new List<TileImage[]>();
-        private List<TileImage[]> mmTerrainGraphicsList = new List<TileImage[]>();
-        private List<bool> hasMMGraphics = new List<bool>();
-
-        public int TileCount => terrainGraphicsList.Count;
-
-        public TileImage GetTileGraphics(int id) => terrainGraphicsList[id][random.Next(terrainGraphicsList[id].Length)];
-        public TileImage GetTileGraphics(int id, int randomId) => terrainGraphicsList[id][randomId];
-        public TileImage GetMarbleMadnessTileGraphics(int id) => mmTerrainGraphicsList[id][0];
-        public bool HasSeparateMarbleMadnessTileGraphics(int id) => hasMMGraphics[id];
-
-        public ITileImage GetTile(int id) => GetTileGraphics(id);
-
         public int GetOverlayFrameCount(OverlayType overlayType)
         {
             int frameCount = OverlayTextures[overlayType.Index].GetFrameCount();
@@ -1420,24 +1447,6 @@ namespace TSMapEditor.Rendering
             else
                 return lastValidFrame + 1;
         }
-
-        public ShapeImage[] TerrainObjectTextures { get; set; }
-        public ShapeImage[] BuildingTextures { get; set; }
-        public ShapeImage[] BuildingBibTextures { get; set; }
-        public VoxelModel[] BuildingTurretModels { get; set; }
-        public VoxelModel[] BuildingBarrelModels { get; set; }
-        public ShapeImage[] UnitTextures { get; set; }
-        public VoxelModel[] UnitModels { get; set; }
-        public VoxelModel[] UnitTurretModels { get; set; }
-        public VoxelModel[] UnitBarrelModels { get; set; }
-        public VoxelModel[] AircraftModels { get; set; }
-        public ShapeImage[] InfantryTextures { get; set; }
-        public ShapeImage[] OverlayTextures { get; set; }
-        public ShapeImage[] SmudgeTextures { get; set; }
-        public ShapeImage[] AnimTextures { get; set; }
-
-
-        public ShapeImage BuildingZ { get; set; }
 
         /// <summary>
         /// Frees up all memory used by the theater graphics textures
@@ -1476,6 +1485,15 @@ namespace TSMapEditor.Rendering
             OverlayTextures = null;
             SmudgeTextures = null;
             AnimTextures = null;
+
+            foreach (ShapeImage alphaShape in AlphaImages.Values)
+                alphaShape.Dispose();
+
+            AlphaImages = null;
+
+            palettes.ForEach(p => p.Dispose());
+            alphaPalette.Dispose();
+            palettes.Clear();
         }
 
         private void DisposeObjectImagesFromArray(IDisposable[] objImageArray)

@@ -4,6 +4,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using TSMapEditor.GameMath;
 using TSMapEditor.Misc;
@@ -170,10 +171,6 @@ namespace TSMapEditor.UI
         /// </summary>
         public void InvalidateMapForMinimap() => mapView.InvalidateMapForMinimap();
 
-        public void AddPreviewToMap() => mapView.AddPreviewToMap();
-
-        public void ExtractMegamapTo(string path) => mapView.ExtractMegamapTo(path);
-
         public override void Initialize()
         {
             base.Initialize();
@@ -229,8 +226,38 @@ namespace TSMapEditor.UI
             windowController.Initialized -= PostWindowControllerInit;
             windowController.RunScriptWindow.ScriptRun += (s, e) => InvalidateMap();
             windowController.StructureOptionsWindow.EnabledChanged += (s, e) => { if (!((StructureOptionsWindow)s).Enabled) InvalidateMap(); };
+            windowController.MegamapGenerationOptionsWindow.OnGeneratePreview += MegamapGenerationOptionsWindow_OnGeneratePreview;
 
             Map_LightingColorsRefreshed();
+        }
+
+        private void MegamapGenerationOptionsWindow_OnGeneratePreview(object sender, MegamapRenderOptions e)
+        {
+            if (windowController.MegamapGenerationOptionsWindow.IsForPreview)
+            {
+                mapView.AddPreviewToMap(e);
+            }
+            else
+            {
+#if WINDOWS
+                string initialPath = string.IsNullOrWhiteSpace(UserSettings.Instance.LastScenarioPath.GetValue()) ? UserSettings.Instance.GameDirectory : UserSettings.Instance.LastScenarioPath.GetValue();
+
+                using (System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog())
+                {
+                    saveFileDialog.InitialDirectory = Path.GetDirectoryName(initialPath);
+                    saveFileDialog.FileName = Path.ChangeExtension(Path.GetFileName(initialPath), ".png");
+                    saveFileDialog.Filter = "PNG files|*.png|All files|*.*";
+                    saveFileDialog.RestoreDirectory = true;
+
+                    if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        mapView.ExtractMegamapTo(e, saveFileDialog.FileName);
+                    }
+                }
+#else
+                mapUI.ExtractMegamapTo(e, Path.Combine(Environment.CurrentDirectory, "megamap.png"));
+#endif
+            }
         }
 
         public void Clear()

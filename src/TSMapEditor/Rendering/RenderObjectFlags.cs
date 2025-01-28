@@ -17,6 +17,8 @@ namespace TSMapEditor.Rendering
         CellTags = 256,
         Waypoints = 512,
         BaseNodes = 1024,
-        All = Terrain + Smudges + Overlay + Aircraft + Infantry + Vehicles + Structures + TerrainObjects + CellTags + Waypoints + BaseNodes,
+        AlphaLights = 2048,
+        TunnelTubes = 4096,
+        All = Terrain + Smudges + Overlay + Aircraft + Infantry + Vehicles + Structures + TerrainObjects + CellTags + Waypoints + BaseNodes + AlphaLights + TunnelTubes,
     }
 }

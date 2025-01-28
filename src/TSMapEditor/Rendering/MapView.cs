@@ -1,9 +1,11 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using TSMapEditor.GameMath;
@@ -12,6 +14,7 @@ using TSMapEditor.Models.Enums;
 using TSMapEditor.Rendering.ObjectRenderers;
 using TSMapEditor.Settings;
 using TSMapEditor.UI;
+using TSMapEditor.UI.Windows;
 
 namespace TSMapEditor.Rendering
 {
@@ -102,10 +105,14 @@ namespace TSMapEditor.Rendering
         private RenderTarget2D transparencyRenderTarget;             // Render target for map UI elements (celltags etc.) that are only refreshed if something in the map changes (due to performance reasons)
         private RenderTarget2D transparencyPerFrameRenderTarget;     // Render target for map UI elements that are redrawn each frame
         private RenderTarget2D compositeRenderTarget;                // Render target where all the above is combined
+        private RenderTarget2D compositeRenderTargetCopy;
+        private RenderTarget2D alphaRenderTarget;                    // Render target for alpha map
         private RenderTarget2D minimapRenderTarget;                  // For minimap and megamap rendering
 
         private Effect palettedColorDrawEffect;                      // Effect for rendering textures, both paletted and RGBA, with or without remap, with depth assignation to a separate render target
         private Effect combineDrawEffect;                            // Effect for combining map and object render targets into one, taking both of their depth buffers into account
+        private Effect alphaMapDrawEffect;                           // Effect for rendering the alpha light map
+        private Effect alphaImageToAlphaMapEffect;                   // Effect for rendering a single alpha image to the alpha light map
 
         private bool mapInvalidated;
         private bool cameraMoved;
@@ -115,6 +122,7 @@ namespace TSMapEditor.Rendering
         private List<Overlay> flatOverlaysToRender = new List<Overlay>();
         private List<GameObject> gameObjectsToRender = new List<GameObject>(); 
         private List<Smudge> smudgesToRender = new List<Smudge>();
+        private List<AlphaImageRenderStruct> alphaImagesToRender = new List<AlphaImageRenderStruct>();
         private ObjectSpriteRecord objectSpriteRecord = new ObjectSpriteRecord();
 
         private Stopwatch refreshStopwatch;
@@ -214,6 +222,8 @@ namespace TSMapEditor.Rendering
         {
             palettedColorDrawEffect = AssetLoader.LoadEffect("Shaders/PalettedColorDraw");
             combineDrawEffect = AssetLoader.LoadEffect("Shaders/CombineWithDepth");
+            alphaMapDrawEffect = AssetLoader.LoadEffect("Shaders/AlphaMapApply");
+            alphaImageToAlphaMapEffect = AssetLoader.LoadEffect("Shaders/AlphaImageToAlphaMap");
         }
 
         private void Map_CellLightingModified(object sender, CellLightingEventArgs e)
@@ -256,6 +266,8 @@ namespace TSMapEditor.Rendering
             transparencyRenderTarget?.Dispose();
             transparencyPerFrameRenderTarget?.Dispose();
             compositeRenderTarget?.Dispose();
+            compositeRenderTargetCopy?.Dispose();
+            alphaRenderTarget?.Dispose();
             minimapRenderTarget?.Dispose();
         }
 
@@ -270,6 +282,8 @@ namespace TSMapEditor.Rendering
             transparencyRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
             transparencyPerFrameRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
             compositeRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
+            compositeRenderTargetCopy = CreateFullMapRenderTarget(SurfaceFormat.Color);
+            alphaRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Alpha8);
             minimapRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
 
             palettedColorDrawEffect.Parameters["WorldTextureHeight"].SetValue((float)mapRenderTarget.Height);
@@ -353,6 +367,7 @@ namespace TSMapEditor.Rendering
             flatOverlaysToRender.Clear();
             structuresToRender.Clear();
             gameObjectsToRender.Clear();
+            alphaImagesToRender.Clear();
 
             Renderer.PushRenderTargets(mapRenderTarget, mapDepthRenderTarget);
 
@@ -426,7 +441,8 @@ namespace TSMapEditor.Rendering
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Waypoints) == RenderObjectFlags.Waypoints)
                 DrawWaypoints();
 
-            DrawTubes();
+            if ((EditorState.RenderObjectFlags & RenderObjectFlags.TunnelTubes) == RenderObjectFlags.TunnelTubes)
+                DrawTubes();
 
             if (EditorState.HighlightImpassableCells)
             {
@@ -563,11 +579,19 @@ namespace TSMapEditor.Rendering
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Structures) == RenderObjectFlags.Structures)
             {
-                tile.DoForAllBuildings(structure =>
+                // Do not use tile.DoForAllBuildings here due to lambdas being expensive due to memory allocation + function calls
+                for (int i = 0; i < tile.Structures.Count; i++)
                 {
+                    var structure = tile.Structures[i];
+
                     if (structure.Position == tile.CoordsToPoint())
+                    {
                         AddStructureToRender(structure);
-                });
+
+                        if (structure.ObjectType.AlphaShape != null && IsRenderFlagEnabled(RenderObjectFlags.AlphaLights))
+                            alphaImagesToRender.Add(new AlphaImageRenderStruct(structure.Position, structure.ObjectType.AlphaShape));
+                    }
+                }
             }
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Infantry) == RenderObjectFlags.Infantry)
@@ -580,7 +604,17 @@ namespace TSMapEditor.Rendering
                 tile.DoForAllVehicles(AddGameObjectToRender);
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.TerrainObjects) == RenderObjectFlags.TerrainObjects && tile.TerrainObject != null)
+            {
                 AddGameObjectToRender(tile.TerrainObject);
+
+                if (tile.TerrainObject.TerrainType.AlphaShape != null && IsRenderFlagEnabled(RenderObjectFlags.AlphaLights))
+                    alphaImagesToRender.Add(new AlphaImageRenderStruct(tile.TerrainObject.Position, tile.TerrainObject.TerrainType.AlphaShape));
+            }
+        }
+
+        private bool IsRenderFlagEnabled(RenderObjectFlags flag)
+        {
+            return (EditorState.RenderObjectFlags & flag) == flag;
         }
 
         private void AddStructureToRender(Structure structure)
@@ -1578,6 +1612,42 @@ namespace TSMapEditor.Rendering
                 destinationRectangle,
                 Color.White);
 
+            // Rendering alpha images is a relatively expensive operation. Only do it if necessary.
+            if (IsRenderFlagEnabled(RenderObjectFlags.AlphaLights) && alphaImagesToRender.Count > 0)
+            {
+                // Then draw alpha effects. First, render all alpha effects into the alpha surface. Then,
+                // render the alpha surface on the composite render target using a special shader.
+
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, alphaImageToAlphaMapEffect));
+                GraphicsDevice.SetRenderTarget(alphaRenderTarget);
+                GraphicsDevice.Clear(new Color(0.5f, 0f, 0f, 0f));
+
+                for (int i = 0; i < alphaImagesToRender.Count; i++)
+                {
+                    var alphaTexture = alphaImagesToRender[i].AlphaImage.GetFrame(0);
+                    var pixelPoint = EditorState.Is2DMode ? CellMath.CellCenterPointFromCellCoords(alphaImagesToRender[i].Point, Map) :
+                        CellMath.CellCenterPointFromCellCoords_3D(alphaImagesToRender[i].Point, Map);
+                    var alphaDrawRectangle = new Rectangle(pixelPoint.X - alphaTexture.ShapeWidth / 2 + alphaTexture.OffsetX,
+                        pixelPoint.Y - alphaTexture.ShapeHeight / 2 + alphaTexture.OffsetY, alphaTexture.Texture.Width, alphaTexture.Texture.Height);
+
+                    Renderer.DrawTexture(alphaTexture.Texture, alphaDrawRectangle, Color.White);
+                }
+
+                Renderer.PopSettings();
+
+                // Copy of the composite render target so we can sample it while rendering to it
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, null, null, null));
+                GraphicsDevice.SetRenderTarget(compositeRenderTargetCopy);
+                Renderer.DrawTexture(compositeRenderTarget, new Rectangle(0, 0, compositeRenderTarget.Width, compositeRenderTarget.Height), Color.White);
+                Renderer.PopSettings();
+
+                GraphicsDevice.SetRenderTarget(compositeRenderTarget);
+                alphaMapDrawEffect.Parameters["RenderSurface"].SetValue(compositeRenderTargetCopy);
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, null, null, alphaMapDrawEffect));
+                Renderer.DrawTexture(alphaRenderTarget, new Rectangle(0, 0, alphaRenderTarget.Width, alphaRenderTarget.Height), Color.White);
+                Renderer.PopSettings();
+            }
+
             // Then draw transparency layers, without using a custom shader.
             Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null));
 
@@ -1607,43 +1677,77 @@ namespace TSMapEditor.Rendering
             Renderer.PopSettings();
         }
 
-        public void AddPreviewToMap()
+        public void AddPreviewToMap(MegamapRenderOptions megamapRenderOptions)
         {
-            InstantRenderMinimap();
-
-            // Include only the part within LocalSize
-            var visibleRectangle = GetMapLocalViewRectangle();
-            var localSizeRenderTarget = new RenderTarget2D(GraphicsDevice, visibleRectangle.Width, visibleRectangle.Height, false, SurfaceFormat.Color, DepthFormat.None);
-            Renderer.BeginDraw();
-            Renderer.PushRenderTarget(localSizeRenderTarget);
-            Renderer.DrawTexture(MinimapTexture, visibleRectangle, new Rectangle(0, 0, localSizeRenderTarget.Width, localSizeRenderTarget.Height), Color.White);
-            Renderer.PopRenderTarget();
-            Renderer.EndDraw();
+            var megamapTexture = GenerateMegamapTexture(megamapRenderOptions);
 
             // Scale down the minimap texture
             var finalPreviewRenderTarget = new RenderTarget2D(GraphicsDevice, Constants.MapPreviewMaxWidth, Constants.MapPreviewMaxHeight, false, SurfaceFormat.Color, DepthFormat.None);
-            var minimapTexture = Helpers.RenderTextureAsSmaller(localSizeRenderTarget, finalPreviewRenderTarget, GraphicsDevice);
-
-            // Cleanup
-            localSizeRenderTarget.Dispose();
-            finalPreviewRenderTarget.Dispose();
-            MinimapUsers.Remove(this);
+            var minimapTexture = Helpers.RenderTextureAsSmaller(megamapTexture, finalPreviewRenderTarget, GraphicsDevice);
 
             Map.WritePreview(minimapTexture);
+
+            // Cleanup
+            megamapTexture.Dispose();
+            finalPreviewRenderTarget.Dispose();
+
             InvalidateMapForMinimap();
         }
 
-        public void ExtractMegamapTo(string path)
+        /// <summary>
+        /// Renders the entire map into a new render target and returns the render target as a texture.
+        /// </summary>
+        private Texture2D GenerateMegamapTexture(MegamapRenderOptions megamapRenderOptions)
         {
-            InstantRenderMinimap();
+            InstantRenderMegamap(megamapRenderOptions);
 
-            using (var stream = File.OpenWrite(path))
+            RenderTarget2D texture;
+            Rectangle sourceRectangle;
+
+            if (megamapRenderOptions.HasFlag(MegamapRenderOptions.IncludeOnlyVisibleArea))
             {
-                MinimapTexture.SaveAsPng(stream, MinimapTexture.Width, MinimapTexture.Height);
+                sourceRectangle = GetMapLocalViewRectangle();
             }
+            else
+            {
+                sourceRectangle = new Rectangle(0, 0, compositeRenderTarget.Width, compositeRenderTarget.Height);
+            }
+
+            texture = new RenderTarget2D(GraphicsDevice, sourceRectangle.Width, sourceRectangle.Height, false, SurfaceFormat.Color, DepthFormat.None);
+
+            Renderer.BeginDraw();
+            Renderer.PushRenderTarget(texture);
+            Renderer.DrawTexture(MinimapTexture, sourceRectangle, new Rectangle(0, 0, texture.Width, texture.Height), Color.White);
+            Renderer.PopRenderTarget();
+            Renderer.EndDraw();
+
+            return texture;
         }
 
-        private void InstantRenderMinimap()
+        public void ExtractMegamapTo(MegamapRenderOptions megamapRenderOptions, string path)
+        {
+            var megamapTexture = GenerateMegamapTexture(megamapRenderOptions);
+
+            try
+            {
+                using (var stream = File.OpenWrite(path))
+                {
+                    megamapTexture.SaveAsPng(stream, megamapTexture.Width, megamapTexture.Height);
+                }
+            }
+            catch (IOException ex)
+            {
+                Logger.Log("Failed to extract megamap texture. Returned error message: " + ex.Message);
+                Logger.Log("Stacktrace: " + ex.StackTrace);
+
+                EditorMessageBox.Show(windowManager, "Failed to extract megamap",
+                    "Error encountered while attempting to extract megamap. Returned operating system error message: " + ex.Message, MessageBoxButtons.OK);
+            }
+
+            megamapTexture.Dispose();
+        }
+
+        private void InstantRenderMegamap(MegamapRenderOptions megamapRenderOptions)
         {
             EditorState.RenderInvisibleInGameObjects = false;
 
@@ -1657,16 +1761,56 @@ namespace TSMapEditor.Rendering
             GraphicsDevice.Clear(Color.Transparent);
             Renderer.PopRenderTarget();
 
-            // Maybe someone could want to generate a preview with these for some reason...?
-            // EditorState.Is2DMode = false;
-            // EditorState.IsMarbleMadness = false;
-            // EditorState.LightingPreviewState = LightingPreviewMode.Normal;
-            // EditorState.DrawMapWideOverlay = false;
+            // Emphasize cells with resources if that was requested
+            if (megamapRenderOptions.HasFlag(MegamapRenderOptions.EmphasizeResources))
+            {
+                Map.DoForAllValidTiles(cell =>
+                {
+                    if (cell.Overlay != null && cell.Overlay.OverlayType.TiberiumType != null)
+                    {
+                        var tiberiumType = cell.Overlay.OverlayType.TiberiumType;
+                        cell.CellLighting = new MapColor(tiberiumType.XNAColor.R / 128.0f, tiberiumType.XNAColor.G / 128.0f, tiberiumType.XNAColor.B / 128.0f);
+                    }
+                });
+            }
 
             InvalidateMapForMinimap();
             DrawVisibleMapPortion();
             CalculateMapRenderRectangles();
             DrawWorld();
+
+            // Mark player spots if that was requested
+            if (megamapRenderOptions.HasFlag(MegamapRenderOptions.MarkPlayerSpots))
+            {
+                Renderer.PushRenderTarget(compositeRenderTarget);
+
+                for (int i = 0; i < Constants.MultiplayerMaxPlayers; i++)
+                {
+                    var wp = Map.Waypoints.Find(wp => wp.Identifier == i);
+                    if (wp != null)
+                    {
+                        var wpCenterPoint = EditorState.Is2DMode ? CellMath.CellCenterPointFromCellCoords(wp.Position, Map) :
+                            CellMath.CellCenterPointFromCellCoords_3D(wp.Position, Map);
+
+                        var wpRectangle = new Rectangle(wpCenterPoint.X - (int)(Constants.CellSizeX * 1.5),
+                            wpCenterPoint.Y - (int)(Constants.CellSizeY * 1.5), Constants.CellSizeX * 3, Constants.CellSizeY * 3);
+
+                        Renderer.DrawTexture(EditorGraphics.GenericTileWithBorderTexture, wpRectangle, Color.Red);
+
+                        string wpString = wp.Identifier.ToString(CultureInfo.InvariantCulture);
+                        float scale = Constants.IsRA2YR ? 5.25f : 5.0f;
+
+                        var stringSize = Renderer.GetTextDimensions(wpString, Constants.UIBoldFont) * scale;
+                        Renderer.DrawString(wpString, Constants.UIBoldFont,
+                            new Vector2(wpRectangle.X + (wpRectangle.Width - stringSize.X) / 2,
+                            wpRectangle.Y + (wpRectangle.Height - stringSize.Y) / 2),
+                            Color.White, scale, 0f);
+                    }
+                }
+
+                Renderer.PopRenderTarget();
+            }
+
             DrawOnMinimap();
 
             mapInvalidated = false;
@@ -1675,6 +1819,11 @@ namespace TSMapEditor.Rendering
             Renderer.EndDraw();
 
             MinimapUsers.Remove(this);
+
+            if (megamapRenderOptions.HasFlag(MegamapRenderOptions.EmphasizeResources))
+            {
+                LightingChanged();
+            }
 
             EditorState.RenderInvisibleInGameObjects = true;
         }

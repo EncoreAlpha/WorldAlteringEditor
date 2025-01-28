@@ -219,6 +219,25 @@ namespace TSMapEditor.CCEngine
             CsfFiles.Add(file);
         }
 
+        /// <summary>
+        /// Searches for a file from all search directories.
+        /// If found, returns the full path to the found file.
+        /// Otherwise returns null.
+        /// </summary>
+        /// <param name="fileName">The name of the file to look for.</param>
+        public string FindFileFromDirectories(string fileName)
+        {
+            foreach (string searchDirectory in searchDirectories)
+            {
+                string fullPath = Path.Combine(searchDirectory, fileName);
+
+                if (File.Exists(fullPath))
+                    return fullPath;
+            }
+
+            return null;
+        }
+
         public byte[] LoadFile(string name)
         {
             foreach (string searchDirectory in searchDirectories)

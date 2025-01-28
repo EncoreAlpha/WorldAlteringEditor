@@ -17,10 +17,27 @@ namespace TSMapEditor.CCEngine
             HasFullyBrightColors = hasFullyBrightColors;
         }
 
+        public XNAPalette(string name, RGBColor[] data, GraphicsDevice graphicsDevice, bool hasFullyBrightColors) : base(name, data)
+        {
+            PaletteWithLight = new(name, data);
+            Texture = CreateTexture(graphicsDevice, this);
+            TextureWithLight = CreateTexture(graphicsDevice, PaletteWithLight);
+            HasFullyBrightColors = hasFullyBrightColors;
+        }
+
         private Texture2D Texture;
         private Texture2D TextureWithLight;
         private Palette PaletteWithLight;
         private bool HasFullyBrightColors;
+
+        public void Dispose()
+        {
+            Texture?.Dispose();
+            TextureWithLight?.Dispose();
+
+            Texture = null;
+            TextureWithLight = null;
+        }
 
         public Texture2D GetTexture()
         {
@@ -73,13 +90,19 @@ namespace TSMapEditor.CCEngine
     /// </summary>
     public class Palette
     {
-        protected const int LENGTH = 256;
+        public const int LENGTH = 256;
 
         public Palette(string name, byte[] buffer)
         {
             Name = name;
             Data = new RGBColor[LENGTH];
             Parse(buffer);
+        }
+
+        public Palette(string name, RGBColor[] data)
+        {
+            Name = name;
+            Data = data;
         }
 
         public readonly string Name;

@@ -50,7 +50,7 @@ namespace TSMapEditor.Initialization
 
             if (string.IsNullOrWhiteSpace(map.Basic.Player))
             {
-                map.Basic.MaxPlayer = map.Waypoints.Count(wp => wp.Identifier < 8);
+                map.Basic.MaxPlayer = map.Waypoints.Count(wp => wp.Identifier < Constants.MultiplayerMaxPlayers);
             }
 
             map.Basic.WritePropertiesToIniSection(section);

@@ -29,7 +29,7 @@
             if (OverlayType.IsVeinholeMonster)
                 return Constants.CellSizeY * -2;
 
-            if (OverlayType.Tiberium || OverlayType.Wall || OverlayType.IsVeins)
+            if (OverlayType.Tiberium || OverlayType.Wall || OverlayType.IsVeins || OverlayType.Crate)
                 return Constants.CellSizeY / -2;
 
             return 0;
