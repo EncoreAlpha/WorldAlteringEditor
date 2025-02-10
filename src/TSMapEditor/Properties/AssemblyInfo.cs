@@ -10,7 +10,7 @@ using System.Runtime.Versioning;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
 [assembly: AssemblyProduct("World-Altering Editor (WAE)")]
-[assembly: AssemblyCopyright("Copyright © Rami 'Rampastring' Pasanen 2024")]
+[assembly: AssemblyCopyright("Copyright © Rami 'Rampastring' Pasanen 2021-2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -34,4 +34,4 @@ using System.Runtime.Versioning;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.*")]
+[assembly: AssemblyVersion("1.4.*")]

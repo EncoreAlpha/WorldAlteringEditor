@@ -1624,7 +1624,14 @@ namespace TSMapEditor.Rendering
 
                 for (int i = 0; i < alphaImagesToRender.Count; i++)
                 {
-                    var alphaTexture = alphaImagesToRender[i].AlphaImage.GetFrame(0);
+                    var alphaShape = alphaImagesToRender[i].AlphaImage;
+                    if (alphaShape.GetFrameCount() <= 0)
+                        continue;
+
+                    var alphaTexture = alphaShape.GetFrame(0);
+                    if (alphaTexture == null)
+                        continue;
+
                     var pixelPoint = EditorState.Is2DMode ? CellMath.CellCenterPointFromCellCoords(alphaImagesToRender[i].Point, Map) :
                         CellMath.CellCenterPointFromCellCoords_3D(alphaImagesToRender[i].Point, Map);
                     var alphaDrawRectangle = new Rectangle(pixelPoint.X - alphaTexture.ShapeWidth / 2 + alphaTexture.OffsetX,

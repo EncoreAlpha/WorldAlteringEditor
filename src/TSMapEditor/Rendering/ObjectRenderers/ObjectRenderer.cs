@@ -305,11 +305,17 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             int fraction = dy % Constants.CellSizeY;
             int cellY = cellPixelCoords.Y + (wholeCells + 1) * Constants.CellSizeY;
 
-            if (fraction > (Constants.CellSizeY * 3) / 2 &&
-                (drawingBounds.X < cellPixelCoords.X || drawingBounds.Right > cellPixelCoords.X + Constants.CellSizeX))
+            if (fraction > Constants.CellSizeY / 2)
             {
-                // This object leaks into the neighbouring cells - to another "isometric row"
-                cellY += Constants.CellSizeY / 2;
+                int fractionBeyondHalfCell = fraction - Constants.CellSizeY / 2;
+
+                // Take the cell's diamond shape into account by measuring based on the Y coordinate (fraction)
+                if (drawingBounds.X - (fractionBeyondHalfCell * 2) < cellPixelCoords.X ||
+                    drawingBounds.Right + (fractionBeyondHalfCell * 2) > cellPixelCoords.X + Constants.CellSizeX)
+                {
+                    // This object leaks into the neighbouring cells - to another "isometric row"
+                    cellY += Constants.CellSizeY / 2;
+                }
             }
 
             // Use height from the cell where the object has been placed.

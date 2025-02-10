@@ -59,7 +59,10 @@ public class IniFileEx: IniFile
 
         string iniPath = Path.Combine(gameDirectory, filePath);
         if (File.Exists(iniPath))
+        {
+            Logger.Log("INI file " + filePath + " found from " + gameDirectory);
             return new(iniPath, ccFileManager);
+        }
 
         var iniBytes = ccFileManager.LoadFile(filePath);
         if (iniBytes != null)

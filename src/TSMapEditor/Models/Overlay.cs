@@ -1,4 +1,6 @@
-﻿namespace TSMapEditor.Models
+﻿using TSMapEditor.Models.Enums;
+
+namespace TSMapEditor.Models
 {
     public class Overlay : GameObject
     {
@@ -26,13 +28,23 @@
 
         public override int GetYDrawOffset()
         {
+            // Vanilla draws Veinhole monsters separately, not as overlays, and with an offset I can't make sense of.
             if (OverlayType.IsVeinholeMonster)
-                return Constants.CellSizeY * -2;
+                return Constants.IsRA2YR ? -58 : -49;
 
+            int offset = 0;
+
+            // These are hardcoded and the same between TS and YR, so seemingly unrelated to the cell size.
             if (OverlayType.Tiberium || OverlayType.Wall || OverlayType.IsVeins || OverlayType.Crate)
-                return Constants.CellSizeY / -2;
+                offset -= 12;
 
-            return 0;
+            if (OverlayType.Land == LandType.Railroad)
+                offset -= 1;
+
+            if (OverlayType.IsVeins)
+                offset -= 1;
+
+            return offset;
         }
     }
 }

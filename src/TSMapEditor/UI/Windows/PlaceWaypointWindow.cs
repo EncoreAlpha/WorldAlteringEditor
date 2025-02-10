@@ -89,7 +89,7 @@ namespace TSMapEditor.UI.Windows
 
             for (int i = 0; i < Constants.MaxWaypoint; i++)
             {
-                if (!map.Waypoints.Exists(w => w.Identifier == i))
+                if (!map.Waypoints.Exists(w => w.Identifier == i) && (Constants.IsRA2YR || i != Constants.TS_WAYPT_SPECIAL))
                 {
                     tbWaypointNumber.Value = i;
                     break;

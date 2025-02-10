@@ -92,12 +92,14 @@ namespace TSMapEditor.CCEngine
             {
                 if (fileLocationInfos.TryGetValue(identifier, out FileLocationInfo value))
                 {
+                    // Logger.Log("Loading MIX file " + name + " from existing MIX file " + Path.GetFileName(value.MixFile.FilePath));
                     var mixFile = new MixFile(value.MixFile, value.Offset);
                     mixFile.Parse();
                     AddMix(mixFile);
                     return true;
                 }
 
+                Logger.Log("Failed to find MIX file: " + name);
                 return false;
             }
 
@@ -126,6 +128,7 @@ namespace TSMapEditor.CCEngine
             if (searchDir == null)
                 return false;
 
+            Logger.Log("Loading MIX file " + name + " from " + searchDir);
             var mixFile = new MixFile();
             mixFile.Parse(Path.Combine(searchDir, name));
             AddMix(mixFile);
@@ -141,6 +144,8 @@ namespace TSMapEditor.CCEngine
         private void AddMix(MixFile mixFile)
         {
             mixFiles.Add(mixFile);
+
+            // Logger.Log("Registering " + mixFile.GetEntries().Count + " file entries from " + Path.GetFileName(mixFile.FilePath));
 
             foreach (MixFileEntry fileEntry in mixFile.GetEntries())
             {
@@ -240,20 +245,27 @@ namespace TSMapEditor.CCEngine
 
         public byte[] LoadFile(string name)
         {
+            // Logger.Log("Loading file " + name);
+
             foreach (string searchDirectory in searchDirectories)
             {
                 string looseFilePath = Path.Combine(searchDirectory, name);
                 if (File.Exists(looseFilePath))
+                {
+                    // Logger.Log("    File found from " + searchDirectory);
                     return File.ReadAllBytes(looseFilePath);
+                }
             }
 
             uint id = MixFile.GetFileID(name);
 
             if (fileLocationInfos.TryGetValue(id, out FileLocationInfo value))
             {
+                // Logger.Log("    File found from " + Path.GetFileName(value.MixFile.FilePath));
                 return value.MixFile.GetSingleFileData(value.Offset, value.Size);
             }
 
+            // Logger.Log("    FAILED to find file: " + name);
             return null;
         }
 
