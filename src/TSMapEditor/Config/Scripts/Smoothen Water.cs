@@ -146,6 +146,23 @@ namespace WAEScript
 			if (tileIndex < waterTileSet.StartTileIndex || tileIndex >= waterTileSet.StartTileIndex + waterTileSet.TilesInSet)
 				return false;
 
+            // There are a few specific tiles in the water tile set
+			// that we do not want to process and replace with regular water.
+			// These tiles contain "details", such as rocks.
+			// We handle them as exceptions here.
+
+            // 2x2 water rock tile #1
+            if (tileIndex == waterTileSet.StartTileIndex + 6)
+				return false;
+
+			// 2x2 water rock tile #2
+			if (tileIndex == waterTileSet.StartTileIndex + 7)
+				return false;
+
+			// 1x1 water rock tile
+			if (tileIndex == waterTileSet.StartTileIndex + 13)
+				return false;
+
 			return true;
 		}
 

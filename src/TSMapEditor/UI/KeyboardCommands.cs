@@ -49,6 +49,7 @@ namespace TSMapEditor.UI
                 AdjustTileHeightDown,
                 PlaceConnectedTile,
                 RepeatConnectedTile,
+                CalculateCredits,
 
                 BuildingMenu,
                 InfantryMenu,
@@ -139,6 +140,7 @@ namespace TSMapEditor.UI
         public KeyboardCommand AdjustTileHeightDown { get; } = new KeyboardCommand("向下调整图块高度", "向下调整图块高度", new KeyboardCommandInput(Keys.PageDown, KeyboardModifiers.None), forActionsOnly:true);
         public KeyboardCommand PlaceConnectedTile { get; } = new KeyboardCommand("放置连接图块", "放置连接图块", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Alt));
         public KeyboardCommand RepeatConnectedTile { get; } = new KeyboardCommand("重复上一次绘制连接图块", "重复上一次绘制连接图块", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Ctrl));
+        public KeyboardCommand CalculateCredits { get; } = new KeyboardCommand("计算资源价值", "计算资源价值", new KeyboardCommandInput(Keys.C, KeyboardModifiers.Shift));
 
         public KeyboardCommand BuildingMenu { get; } = new KeyboardCommand("建筑菜单", "建筑菜单", new KeyboardCommandInput(Keys.D1, KeyboardModifiers.None));
         public KeyboardCommand InfantryMenu { get; } = new KeyboardCommand("步兵菜单", "步兵菜单", new KeyboardCommandInput(Keys.D2, KeyboardModifiers.None));
