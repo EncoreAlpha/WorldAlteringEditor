@@ -392,7 +392,6 @@ namespace TSMapEditor.Initialization
                         i.ToString(CultureInfo.InvariantCulture),
                         houseType.ININame);
 
-                    mapIni.RemoveSection(houseType.ININame);
                     var houseTypeSection = FindOrMakeSection(houseType.ININame, mapIni);
                     houseType.WriteToIniSection(houseTypeSection);
                 }
@@ -406,7 +405,6 @@ namespace TSMapEditor.Initialization
                     HouseType houseType = map.Rules.RulesHouseTypes[i];
                     if (houseType.ModifiedInMap)
                     {
-                        mapIni.RemoveSection(houseType.ININame);
                         var houseTypeSection = FindOrMakeSection(houseType.ININame, mapIni);
                         houseType.WriteToIniSection(houseTypeSection);
                     }
@@ -430,15 +428,8 @@ namespace TSMapEditor.Initialization
                 House house = map.Houses[i];
                 housesSection.SetStringValue(house.ID > -1 ? house.ID.ToString(CultureInfo.InvariantCulture) : i.ToString(CultureInfo.InvariantCulture), house.ININame);
 
-                // When countries are not in use, the section is already removed by WriteHouseTypes
                 if (Constants.IsRA2YR)
                 {
-                    // Only remove the section if no similarly-named modified HouseType exists - if one does,
-                    // the section was possibly already removed by WriteHouseTypes
-                    var houseType = map.FindHouseType(house.ININame);
-                    if (houseType == null)
-                        mapIni.RemoveSection(house.ININame);
-
                     house.Country = house.HouseType.ININame; // Make sure the country property matches our model
                 }
 

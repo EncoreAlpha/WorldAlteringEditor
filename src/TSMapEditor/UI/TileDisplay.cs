@@ -65,7 +65,7 @@ namespace TSMapEditor.UI
         private readonly Map map;
         private readonly TheaterGraphics theaterGraphics;
 
-        private TileSet tileSet;
+        public TileSet TileSet { get; private set; }
 
         private List<TileDisplayTile> tilesInView = new List<TileDisplayTile>();
 
@@ -174,7 +174,7 @@ namespace TSMapEditor.UI
         public void SetTileSet(TileSet tileSet)
         {
             ViewY = 0;
-            this.tileSet = tileSet;
+            this.TileSet = tileSet;
             RefreshGraphics();
         }
 
@@ -183,7 +183,7 @@ namespace TSMapEditor.UI
             ViewY = 0;
             tilesInView.Clear();
 
-            if (tileSet == null)
+            if (TileSet == null)
                 return;
 
             var tilesOnCurrentLine = new List<TileDisplayTile>();
@@ -192,9 +192,9 @@ namespace TSMapEditor.UI
             int x = Constants.UIEmptySideSpace;
             int currentLineHeight = 0;
 
-            for (int i = 0; i < tileSet.TilesInSet; i++)
+            for (int i = 0; i < TileSet.TilesInSet; i++)
             {
-                int tileIndex = tileSet.StartTileIndex + i;
+                int tileIndex = TileSet.StartTileIndex + i;
                 if (tileIndex > theaterGraphics.TileCount)
                     break;
 

@@ -27,6 +27,8 @@ namespace TSMapEditor.Mutations
 
         public abstract void Undo();
 
+        public abstract string GetDisplayString();
+
         public int EventID { get; protected set; } = -1;
 
 

@@ -179,6 +179,11 @@ namespace TSMapEditor.Models
             for (int i = 0; i < eventCount; i++)
             {
                 int conditionIndex = Conversions.IntFromString(dataArray[startIndex], -1);
+                if (conditionIndex >= editorConfig.TriggerEventTypes.Count)
+                {
+                    throw new INIConfigException("The map contains a trigger event that is not defined in the editor's config. To prevent data loss, the map cannot be loaded. Event index: " + conditionIndex);
+                }
+
                 bool usesP3 = editorConfig.TriggerEventTypes[conditionIndex].UsesP3;
 
                 var triggerEvent = TriggerCondition.ParseFromArray(dataArray, startIndex, usesP3);

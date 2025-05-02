@@ -19,6 +19,11 @@ namespace TSMapEditor.Mutations.Classes
         private readonly Point2D cellCoords;
         private Aircraft aircraft;
 
+        public override string GetDisplayString()
+        {
+            return $"Place '{aircraftType.GetEditorDisplayName()}' at {cellCoords}";
+        }
+
         public override void Perform()
         {
             var cell = MutationTarget.Map.GetTile(cellCoords);

@@ -50,6 +50,8 @@ namespace TSMapEditor.UI
                 PlaceConnectedTile,
                 RepeatConnectedTile,
                 CalculateCredits,
+                CheckDistance,
+                CheckDistancePathfinding,
 
                 BuildingMenu,
                 InfantryMenu,
@@ -141,6 +143,8 @@ namespace TSMapEditor.UI
         public KeyboardCommand PlaceConnectedTile { get; } = new KeyboardCommand("放置连接图块", "放置连接图块", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Alt));
         public KeyboardCommand RepeatConnectedTile { get; } = new KeyboardCommand("重复上一次绘制连接图块", "重复上一次绘制连接图块", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Ctrl));
         public KeyboardCommand CalculateCredits { get; } = new KeyboardCommand("计算资源价值", "计算资源价值", new KeyboardCommandInput(Keys.C, KeyboardModifiers.Shift));
+        public KeyboardCommand CheckDistance { get; } = new KeyboardCommand("CheckDistance", "Check Distance", new KeyboardCommandInput(Keys.B, KeyboardModifiers.None));
+        public KeyboardCommand CheckDistancePathfinding { get; } = new KeyboardCommand("CheckDistancePathfinding", "Check Distance (Pathfinding)", new KeyboardCommandInput(Keys.B, KeyboardModifiers.Shift));
 
         public KeyboardCommand BuildingMenu { get; } = new KeyboardCommand("建筑菜单", "建筑菜单", new KeyboardCommandInput(Keys.D1, KeyboardModifiers.None));
         public KeyboardCommand InfantryMenu { get; } = new KeyboardCommand("步兵菜单", "步兵菜单", new KeyboardCommandInput(Keys.D2, KeyboardModifiers.None));

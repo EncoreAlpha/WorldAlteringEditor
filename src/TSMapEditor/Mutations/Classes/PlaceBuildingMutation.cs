@@ -21,6 +21,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private Structure placedBuilding;
 
+        public override string GetDisplayString()
+        {
+            return $"Place '{buildingType.GetEditorDisplayName()}' at {cellCoords}";
+        }
+
         public override void Perform()
         {
             var cell = MutationTarget.Map.GetTileOrFail(cellCoords);

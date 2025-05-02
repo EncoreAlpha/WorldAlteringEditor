@@ -9,8 +9,18 @@ namespace TSMapEditor.CCEngine
     {
         public GameConfigINIFiles(string gameDirectory, CCFileManager fileManager)
         {
-            RulesIni = IniFileEx.FromPathOrMix(Constants.RulesIniPath, gameDirectory, fileManager);
-            FirestormIni = IniFileEx.FromPathOrMix(Constants.FirestormIniPath, gameDirectory, fileManager);
+            RulesIni = IniFileEx.FromPathOrMix(Constants.RulesIniPath, gameDirectory, fileManager, true);
+            FirestormIni = IniFileEx.FromPathOrMix(Constants.FirestormIniPath, gameDirectory, fileManager, true);
+
+            if (RulesIni == null && FirestormIni == null)
+                throw new FileNotFoundException("No Rules.ini found! (including derivates like Firestorm.ini / Rulesmd.ini)");
+
+            if (RulesIni == null)
+                RulesIni = new IniFileEx();
+
+            if (FirestormIni == null)
+                FirestormIni = new IniFileEx();
+
             ArtIni = IniFileEx.FromPathOrMix(Constants.ArtIniPath, gameDirectory, fileManager);
             ArtFSIni = IniFileEx.FromPathOrMix(Constants.FirestormArtIniPath, gameDirectory, fileManager);
             AIIni = IniFileEx.FromPathOrMix(Constants.AIIniPath, gameDirectory, fileManager);

@@ -145,6 +145,17 @@ namespace TSMapEditor.UI.Windows
             AddChild(unitListContextMenu);
             lbUnitEntries.AllowRightClickUnselect = false;
             lbUnitEntries.RightClick += (s, e) => { if (editedTaskForce != null) { lbUnitEntries.SelectedIndex = lbUnitEntries.HoveredIndex; unitListContextMenu.Open(GetCursorPoint()); } };
+
+            map.TaskForcesChanged += Map_TaskForcesChanged;
+        }
+
+        private void Map_TaskForcesChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                ListTaskForces();
+                SelectTaskForce(editedTaskForce);
+            }
         }
 
         private void UnitListContextMenu_MoveUp()
@@ -250,10 +261,14 @@ namespace TSMapEditor.UI.Windows
             if (editedTaskForce == null)
                 return;
 
+            map.TaskForcesChanged -= Map_TaskForcesChanged;
+
             var newTaskForce = editedTaskForce.Clone(map.GetNewUniqueInternalId());
-            map.TaskForces.Add(newTaskForce);
+            map.AddTaskForce(newTaskForce);
             ListTaskForces();
             SelectTaskForce(newTaskForce);
+
+            map.TaskForcesChanged += Map_TaskForcesChanged;
         }
 
         private void BtnDeleteTaskForce_LeftClick(object sender, System.EventArgs e)
@@ -279,6 +294,8 @@ namespace TSMapEditor.UI.Windows
 
         private void DeleteTaskForce()
         {
+            map.TaskForcesChanged -= Map_TaskForcesChanged;
+
             map.RemoveTaskForce(editedTaskForce);
             map.TeamTypes.ForEach(tt =>
             {
@@ -287,14 +304,20 @@ namespace TSMapEditor.UI.Windows
             });
             ListTaskForces();
             RefreshSelectedTaskForce();
+
+            map.TaskForcesChanged += Map_TaskForcesChanged;
         }
 
         private void BtnNewTaskForce_LeftClick(object sender, System.EventArgs e)
         {
+            map.TaskForcesChanged -= Map_TaskForcesChanged;
+
             var taskForce = new TaskForce(map.GetNewUniqueInternalId()) { Name = "New TaskForce" };
-            map.TaskForces.Add(taskForce);
+            map.AddTaskForce(taskForce);
             ListTaskForces();
             SelectTaskForce(taskForce);
+
+            map.TaskForcesChanged += Map_TaskForcesChanged;
         }
 
         private void ShowTaskForceReferences()
@@ -464,10 +487,19 @@ namespace TSMapEditor.UI.Windows
 
         public void SelectTaskForce(TaskForce taskForce)
         {
+            if (taskForce == null)
+            {
+                lbTaskForces.SelectedIndex = -1;
+                return;
+            }
+
             int index = lbTaskForces.Items.FindIndex(lbi => lbi.Tag == taskForce);
 
             if (index < 0)
+            {
+                lbTaskForces.SelectedIndex = -1;
                 return;
+            }
 
             lbTaskForces.SelectedIndex = index;
             lbTaskForces.ScrollToSelectedElement();

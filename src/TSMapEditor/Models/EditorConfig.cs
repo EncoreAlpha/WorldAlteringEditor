@@ -16,7 +16,9 @@ namespace TSMapEditor.Models
         {
             EditorRulesIni = new IniFile(Environment.CurrentDirectory + "/Config/EditorRules.ini");
         }
-        
+
+        private const string IniSystemSectionName = "INISystem";
+
         public IniFile EditorRulesIni { get; }
         public List<OverlayCollection> OverlayCollections { get; } = new List<OverlayCollection>();
         public List<TerrainObjectCollection> TerrainObjectCollections { get; } = new List<TerrainObjectCollection>();
@@ -32,24 +34,12 @@ namespace TSMapEditor.Models
         public List<TeamTypeFlag> TeamTypeFlags { get; } = new List<TeamTypeFlag>();
         public EvaSpeeches Speeches { get; private set; }
 
-        private static readonly Dictionary<string, (int StartIndex, int Count)> TiberiumDefaults = new()
+        private static readonly Dictionary<int, (int StartIndex, int Count)> TiberiumImageToOverlays = new()
         {
-            {
-                "Riparius",
-                (102, 20)
-            },
-            {
-                "Cruentus",
-                (27, 12)
-            },
-            {
-                "Vinifera",
-                (127, 20)
-            },
-            {
-                "Aboreus",
-                (147, 20)
-            }
+            { 1, (102, 20) },
+            { 2, (27, 12) },
+            { 3, (127, 20) },
+            { 4, (147, 20) }
         };
 
         public void EarlyInit()
@@ -193,6 +183,9 @@ namespace TSMapEditor.Models
                 if (sections[i].StartsWith("$"))
                     continue;
 
+                if (sections[i] == IniSystemSectionName)
+                    continue;
+
                 var scriptAction = new ScriptAction(i);
                 scriptAction.ReadIniSection(iniFile, sections[i]);
 
@@ -213,6 +206,9 @@ namespace TSMapEditor.Models
 
             for (int i = 0; i < sections.Count; i++)
             {
+                if (sections[i] == IniSystemSectionName)
+                    continue;
+
                 var triggerEventType = new TriggerEventType(i);
                 var section = iniFile.GetSection(sections[i]);
                 triggerEventType.ReadPropertiesFromIniSection(section);
@@ -234,6 +230,9 @@ namespace TSMapEditor.Models
 
             for (int i = 0; i < sections.Count; i++)
             {
+                if (sections[i] == IniSystemSectionName)
+                    continue;
+
                 var triggerActionType = new TriggerActionType(i);
                 var section = iniFile.GetSection(sections[i]);
                 triggerActionType.ReadPropertiesFromIniSection(section);
@@ -304,16 +303,15 @@ namespace TSMapEditor.Models
             foreach (var tiberiumType in rules.TiberiumTypes)
             {
                 tiberiumType.Overlays = new List<OverlayType>();
-                string tibName = tiberiumType.ININame;
 
-                string overlaysString = iniFile.GetStringValue(sectionName, tibName, null);
+                string overlaysString = iniFile.GetStringValue(sectionName, tiberiumType.ININame, null);
 
                 if (overlaysString == null)
                 {
-                    if (!TiberiumDefaults.ContainsKey(tibName))
+                    if (!TiberiumImageToOverlays.ContainsKey(tiberiumType.Image))
                         continue;
 
-                    var defaultOverlays = rules.OverlayTypes.Slice(TiberiumDefaults[tibName].StartIndex, TiberiumDefaults[tibName].Count);
+                    var defaultOverlays = rules.OverlayTypes.Slice(TiberiumImageToOverlays[tiberiumType.Image].StartIndex, TiberiumImageToOverlays[tiberiumType.Image].Count);
                     tiberiumType.Overlays.AddRange(defaultOverlays);
                     defaultOverlays.ForEach(ot =>
                     {
@@ -337,7 +335,7 @@ namespace TSMapEditor.Models
 
                 if (overlays.Any(ot => ot.Item2 == null))
                 {
-                    throw new INIConfigException($"Tiberium {tibName} has invalid overlay type(s) specified: " +
+                    throw new INIConfigException($"Tiberium {tiberiumType.ININame} has invalid overlay type(s) specified: " +
                                                  $"{string.Join(", ", overlays.Where(ot => ot.Item2 == null).Select(ot => ot.name))}!");
                 }
 

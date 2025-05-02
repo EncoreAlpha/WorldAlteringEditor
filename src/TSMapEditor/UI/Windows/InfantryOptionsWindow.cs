@@ -3,26 +3,30 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Globalization;
 using TSMapEditor.Models;
+using TSMapEditor.Rendering;
 using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows
 {
     public class InfantryOptionsWindow : INItializableWindow
     {
-        public InfantryOptionsWindow(WindowManager windowManager, Map map) : base(windowManager)
+        public InfantryOptionsWindow(WindowManager windowManager, Map map, IMapView mapView) : base(windowManager)
         {
             this.map = map;
+            this.mapView = mapView;
         }
 
         public event EventHandler<TagEventArgs> TagOpened;
 
         private readonly Map map;
+        private readonly IMapView mapView;
 
         private XNALabel lblSelectedInfantryValue;
         private XNATrackbar trbStrength;
         private XNALabel lblStrengthValue;
         private XNADropDown ddMission;
         private XNADropDown ddVeterancy;
+        private XNADropDown ddSubCell;
         private EditorNumberTextBox tbGroup;
         private XNACheckBox chkOnBridge;
         private XNACheckBox chkAutocreateNoRecruitable;
@@ -43,6 +47,7 @@ namespace TSMapEditor.UI.Windows
             lblStrengthValue = FindChild<XNALabel>(nameof(lblStrengthValue));
             ddMission = FindChild<XNADropDown>(nameof(ddMission));
             ddVeterancy = FindChild<XNADropDown>(nameof(ddVeterancy));
+            ddSubCell = FindChild<XNADropDown>(nameof(ddSubCell));
             tbGroup = FindChild<EditorNumberTextBox>(nameof(tbGroup));
             chkOnBridge = FindChild<XNACheckBox>(nameof(chkOnBridge));
             chkAutocreateNoRecruitable = FindChild<XNACheckBox>(nameof(chkAutocreateNoRecruitable));
@@ -103,11 +108,12 @@ namespace TSMapEditor.UI.Windows
 
         private void RefreshValues()
         {
-            lblSelectedInfantryValue.Text = infantry.ObjectType.GetEditorDisplayName() + ", subcell: " + infantry.SubCell;
+            lblSelectedInfantryValue.Text = infantry.ObjectType.GetEditorDisplayName() + ", sub cell: " + infantry.SubCell;
             trbStrength.Value = infantry.HP;
             ddMission.SelectedIndex = ddMission.Items.FindIndex(item => item.Text == infantry.Mission);
             int veterancyIndex = ddVeterancy.Items.FindIndex(i => (int)i.Tag == infantry.Veterancy);
             ddVeterancy.SelectedIndex = Math.Max(0, veterancyIndex);
+            ddSubCell.SelectedIndex = (int)infantry.SubCell;
             tbGroup.Value = infantry.Group;
             chkOnBridge.Checked = infantry.High;
             chkAutocreateNoRecruitable.Checked = infantry.AutocreateNoRecruitable;
@@ -121,6 +127,18 @@ namespace TSMapEditor.UI.Windows
             infantry.HP = Math.Min(Constants.ObjectHealthMax, Math.Max(trbStrength.Value, 0));
             infantry.Mission = ddMission.SelectedItem == null ? infantry.Mission : ddMission.SelectedItem.Text;
             infantry.Veterancy = (int)ddVeterancy.SelectedItem.Tag;
+
+            if (ddSubCell.SelectedIndex != (int)infantry.SubCell && ddSubCell.SelectedIndex >= 0 && ddSubCell.SelectedIndex < (int)SubCell.Count)
+            {
+                var infantryCell = map.GetTile(infantry.Position);
+                if (infantryCell != null)
+                {
+                    infantryCell.MoveInfantryToSubCell(infantry, (SubCell)ddSubCell.SelectedIndex);
+                }
+
+                mapView.AddRefreshPoint(infantryCell.CoordsToPoint());
+            }
+
             infantry.Group = tbGroup.Value;
             infantry.High = chkOnBridge.Checked;
             infantry.AutocreateNoRecruitable = chkAutocreateNoRecruitable.Checked;

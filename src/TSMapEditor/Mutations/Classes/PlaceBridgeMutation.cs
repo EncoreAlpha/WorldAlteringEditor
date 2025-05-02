@@ -65,6 +65,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private List<OriginalOverlayInfo> originalOverlayInfos = new List<OriginalOverlayInfo>();
 
+        public override string GetDisplayString()
+        {
+            return $"Place bridge '{bridgeType.Name}' of direction {bridgeDirection} from {startPoint} to {endPoint}";
+        }
+
         public override void Perform()
         {
             if (bridgeType.Kind == BridgeKind.Low)

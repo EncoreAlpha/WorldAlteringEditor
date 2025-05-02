@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Rampastring.Tools;
+using System;
 
 namespace TSMapEditor.Models
 {
@@ -11,6 +12,8 @@ namespace TSMapEditor.Models
     /// </summary>
     public class HouseType : AbstractObject, INIDefined
     {
+        public const double MultiplierDefaultValue = 1.0;
+
         public HouseType(string iniName)
         {
             ININame = iniName;
@@ -82,7 +85,38 @@ namespace TSMapEditor.Models
 
         public void WriteToIniSection(IniSection iniSection)
         {
+            foreach (var property in GetType().GetProperties())
+            {
+                if (property.PropertyType == typeof(float?))
+                {
+                    if ((float?)property.GetValue(this) == (float)MultiplierDefaultValue)
+                        property.SetValue(this, null);
+                }
+                else if (property.PropertyType == typeof(double?))
+                {
+                    if ((double?)property.GetValue(this) == MultiplierDefaultValue)
+                        property.SetValue(this, null);
+                }
+            }
+
             WritePropertiesToIniSection(iniSection);
+        }
+
+        public void EraseFromIniFile(IniFile iniFile)
+        {
+            if (string.IsNullOrWhiteSpace(ININame))
+                return;
+
+            ArgumentNullException.ThrowIfNull(iniFile);
+
+            var section = iniFile.GetSection(ININame);
+            if (section == null)
+                return;
+
+            ErasePropertiesFromIniSection(section);
+
+            if (section.Keys.Count == 0)
+                iniFile.RemoveSection(ININame);
         }
 
         public void CopyBasicPropertiesFrom(HouseType other)

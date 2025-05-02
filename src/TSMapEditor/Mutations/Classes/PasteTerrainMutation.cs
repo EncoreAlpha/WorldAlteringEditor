@@ -494,6 +494,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private List<TechnoBase> placedObjects = new List<TechnoBase>();
 
+        public override string GetDisplayString()
+        {
+            return $"Paste copied terrain of size {copiedMapData.Width}x{copiedMapData.Height} at {origin}";
+        }
+
         private void AddRefresh()
         {
             if (copiedMapData.CopiedMapEntries.Count > 10)

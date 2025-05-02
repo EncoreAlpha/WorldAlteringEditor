@@ -343,6 +343,20 @@ namespace TSMapEditor.UI.Windows
             lbTriggers.AllowRightClickUnselect = false;
             lbTriggers.RightClick += (s, e) => { lbTriggers.SelectedIndex = lbTriggers.HoveredIndex; if (lbTriggers.SelectedItem != null) triggerContextMenu.Open(GetCursorPoint()); };
             lbTriggers.SelectedIndexChanged += LbTriggers_SelectedIndexChanged;
+
+            WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;
+        }
+
+        private void WindowManager_WindowSizeChangedByUser(object sender, EventArgs e)
+        {
+            RefreshLayout();
+            ListTriggers();
+        }
+
+        public override void Kill()
+        {
+            WindowManager.WindowSizeChangedByUser -= WindowManager_WindowSizeChangedByUser;
+            base.Kill();
         }
 
         private void DdActions_SelectedIndexChanged(object sender, EventArgs e)

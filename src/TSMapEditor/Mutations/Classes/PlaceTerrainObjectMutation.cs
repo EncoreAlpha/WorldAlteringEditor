@@ -19,6 +19,11 @@ namespace TSMapEditor.Mutations.Classes
         private readonly TerrainType terrainType;
         private readonly Point2D cellCoords;
 
+        public override string GetDisplayString()
+        {
+            return $"Place terrain object '{terrainType.GetEditorDisplayName()}' at {cellCoords}";
+        }
+
         public override void Perform()
         {
             var tile = MutationTarget.Map.GetTile(cellCoords);
@@ -27,11 +32,13 @@ namespace TSMapEditor.Mutations.Classes
 
             var terrainObject = new TerrainObject(terrainType, cellCoords);
             MutationTarget.Map.AddTerrainObject(terrainObject);
+            MutationTarget.InvalidateMap();
         }
 
         public override void Undo()
         {
             MutationTarget.Map.RemoveTerrainObject(cellCoords);
+            MutationTarget.InvalidateMap();
         }
     }
 }

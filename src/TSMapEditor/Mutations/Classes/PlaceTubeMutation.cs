@@ -13,6 +13,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private readonly Tube tube;
 
+        public override string GetDisplayString()
+        {
+            return $"Place tunnel tube of length {tube.Directions.Count} at {tube.EntryPoint}";
+        }
+
         public override void Perform()
         {
             MutationTarget.Map.Tubes.Add(tube);

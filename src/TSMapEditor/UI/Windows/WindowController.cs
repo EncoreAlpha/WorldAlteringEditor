@@ -68,6 +68,7 @@ namespace TSMapEditor.UI.Windows
         public ConfigureAlliesWindow ConfigureAlliesWindow { get; private set; }
         public SelectConnectedTileWindow SelectConnectedTileWindow { get; private set; }
         public MegamapGenerationOptionsWindow MegamapGenerationOptionsWindow { get; private set; }
+        public HistoryWindow HistoryWindow { get; private set; }
         public AboutWindow AboutWindow { get; private set; }
 
         private IWindowParentControl windowParentControl;
@@ -135,7 +136,7 @@ namespace TSMapEditor.UI.Windows
             VehicleOptionsWindow = new VehicleOptionsWindow(windowParentControl.WindowManager, map, editorState, cursorActionTarget);
             Windows.Add(VehicleOptionsWindow);
 
-            InfantryOptionsWindow = new InfantryOptionsWindow(windowParentControl.WindowManager, map);
+            InfantryOptionsWindow = new InfantryOptionsWindow(windowParentControl.WindowManager, map, cursorActionTarget);
             Windows.Add(InfantryOptionsWindow);
 
             AircraftOptionsWindow = new AircraftOptionsWindow(windowParentControl.WindowManager, map);
@@ -206,6 +207,9 @@ namespace TSMapEditor.UI.Windows
 
             MegamapGenerationOptionsWindow = new MegamapGenerationOptionsWindow(windowParentControl.WindowManager);
             Windows.Add(MegamapGenerationOptionsWindow);
+
+            HistoryWindow = new HistoryWindow(windowParentControl.WindowManager, cursorActionTarget.MutationManager);
+            Windows.Add(HistoryWindow);
 
             AboutWindow = new AboutWindow(windowParentControl.WindowManager);
             Windows.Add(AboutWindow);

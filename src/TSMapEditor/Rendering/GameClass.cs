@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using TSMapEditor.CCEngine;
+using TSMapEditor.Misc;
 using TSMapEditor.Settings;
 using TSMapEditor.UI;
 
@@ -51,6 +52,7 @@ namespace TSMapEditor.Rendering
 
             Constants.Init();
             new UserSettings();
+            AutosaveTimer.Purge();
 
             graphics = new GraphicsDeviceManager(this);
             graphics.HardwareModeSwitch = false;

@@ -351,7 +351,7 @@ namespace TSMapEditor.Mutations.Classes
 
         public string GetConfigString()
         {
-            return $",{OpenChance},{OverlapChance}," + string.Join(",", SmudgeTypes.Select(tt => tt.ININame));
+            return $"{OpenChance},{OverlapChance}," + string.Join(",", SmudgeTypes.Select(tt => tt.ININame));
         }
 
         public static TerrainGeneratorSmudgeGroup FromConfigString(List<SmudgeType> allSmudgeTypes, string config)
@@ -401,7 +401,10 @@ namespace TSMapEditor.Mutations.Classes
 
         private bool wasPerformedWithAutoLatOn;
 
-        private static readonly Point2D[] surroundingTiles = new Point2D[] { new Point2D(-1, 0), new Point2D(1, 0), new Point2D(0, -1), new Point2D(0, 1) };
+        public override string GetDisplayString()
+        {
+            return $"Generate Terrain over {cells.Count} cells";
+        }
 
         public override void Perform()
         {

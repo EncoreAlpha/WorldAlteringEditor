@@ -20,6 +20,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private Tag oldAttachedTag;
 
+        public override string GetDisplayString()
+        {
+            return $"Change attached tag of '{techno.GetObjectType().GetEditorDisplayName()}' at {techno.Position} to '{tag.Name}'";
+        }
+
         public override void Perform()
         {
             oldAttachedTag = techno.AttachedTag;

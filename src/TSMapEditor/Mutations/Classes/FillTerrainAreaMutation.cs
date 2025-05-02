@@ -25,6 +25,11 @@ namespace TSMapEditor.Mutations.Classes
         private TileImage tile;
         private OriginalCellTerrainData[] undoData;
 
+        public override string GetDisplayString()
+        {
+            return $"Flood-fill terrain tiles at {targetTile.CoordsToPoint()} with tile from set '{MutationTarget.TheaterGraphics.Theater.TileSets[tile.TileSetId].SetName}'";
+        }
+
         public override void Perform()
         {
             var originalData = new List<OriginalCellTerrainData>();

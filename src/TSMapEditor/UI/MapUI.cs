@@ -59,7 +59,7 @@ namespace TSMapEditor.UI
     /// </summary>
     public class MapUI : XNAControl, ICursorActionTarget, IMutationTarget
     {
-        private const float RightClickScrollRateDivisor = 64f;
+        private const float RightClickScrollRateDivisor = 48f;
         private const double ZoomStep = 0.1;
 
         private static Color[] MarbleMadnessTileHeightLevelColors = new Color[]
@@ -421,7 +421,7 @@ namespace TSMapEditor.UI
                             bool overlapObjects = KeyboardCommands.Instance.OverlapObjects.AreKeysOrModifiersDown(Keyboard);
                             if (KeyboardCommands.Instance.CloneObject.AreKeysOrModifiersDown(Keyboard))
                             {
-                                if ((draggedOrRotatedObject.IsTechno() || draggedOrRotatedObject.WhatAmI() == RTTIType.Terrain) &&
+                                if (Helpers.IsCloningSupported(draggedOrRotatedObject) &&
                                     Map.CanPlaceObjectAt(draggedOrRotatedObject, tileUnderCursor.CoordsToPoint(), true, overlapObjects))
                                 {
                                     var mutation = new CloneObjectMutation(MutationTarget, draggedOrRotatedObject, tileUnderCursor.CoordsToPoint());
@@ -475,18 +475,10 @@ namespace TSMapEditor.UI
                     draggedOrRotatedObject = tileUnderCursor.Waypoints[0];
                     isDraggingObject = true;
                 }
-            }
-
-            if (isRightClickScrolling)
-            {
-                if (Cursor.RightDown)
+                else if (tileUnderCursor.CellTag != null)
                 {
-                    var newCursorPosition = GetCursorPoint();
-                    var result = newCursorPosition - rightClickScrollInitPos;
-                    float rightClickScrollRate = (float)((scrollRate / RightClickScrollRateDivisor) / Camera.ZoomLevel);
-
-                    Camera.FloatTopLeftPoint = new Vector2(Camera.FloatTopLeftPoint.X + result.X * rightClickScrollRate,
-                        Camera.FloatTopLeftPoint.Y + result.Y * rightClickScrollRate);
+                    draggedOrRotatedObject = tileUnderCursor.CellTag;
+                    isDraggingObject = true;
                 }
             }
 
@@ -614,9 +606,23 @@ namespace TSMapEditor.UI
             // 1000 ms (1 second) divided by 60 frames =~ 16.667 ms / frame
             int scrollRate = (int)(this.scrollRate * (gameTime.ElapsedGameTime.TotalMilliseconds / 16.667));
 
-            if (IsActive && !(WindowManager.SelectedControl is XNATextBox))
+            if (IsActive)
             {
-                Camera.KeyboardUpdate(Keyboard, scrollRate);
+                if (!(WindowManager.SelectedControl is XNATextBox))
+                    Camera.KeyboardUpdate(Keyboard, scrollRate);
+
+                if (isRightClickScrolling)
+                {
+                    if (Cursor.RightDown)
+                    {
+                        var newCursorPosition = GetCursorPoint();
+                        var result = newCursorPosition - rightClickScrollInitPos;
+                        float rightClickScrollRate = (float)((scrollRate / RightClickScrollRateDivisor) / Camera.ZoomLevel);
+
+                        Camera.FloatTopLeftPoint = new Vector2(Camera.FloatTopLeftPoint.X + result.X * rightClickScrollRate,
+                            Camera.FloatTopLeftPoint.Y + result.Y * rightClickScrollRate);
+                    }
+                }
             }
 
             if (leftPressedDownOnControl && !Cursor.LeftDown)

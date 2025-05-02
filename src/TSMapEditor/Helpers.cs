@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models;
 using TSMapEditor.Models.Enums;
@@ -15,6 +16,8 @@ namespace TSMapEditor
 {
     public static class Helpers
     {
+        public static readonly RTTIType[] SupportedCloneTypes = [ RTTIType.Terrain, RTTIType.CellTag ];
+
         public static bool IsStringNoneValue(string str)
         {
             return str.Equals(Constants.NoneValue1, StringComparison.InvariantCultureIgnoreCase) ||
@@ -387,6 +390,15 @@ namespace TSMapEditor
                     houseType.Side = side;
                     break;
                 }
+
+                if (side.EndsWith("Side") && side.Length > 4)
+                {
+                    if (houseType.ININame.StartsWith(side[..4]))
+                    {
+                        houseType.Side = side;
+                        break;
+                    }
+                }
             }
 
             if (string.IsNullOrWhiteSpace(houseType.Side))
@@ -397,6 +409,13 @@ namespace TSMapEditor
 
         public static string NormalizePath(string path)
         {
+            if (path.Contains("../") || path.Contains("..\\"))
+            {
+                return Path.GetFullPath(path)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    .ToUpperInvariant();
+            }
+
             return Path.GetFullPath(new Uri(path).LocalPath)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                 .ToUpperInvariant();
@@ -705,6 +724,17 @@ namespace TSMapEditor
             }
 
             return edges.ToArray();
+        }
+
+        public static bool IsCloningSupported(IMovable objectToClone)
+        {
+            if (objectToClone.IsTechno())
+                return true;
+
+            if (SupportedCloneTypes.Contains(objectToClone.WhatAmI()))
+                return true;
+
+            return false;
         }
     }
 }

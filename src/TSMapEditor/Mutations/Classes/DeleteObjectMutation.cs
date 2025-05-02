@@ -22,6 +22,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private List<AbstractObject> deletedObjects = new List<AbstractObject>();
 
+        public override string GetDisplayString()
+        {
+            return $"Delete {DeletedCount} objects at {cellCoords} with a brush size of {brushSize}";
+        }
+
         public int DeletedCount => deletedObjects.Count;
 
         private DeletionMode DeletionModeFromObject(AbstractObject obj)

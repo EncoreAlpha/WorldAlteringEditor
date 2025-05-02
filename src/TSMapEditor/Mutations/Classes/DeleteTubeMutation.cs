@@ -18,6 +18,11 @@ namespace TSMapEditor.Mutations.Classes
         private Tube deletedTube;
         private int deletedTubeIndex;
 
+        public override string GetDisplayString()
+        {
+            return $"Delete tunnel tube of length {deletedTube.Directions.Count} at {cellCoords}";
+        }
+
         public override void Perform()
         {
             int index = MutationTarget.Map.Tubes.FindIndex(t => t.EntryPoint == cellCoords || t.ExitPoint == cellCoords);

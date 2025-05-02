@@ -14,6 +14,16 @@
                    rtti == RTTIType.Building;
         }
 
+        public bool IsTechnoType()
+        {
+            RTTIType rtti = WhatAmI();
+
+            return rtti == RTTIType.AircraftType ||
+                   rtti == RTTIType.InfantryType ||
+                   rtti == RTTIType.UnitType ||
+                   rtti == RTTIType.BuildingType;
+        }
+
         public bool IsFoot()
         {
             RTTIType rtti = WhatAmI();

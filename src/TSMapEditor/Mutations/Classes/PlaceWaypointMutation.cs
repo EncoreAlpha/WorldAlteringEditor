@@ -21,6 +21,11 @@ namespace TSMapEditor.Mutations.Classes
         private readonly string waypointColor;
         private Waypoint waypoint;
 
+        public override string GetDisplayString()
+        {
+            return $"Place waypoint {waypointNumber} at {cellCoords}";
+        }
+
         public override void Perform()
         {
             waypoint = new Waypoint() { Identifier = waypointNumber, Position = cellCoords };

@@ -95,6 +95,10 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
 
         protected override TransitionRampInfo[] GetHeightFixers() => heightFixers;
 
+        public override string GetDisplayString()
+        {
+            return $"Lower ground at {OriginCell} with a brush size of {BrushSize} using non-steep ramps";
+        }
 
         public override void Perform() => LowerGround();
 

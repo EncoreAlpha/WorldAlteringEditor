@@ -5,7 +5,7 @@ namespace TSMapEditor
 {
     public static class Constants
     {
-        public const string ReleaseVersion = "1.4.2";
+        public const string ReleaseVersion = "1.4.5";
 
         public static int CellSizeX = 48;
         public static int CellSizeY = 24;
@@ -82,6 +82,8 @@ namespace TSMapEditor
         public const int UITopBarMenuHeight = 23;
 
         public static int UITreeViewLineHeight = 20;
+
+        public static double UIAccidentalClickPreventionTime = 0.2;
 
         public static int MapPreviewMaxWidth = 800;
         public static int MapPreviewMaxHeight = 400;

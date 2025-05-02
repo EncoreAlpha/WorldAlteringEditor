@@ -57,7 +57,7 @@ namespace TSMapEditor.Models
                 return ININame;
             }
 
-            if (ININame.StartsWith("AI") && !name.StartsWith("AI "))
+            if (IsTechnoType() && ININame.StartsWith("AI") && !name.StartsWith("AI "))
                 return "AI " + name;
 
             return name;

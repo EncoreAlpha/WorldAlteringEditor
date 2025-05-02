@@ -51,11 +51,16 @@ public class IniFileEx: IniFile
     /// <param name="filePath">Path to file or file name inside MIX file system.</param>
     /// <param name="gameDirectory">The path to the game directory.</param>
     /// <param name="ccFileManager">File manager object holding MIXes.</param>
-    /// <returns>Loaded INI file, or empty INI file object if the file was not found.</returns>
-    public static IniFileEx FromPathOrMix(string filePath, string gameDirectory, CCFileManager ccFileManager)
+    /// <param name="returnNullOnNotFound">Whether to return null or an empty INI object when the INI file is not found.</param>
+    public static IniFileEx FromPathOrMix(string filePath, string gameDirectory, CCFileManager ccFileManager, bool returnNullOnNotFound = false)
     {
         if (filePath.Length == 0)
+        {
+            if (returnNullOnNotFound)
+                return null;
+
             return new();
+        }
 
         string iniPath = Path.Combine(gameDirectory, filePath);
         if (File.Exists(iniPath))
@@ -67,6 +72,9 @@ public class IniFileEx: IniFile
         var iniBytes = ccFileManager.LoadFile(filePath);
         if (iniBytes != null)
             return new(new MemoryStream(iniBytes), ccFileManager);
+
+        if (returnNullOnNotFound)
+            return null;
 
         return new();
     }

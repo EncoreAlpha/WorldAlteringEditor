@@ -78,19 +78,19 @@ namespace TSMapEditor.UI
 
             if (editorState.CursorAction != null)
             {
-                textRenderer.AddTextLine(new XNATextPart("工具: ", Constants.UIDefaultFont, subtleTextColor));
-                textRenderer.AddTextPart(new XNATextPart(editorState.CursorAction.GetName(), Constants.UIDefaultFont, baseTextColor));
+                textRenderer.AddTextPart(new XNATextPart("工具: ", Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextPart(new XNATextPart(editorState.CursorAction.GetName() + Environment.NewLine, Constants.UIDefaultFont, baseTextColor));
             }
             else
             {
-                textRenderer.AddTextLine(new XNATextPart("无", Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextPart(new XNATextPart("无" + Environment.NewLine, Constants.UIDefaultFont, subtleTextColor));
             }
 
-            textRenderer.AddTextLine(new XNATextPart(MapTile.X + ", " + MapTile.Y, Constants.UIDefaultFont, baseTextColor));
+            textRenderer.AddTextPart(new XNATextPart(MapTile.X + ", " + MapTile.Y + Environment.NewLine, Constants.UIDefaultFont, baseTextColor));
 
             TileImage tileGraphics = theaterGraphics.GetTileGraphics(MapTile.TileIndex);
             TileSet tileSet = theaterGraphics.Theater.TileSets[tileGraphics.TileSetId];
-            textRenderer.AddTextLine(new XNATextPart("图块类型: ", Constants.UIDefaultFont, subtleTextColor));
+            textRenderer.AddTextPart(new XNATextPart("图块类型: ", Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart(tileSet.SetName + " (" + tileGraphics.TileSetId + ")", Constants.UIDefaultFont, baseTextColor));
             textRenderer.AddTextPart(new XNATextPart("图块 #: ", Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart((MapTile.TileIndex - tileSet.StartTileIndex).ToString(CultureInfo.InvariantCulture), Constants.UIDefaultFont, baseTextColor));
@@ -250,7 +250,6 @@ namespace TSMapEditor.UI
 
         private void AddObjectInformation<T>(string objectTypeLabel, Techno<T> techno) where T : TechnoType
         {
-            textRenderer.AddTextPart(new XNATextPart(Environment.NewLine));
             textRenderer.AddTextLine(new XNATextPart(objectTypeLabel,
                 Constants.UIDefaultFont, Color.Gray));
             textRenderer.AddTextPart(new XNATextPart(techno.ObjectType.Name + " (" + techno.ObjectType.ININame + "), 归属于:",

@@ -183,6 +183,38 @@ namespace TSMapEditor.Models
             Infantry[(int)infantry.SubCell] = infantry;
         }
 
+        public void MoveInfantryToSubCell(Infantry infantry, SubCell newSubCell)
+        {
+            if (infantry.Position != CoordsToPoint())
+                throw new InvalidOperationException($"{nameof(MapTile)}.{nameof(MoveInfantryToSubCell)}: Cannot move infantry that is not on this cell.");
+
+            if (infantry.SubCell == SubCell.None)
+                throw new InvalidOperationException($"{nameof(MapTile)}.{nameof(MoveInfantryToSubCell)}: Given infantry is not on a subcell!");
+
+            // Sanity check just to be sure
+            if (Infantry[(int)infantry.SubCell] != infantry)
+                throw new InvalidOperationException($"{nameof(MapTile)}.{nameof(MoveInfantryToSubCell)}: Infantry data structure mismatch");
+
+            // One sub-cell can only contain one infantry.
+            // If the new sub-cell already has another infantry, move them to the argument infantry's old position.
+            Infantry otherInfantry = Infantry[(int)newSubCell];
+            if (otherInfantry != null)
+            {
+                Infantry[(int)infantry.SubCell] = otherInfantry;
+                otherInfantry.SubCell = infantry.SubCell;
+            }
+            else
+            {
+                // If the new sub-cell does not have infantry, simply clear the infantry information for the
+                // argument infantry's old position before applying them to the new position.
+                Infantry[(int)infantry.SubCell] = null;
+            }
+
+            // Finally, move the argument infantry to the given sub-cell.
+            infantry.SubCell = newSubCell;
+            Infantry[(int)newSubCell] = infantry;
+        }
+
         public void DoForAllInfantry(Action<Infantry> action)
         {
             for (int i = 0; i < Infantry.Length; i++)

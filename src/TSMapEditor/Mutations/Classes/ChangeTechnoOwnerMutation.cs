@@ -19,6 +19,11 @@ namespace TSMapEditor.Mutations.Classes
         private readonly House oldOwner;
         private readonly House newOwner;
 
+        public override string GetDisplayString()
+        {
+            return $"Change owner of {techno.GetObjectType().GetEditorDisplayName()} at {techno.Position} to {newOwner.ININame}";
+        }
+
         public override void Perform()
         {
             techno.Owner = newOwner;

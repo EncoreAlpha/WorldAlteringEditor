@@ -23,6 +23,11 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
 
         private List<Point2D> affectedCells = new List<Point2D>();
 
+        public override string GetDisplayString()
+        {
+            return $"Lower cell height at {targetCellCoords} with a brush size of {brushSize}";
+        }
+
         public override void Perform()
         {
             if (!applyOnArea)

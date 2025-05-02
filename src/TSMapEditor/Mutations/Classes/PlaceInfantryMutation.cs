@@ -23,6 +23,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private Infantry placedInfantry;
 
+        public override string GetDisplayString()
+        {
+            return $"Place '{infantryType.GetEditorDisplayName()}' at {cellCoords}";
+        }
+
         public override void Perform()
         {
             var cell = MutationTarget.Map.GetTile(cellCoords);

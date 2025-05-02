@@ -18,6 +18,11 @@ namespace TSMapEditor.Mutations.Classes
         private readonly Point2D cellCoords;
         private readonly Tag tag;
 
+        public override string GetDisplayString()
+        {
+            return $"Place CellTag for '{tag.Name}' at {cellCoords}";
+        }
+
         public override void Perform()
         {
             MutationTarget.Map.AddCellTag(new CellTag(cellCoords, tag));

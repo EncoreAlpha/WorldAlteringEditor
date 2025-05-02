@@ -80,7 +80,11 @@ namespace TSMapEditor.UI.CursorActions
                 Renderer.FillRectangle(GetDrawRectangleForMarker(pathCellCenterPoint), Color.Yellow);
             }
 
-            string text = "以单元格为单位的路径长度: " + pathLength + "\r\n\r\n单击选择新源坐标，或右击退出";
+            int xDiff = cellCoords.X - source.Value.X;
+            int yDiff = cellCoords.Y - source.Value.Y;
+
+            string text = "以单元格为单位的路径长度: " + pathLength + Environment.NewLine + 
+                "(X Diff:" + xDiff + ", Y Diff: " + yDiff + ")" + Environment.NewLine + Environment.NewLine + "单击选择新源坐标，或右击退出";
             DrawText(cellCoords, cameraTopLeftPoint, text, pathColor);
         }
 
@@ -121,10 +125,10 @@ namespace TSMapEditor.UI.CursorActions
 
                 currentPoint = currentPoint + new Point2D(xDiff, yDiff);
 
+                pathCellCoords.Add(currentPoint);
+
                 if (currentPoint == destination)
                     break;
-
-                pathCellCoords.Add(currentPoint);
             }
         }
     }

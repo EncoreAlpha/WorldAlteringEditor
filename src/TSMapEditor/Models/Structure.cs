@@ -159,6 +159,8 @@ namespace TSMapEditor.Models
 
         public void LightTiles(MapTile[][] tiles)
         {
+            ClearLitTiles();
+
             Dictionary<MapTile, double> litTiles = new();
             int foundationWidth = ObjectType.ArtConfig.Foundation.Width;
             int foundationHeight = ObjectType.ArtConfig.Foundation.Height;

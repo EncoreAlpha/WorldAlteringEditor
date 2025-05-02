@@ -39,9 +39,21 @@ namespace TSMapEditor.Models
         public event EventHandler<CellLightingEventArgs> CellLightingModified;
         public event EventHandler MapManuallySaved;
         public event EventHandler MapAutoSaved;
+        public event EventHandler MapSaveFailed;
         public event EventHandler PreSave;
         public event EventHandler PostSave;
 
+        /// <summary>
+        /// Raised when TaskForces are added or removed.
+        /// NOT raised when an individual TaskForce's data is modified.
+        /// </summary>
+        public event EventHandler TaskForcesChanged;
+
+        /// <summary>
+        /// Raised when TeamTypes are added or removed.
+        /// NOT raised when an individual TeamType's data is modified.
+        /// </summary>
+        public event EventHandler TeamTypesChanged;
 
         public IniFile LoadedINI { get; private set; }
 
@@ -218,6 +230,7 @@ namespace TSMapEditor.Models
             InitializeRules(gameConfigINIFiles);
             LoadedINI = new IniFileEx();
             var baseMap = new IniFileEx(Environment.CurrentDirectory + "/Config/BaseMap.ini", ccFileManager);
+            baseMap.RemoveSection("INISystem");
             baseMap.FileName = string.Empty;
             baseMap.SetStringValue("Map", "Theater", theaterName);
             baseMap.SetStringValue("Map", "Size", $"0,0,{size.X},{size.Y}");
@@ -317,6 +330,12 @@ namespace TSMapEditor.Models
         private void ReloadSections()
         {
             MapLoader.ReadBasicSection(this, LoadedINI);
+
+            // Refresh light posts in case they got their INI config changed - saves the user
+            // from having to reload the map to refresh lighting changes
+            Rules.BuildingTypes.ForEach(bt => initializer.ReadObjectTypePropertiesFromINI(bt, LoadedINI));
+            Structures.ForEach(s => s.LightTiles(Tiles));
+
             Lighting.ReadFromIniFile(LoadedINI);
         }
 
@@ -373,7 +392,16 @@ namespace TSMapEditor.Models
 
             string savePath = filePath ?? LoadedINI.FileName;
 
-            LoadedINI.WriteIniFile(savePath);
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+                LoadedINI.WriteIniFile(savePath);
+            }
+            catch (IOException ex)
+            {
+                Logger.Log($"Saving map failed! Path: {savePath}, exception message: {ex.Message}");
+                MapSaveFailed?.Invoke(ex, EventArgs.Empty);
+            }
 
             PostSave?.Invoke(this, EventArgs.Empty);
         }
@@ -727,6 +755,7 @@ namespace TSMapEditor.Models
         public void AddTaskForce(TaskForce taskForce)
         {
             TaskForces.Add(taskForce);
+            TaskForcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void RemoveTaskForce(TaskForce taskForce)
@@ -734,6 +763,7 @@ namespace TSMapEditor.Models
             TaskForces.Remove(taskForce);
             TeamTypes.FindAll(tt => tt.TaskForce == taskForce).ForEach(tt => tt.TaskForce = null);
             LoadedINI.RemoveSection(taskForce.ININame);
+            TaskForcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void ClearTaskForces()
@@ -790,12 +820,14 @@ namespace TSMapEditor.Models
         public void AddTeamType(TeamType teamType)
         {
             TeamTypes.Add(teamType);
+            TeamTypesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void RemoveTeamType(TeamType teamType)
         {
             TeamTypes.Remove(teamType);
             LoadedINI.RemoveSection(teamType.ININame);
+            TeamTypesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddHouseType(HouseType houseType)
@@ -825,7 +857,7 @@ namespace TSMapEditor.Models
                 for (int i = 0; i < Houses.Count; i++)
                     Houses[i].ID = i;
 
-                LoadedINI.RemoveSection(house.ININame);
+                house.EraseFromIniFile(LoadedINI);
                 HousesChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
@@ -839,6 +871,8 @@ namespace TSMapEditor.Models
             {
                 for (int i = 0; i < HouseTypes.Count; i++)
                     HouseTypes[i].Index = i + (Constants.IsRA2YR ? Rules.RulesHouseTypes.Count : 0);
+
+                houseType.EraseFromIniFile(LoadedINI);
 
                 return true;
             }
@@ -1053,6 +1087,13 @@ namespace TSMapEditor.Models
             AddWaypoint(waypoint);
         }
 
+        public void MoveCellTag(CellTag cellTag, Point2D newCoords)
+        {
+            RemoveCellTagFrom(cellTag.Position);
+            cellTag.Position = newCoords;
+            AddCellTag(cellTag);
+        }
+
         /// <summary>
         /// Determines whether an object can be moved to a specific location.
         /// </summary>
@@ -1065,6 +1106,12 @@ namespace TSMapEditor.Models
         {
             if (movable.WhatAmI() == RTTIType.Waypoint)
                 return true;
+
+            MapTile cell = GetTile(newCoords);
+            if (movable.WhatAmI() == RTTIType.CellTag)
+            {
+                return cell.CellTag == null;
+            }
 
             if (movable.WhatAmI() == RTTIType.Building)
             {
@@ -1085,7 +1132,6 @@ namespace TSMapEditor.Models
                 return canPlace;
             }
 
-            MapTile cell = GetTile(newCoords);
             return cell.CanAddObject((GameObject)movable, blocksSelf, overlapObjects);
         }
 

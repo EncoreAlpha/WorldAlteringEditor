@@ -51,6 +51,11 @@ namespace TSMapEditor.Mutations.Classes
         private CliffAStarNode lastNode;
         private const int MaxTimeInMilliseconds = 10;
 
+        public override string GetDisplayString()
+        {
+            return $"Draw Connected Tiles of type {cliffType.Name}";
+        }
+
         public override void Perform()
         {
             lastNode = null;

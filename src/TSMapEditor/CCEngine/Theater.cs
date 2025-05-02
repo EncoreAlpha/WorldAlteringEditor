@@ -126,6 +126,8 @@ namespace TSMapEditor.CCEngine
             InitLATGround(theaterIni, "SandTile", "ClearToSandLat", null, null, "SandConnectTo", "Sand", SandConnectToTileSets);
             InitLATGround(theaterIni, "PaveTile", "ClearToPaveLat", null, null, "PaveConnectTo", "Pavement", PaveConnectToTileSets);
             InitLATGround(theaterIni, "GreenTile", "ClearToGreenLat", null, null, "GreenConnectTo", "Green", GreenConnectToTileSets);
+            InitLATGround(theaterIni, "CrystalTile", "ClearToCrystalLat", null, null, null, "Crystal");
+            InitLATGround(theaterIni, "BlueMoldTile", "ClearToBlueMoldLat", null, null, null, "Blue Mold");
 
             int rampTileSetIndex = theaterIni.GetIntValue("General", "RampBase", -1);
             if (rampTileSetIndex < 0 || rampTileSetIndex >= TileSets.Count)

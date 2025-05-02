@@ -22,6 +22,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private List<Point2D> undoData;
 
+        public override string GetDisplayString()
+        {
+            return $"{(enableIceGrowth ? "Enable" : "Disable")} ice growth at {cellCoords} with a brush size of {brushSize}";
+        }
+
         public override void Perform()
         {
             brushSize = MutationTarget.BrushSize;

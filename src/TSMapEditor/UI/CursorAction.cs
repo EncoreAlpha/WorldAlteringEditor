@@ -133,7 +133,10 @@ namespace TSMapEditor.UI
 
         protected void DrawText(Point2D cellCoords, Point2D cameraTopLeftPoint, int xOffset, int yOffset, string text, Color textColor)
         {
-            Point2D cellTopLeftPoint = CellMath.CellTopLeftPointFromCellCoords(cellCoords, CursorActionTarget.Map) - cameraTopLeftPoint;
+            Point2D cellTopLeftCoordInWorld = CursorActionTarget.Is2DMode ? CellMath.CellTopLeftPointFromCellCoords(cellCoords, CursorActionTarget.Map) : 
+                CellMath.CellTopLeftPointFromCellCoords_3D(cellCoords, CursorActionTarget.Map);
+
+            Point2D cellTopLeftPoint = cellTopLeftCoordInWorld - cameraTopLeftPoint;
             cellTopLeftPoint = cellTopLeftPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);

@@ -75,11 +75,13 @@ namespace TSMapEditor.UI
         }
 
         private XNADropDown ddRenderScale;
+        private XNADropDown ddTargetFPS;
         private XNACheckBox chkBorderless;
         private XNADropDown ddTheme;
         private XNADropDown ddScrollRate;
         private XNACheckBox chkUseBoldFont;
         private XNACheckBox chkGraphicsLevel;
+        private XNACheckBox chkSmartScriptActionCloning;
         private EditorTextBox tbTextEditorPath;
 
         public override void Kill()
@@ -128,11 +130,28 @@ namespace TSMapEditor.UI
                 }
             }
 
+            var lblTargetFPS = new XNALabel(WindowManager);
+            lblTargetFPS.Name = nameof(lblTargetFPS);
+            lblTargetFPS.Text = "Target FPS:";
+            lblTargetFPS.X = Constants.UIEmptySideSpace;
+            lblTargetFPS.Y = ddRenderScale.Bottom + Constants.UIEmptyTopSpace + 1;
+            AddChild(lblTargetFPS);
+
+            ddTargetFPS = new XNADropDown(WindowManager);
+            ddTargetFPS.Name = nameof(ddTargetFPS);
+            ddTargetFPS.X = ddRenderScale.X;
+            ddTargetFPS.Y = lblTargetFPS.Y - 1;
+            ddTargetFPS.Width = ddRenderScale.Width;
+            AddChild(ddTargetFPS);
+            var targetFramerates = new int[] { 1000, 480, 240, 144, 120, 90, 75, 60, 30, 20 };
+            foreach (int frameRate in targetFramerates)
+                ddTargetFPS.AddItem(new XNADropDownItem() { Text = frameRate.ToString(CultureInfo.InvariantCulture), Tag = frameRate });
+
             var lblTheme = new XNALabel(WindowManager);
             lblTheme.Name = nameof(lblTheme);
             lblTheme.Text = "主题:";
             lblTheme.X = lblRenderScale.X;
-            lblTheme.Y = ddRenderScale.Bottom + Constants.UIEmptyTopSpace;
+            lblTheme.Y = ddTargetFPS.Bottom + Constants.UIEmptyTopSpace;
             AddChild(lblTheme);
 
             ddTheme = new XNADropDown(WindowManager);
@@ -185,11 +204,18 @@ namespace TSMapEditor.UI
             chkGraphicsLevel.Text = "增强的图形质量";
             AddChild(chkGraphicsLevel);
 
+            chkSmartScriptActionCloning = new XNACheckBox(WindowManager);
+            chkSmartScriptActionCloning.Name = nameof(chkSmartScriptActionCloning);
+            chkSmartScriptActionCloning.X = Constants.UIEmptySideSpace;
+            chkSmartScriptActionCloning.Y = chkGraphicsLevel.Bottom + Constants.UIVerticalSpacing;
+            chkSmartScriptActionCloning.Text = "Smart Script Action Cloning";
+            AddChild(chkSmartScriptActionCloning);
+
             var lblTextEditorPath = new XNALabel(WindowManager);
             lblTextEditorPath.Name = nameof(lblTextEditorPath);
             lblTextEditorPath.Text = "文本编辑器路径:";
             lblTextEditorPath.X = Constants.UIEmptySideSpace;
-            lblTextEditorPath.Y = chkGraphicsLevel.Bottom + Constants.UIVerticalSpacing * 2;
+            lblTextEditorPath.Y = chkSmartScriptActionCloning.Bottom + Constants.UIVerticalSpacing * 2;
             AddChild(lblTextEditorPath);
 
             tbTextEditorPath = new EditorTextBox(WindowManager);
@@ -210,6 +236,7 @@ namespace TSMapEditor.UI
             var userSettings = UserSettings.Instance;
 
             ddRenderScale.SelectedIndex = ddRenderScale.Items.FindIndex(i => (double)i.Tag == userSettings.RenderScale.GetValue());
+            ddTargetFPS.SelectedIndex = ddTargetFPS.Items.FindIndex(item => (int)item.Tag == userSettings.TargetFPS.GetValue());
 
             int selectedTheme = ddTheme.Items.FindIndex(i => i.Text == userSettings.Theme);
             if (selectedTheme == -1)
@@ -220,6 +247,7 @@ namespace TSMapEditor.UI
             chkBorderless.Checked = userSettings.Borderless;
             chkUseBoldFont.Checked = userSettings.UseBoldFont;
             chkGraphicsLevel.Checked = userSettings.GraphicsLevel > 0;
+            chkSmartScriptActionCloning.Checked = userSettings.SmartScriptActionCloning;
 
             tbTextEditorPath.Text = userSettings.TextEditorPath;
         }
@@ -230,6 +258,7 @@ namespace TSMapEditor.UI
 
             userSettings.UseBoldFont.UserDefinedValue = chkUseBoldFont.Checked;
             userSettings.GraphicsLevel.UserDefinedValue = chkGraphicsLevel.Checked ? 1 : 0;
+            userSettings.SmartScriptActionCloning.UserDefinedValue = chkSmartScriptActionCloning.Checked;
 
             userSettings.Theme.UserDefinedValue = ddTheme.SelectedItem.Text;
             if (ddScrollRate.SelectedItem != null)
@@ -239,8 +268,12 @@ namespace TSMapEditor.UI
             userSettings.FullscreenWindowed.UserDefinedValue = chkBorderless.Checked;
 
             if (ddRenderScale.SelectedItem != null)
-            {
                 userSettings.RenderScale.UserDefinedValue = (double)ddRenderScale.SelectedItem.Tag;
+
+            if (ddTargetFPS.SelectedItem != null)
+            {
+                userSettings.TargetFPS.UserDefinedValue = (int)ddTargetFPS.SelectedItem.Tag;
+                WindowManager.Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserSettings.Instance.TargetFPS);
             }
 
             userSettings.TextEditorPath.UserDefinedValue = tbTextEditorPath.Text;

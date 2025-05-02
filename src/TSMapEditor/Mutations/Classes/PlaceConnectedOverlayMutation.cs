@@ -24,6 +24,11 @@ namespace TSMapEditor.Mutations.Classes
 
         private OriginalOverlayInfo[] undoData;
 
+        public override string GetDisplayString()
+        {
+            return $"Place connected overlay '{connectedOverlayType.UIName}' at {cellCoords} with a brush size of {brush}";
+        }
+
         public override void Perform()
         {
             var originalOverlayInfos = new List<OriginalOverlayInfo>();

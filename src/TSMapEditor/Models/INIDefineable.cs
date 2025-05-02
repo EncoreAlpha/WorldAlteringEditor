@@ -189,5 +189,55 @@ namespace TSMapEditor.Models
                 }
             }
         }
+
+        private static HashSet<Type> typesToErase = new HashSet<Type>()
+        {
+            typeof(int),
+            typeof(byte),
+            typeof(double),
+            typeof(float),
+            typeof(bool),
+            typeof(string),
+            typeof(int?),
+            typeof(double?),
+            typeof(float?),
+            typeof(bool?)
+        };
+
+        public void ErasePropertiesFromIniSection(IniSection iniSection)
+        {
+            var type = GetType();
+            var propertyInfos = type.GetProperties();
+
+            foreach (var property in propertyInfos)
+            {
+                var propertyType = property.PropertyType;
+
+                var getter = property.GetMethod;
+                if (getter == null)
+                    continue;
+
+                var iniAttribute = (INIAttribute)Attribute.GetCustomAttribute(property, typeof(INIAttribute));
+                if (iniAttribute != null)
+                {
+                    if (!iniAttribute.INIDefined)
+                        continue;
+                }
+
+                var setter = property.GetSetMethod();
+
+                if (setter == null)
+                    continue;
+
+                if (propertyType.IsEnum)
+                {
+                    iniSection.RemoveKey(property.Name);
+                    continue;
+                }
+
+                if (typesToErase.Contains(propertyType))
+                    iniSection.RemoveKey(property.Name);
+            }
+        }
     }
 }

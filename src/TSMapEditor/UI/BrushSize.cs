@@ -34,5 +34,10 @@ namespace TSMapEditor.UI
                 }
             }
         }
+
+        public override string ToString()
+        {
+            return Width + "x" + Height;
+        }
     }
 }

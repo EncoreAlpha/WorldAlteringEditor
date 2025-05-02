@@ -29,6 +29,12 @@ namespace TSMapEditor.Mutations.Classes
 
         private static readonly Point2D[] surroundingTiles = new Point2D[] { new Point2D(-1, 0), new Point2D(1, 0), new Point2D(0, -1), new Point2D(0, 1) };
 
+        public override string GetDisplayString()
+        {
+            var tileSet = MutationTarget.TheaterGraphics.Theater.TileSets[tile.TileSetId];
+            return $"Place terrain tile of TileSet {tileSet.SetName} at {targetCellCoords} with a brush size of {brushSize}";
+        }
+
         private void AddUndoDataForTile(Point2D brushOffset)
         {
             for (int i = 0; i < tile.TMPImages.Length; i++)

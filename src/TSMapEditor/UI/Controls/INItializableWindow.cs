@@ -105,6 +105,9 @@ namespace TSMapEditor.UI.Controls
             {
                 ReadINIForControl(control, true);
             }
+
+            if (btnClose != null)
+                btnClose.X = Width - btnClose.Width;
         }
 
         private bool ReadINIForControl(XNAControl control, bool isForLayout = false)
@@ -115,13 +118,25 @@ namespace TSMapEditor.UI.Controls
 
             foreach (var kvp in section.Keys)
             {
-                if (!isForLayout && kvp.Key.StartsWith("$CC"))
+                if (kvp.Key.StartsWith("$CC"))
                 {
-                    var child = CreateChildControl(control, kvp.Value);
-                    if (!ReadINIForControl(child))
-                        throw new INIConfigException("No section exists for child control " + kvp.Value);
+                    if (!isForLayout)
+                    {
+                        var child = CreateChildControl(control, kvp.Value);
+                        if (!ReadINIForControl(child))
+                            throw new INIConfigException("No section exists for child control " + kvp.Value);
 
-                    child.Initialize();
+                        child.Initialize();
+                    }
+                    else
+                    {
+                        string childName = GetChildControlName(control, kvp.Value);
+                        var child = Children.First(cc => cc.Name == childName);
+                        if (child == null)
+                            throw new INIConfigException($"Processing {control.Name} in {nameof(INItializableWindow)}: Unable to find child control {kvp.Value} while calculating layout");
+
+                        ReadINIForControl(child, true);
+                    }
                 }
                 else if (kvp.Key == "$X")
                 {
@@ -174,12 +189,6 @@ namespace TSMapEditor.UI.Controls
                 {
                     control.ParseINIAttribute(ConfigIni, kvp.Key, kvp.Value);
                 }
-            }
-
-            if (isForLayout)
-            {
-                foreach (var child in control.Children)
-                    ReadINIForControl(child, true);
             }
 
             return true;
@@ -248,22 +257,30 @@ namespace TSMapEditor.UI.Controls
         private XNAControl CreateChildControl(XNAControl parent, string keyValue)
         {
             string[] parts = keyValue.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+            string childName = GetChildControlName(parent, keyValue);
+
+            if (FindChild<XNAControl>(childName, true) != null)
+            {
+                throw new INIConfigException("A control named " + childName + " has been defined more than once.");
+            }
+
+            var childControl = EditorGUICreator.Instance.CreateControl(WindowManager, parts[1]);
+            childControl.Name = childName;
+            parent.AddChildWithoutInitialize(childControl);
+            return childControl;
+        }
+
+        private string GetChildControlName(XNAControl parent, string keyValue)
+        {
+            string[] parts = keyValue.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length != 2)
                 throw new INIConfigException("Invalid child control definition " + keyValue);
 
-            if (string.IsNullOrEmpty(parts[0]))
+            if (string.IsNullOrWhiteSpace(parts[0]))
                 throw new INIConfigException("Empty name in child control definition for " + parent.Name);
 
-            if (FindChild<XNAControl>(parts[0], true) != null)
-            {
-                throw new INIConfigException("A control named " + parts[0] + " has been defined more than once.");
-            }
-
-            var childControl = EditorGUICreator.Instance.CreateControl(WindowManager, parts[1]);
-            childControl.Name = parts[0];
-            parent.AddChildWithoutInitialize(childControl);
-            return childControl;
+            return parts[0];
         }
     }
 }

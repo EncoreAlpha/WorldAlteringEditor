@@ -8,6 +8,7 @@ using TSMapEditor.Mutations.Classes;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using System.Linq;
+using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.CursorActions
 {
@@ -55,6 +56,9 @@ namespace TSMapEditor.UI.CursorActions
         private RKeyboard keyboard;
 
         private int originLevelOffset;
+
+        private bool wasDrawnAbove;
+
 
         private Point2D[][] edges { get; set; } = new Point2D[][] { Array.Empty<Point2D>() };
 
@@ -123,6 +127,16 @@ namespace TSMapEditor.UI.CursorActions
         {
             originalOverlay.Clear();
 
+            if (KeyboardCommands.Instance.PlaceTerrainBelow.AreKeysOrModifiersDown(Keyboard))
+            {
+                wasDrawnAbove = true;
+                cellCoords -= new Point2D(copiedMapData.Width, copiedMapData.Height);
+            }
+            else
+            {
+                wasDrawnAbove = false;
+            }
+
             int maxOffset = 0;
             MapTile originCell = MutationTarget.Map.GetTile(cellCoords);
             int originLevel = originCell?.Level ?? -1;
@@ -182,6 +196,11 @@ namespace TSMapEditor.UI.CursorActions
 
         public override void PostMapDraw(Point2D cellCoords)
         {
+            if (wasDrawnAbove)
+            {
+                cellCoords -= new Point2D(copiedMapData.Width, copiedMapData.Height);
+            }
+
             int maxOffset = 0;
 
             foreach (var copiedTerrain in copiedMapData.CopiedMapEntries)
@@ -218,6 +237,11 @@ namespace TSMapEditor.UI.CursorActions
 
         public override void DrawPreview(Point2D cellCoords, Point2D cameraTopLeftPoint)
         {
+            if (KeyboardCommands.Instance.PlaceTerrainBelow.AreKeysOrModifiersDown(Keyboard))
+            {
+                cellCoords -= new Point2D(copiedMapData.Width, copiedMapData.Height);
+            }
+
             foreach (var edge in edges)
             {
                 Point2D edgeCell0 = cellCoords + edge[0];
@@ -258,7 +282,12 @@ namespace TSMapEditor.UI.CursorActions
                 return;
 
             bool allowOverlap = KeyboardCommands.Instance.OverlapObjects.AreKeysOrModifiersDown(keyboard);
-            
+
+            if (KeyboardCommands.Instance.PlaceTerrainBelow.AreKeysOrModifiersDown(Keyboard))
+            {
+                cellCoords -= new Point2D(copiedMapData.Width, copiedMapData.Height);
+            }
+
             var mutation = new PasteTerrainMutation(CursorActionTarget.MutationTarget, copiedMapData, cellCoords, allowOverlap, originLevelOffset);
             CursorActionTarget.MutationManager.PerformMutation(mutation);
         }

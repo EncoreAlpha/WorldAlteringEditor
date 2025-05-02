@@ -201,6 +201,17 @@ namespace TSMapEditor.UI.Windows
                 if (editedTeamType != null)
                     teamTypeContextMenu.Open(GetCursorPoint());
             };
+
+            map.TeamTypesChanged += Map_TeamTypesChanged;
+        }
+
+        private void Map_TeamTypesChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                ListTeamTypes();
+                SelectTeamType(editedTeamType);
+            }
         }
 
         private void OpenTaskForce()
@@ -329,11 +340,15 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnNewTeamType_LeftClick(object sender, EventArgs e)
         {
+            map.TeamTypesChanged -= Map_TeamTypesChanged;
+
             var teamType = new TeamType(map.GetNewUniqueInternalId()) { Name = "New TeamType" };
             map.EditorConfig.TeamTypeFlags.ForEach(flag => { if (flag.DefaultValue) teamType.EnableFlag(flag.Name); });
-            map.TeamTypes.Add(teamType);
+            map.AddTeamType(teamType);
             ListTeamTypes();
             SelectTeamType(teamType);
+
+            map.TeamTypesChanged += Map_TeamTypesChanged;
         }
 
         private void BtnDeleteTeamType_LeftClick(object sender, EventArgs e)
@@ -362,6 +377,8 @@ namespace TSMapEditor.UI.Windows
             if (editedTeamType == null)
                 return;
 
+            map.TeamTypesChanged -= Map_TeamTypesChanged;
+
             map.RemoveTeamType(editedTeamType);
             map.AITriggerTypes.ForEach(aitt =>
             {
@@ -373,6 +390,8 @@ namespace TSMapEditor.UI.Windows
             });
             ListTeamTypes();
             RefreshSelectedTeamType();
+
+            map.TeamTypesChanged += Map_TeamTypesChanged;
         }
 
         private void BtnCloneTeamType_LeftClick(object sender, EventArgs e)
@@ -380,10 +399,14 @@ namespace TSMapEditor.UI.Windows
             if (editedTeamType == null)
                 return;
 
+            map.TeamTypesChanged -= Map_TeamTypesChanged;
+
             var newTeamType = editedTeamType.Clone(map.GetNewUniqueInternalId());
-            map.TeamTypes.Add(newTeamType);
+            map.AddTeamType(newTeamType);
             ListTeamTypes();
             SelectTeamType(newTeamType);
+
+            map.TeamTypesChanged += Map_TeamTypesChanged;
         }
 
         private void TbFilter_TextChanged(object sender, EventArgs e) => ListTeamTypes();
@@ -447,6 +470,7 @@ namespace TSMapEditor.UI.Windows
             Show();
             ListHouses();
             ListTeamTypes();
+            SelectTeamType(editedTeamType);
         }
 
         private void ListHouses()
@@ -502,10 +526,19 @@ namespace TSMapEditor.UI.Windows
 
         public void SelectTeamType(TeamType teamType)
         {
+            if (teamType == null)
+            {
+                lbTeamTypes.SelectedIndex = -1;
+                return;
+            }
+
             int index = lbTeamTypes.Items.FindIndex(lbi => lbi.Tag == teamType);
 
             if (index < 0)
+            {
+                lbTeamTypes.SelectedIndex = -1;
                 return;
+            }
 
             lbTeamTypes.SelectedIndex = index;
             lbTeamTypes.ScrollToSelectedElement();

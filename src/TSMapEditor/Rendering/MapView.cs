@@ -1144,8 +1144,8 @@ namespace TSMapEditor.Rendering
 
         public Rectangle GetMapLocalViewRectangle()
         {
-            const int InitialHeight = 3; // TS engine assumes that the first cell is at a height of 2
-            const double HeightAddition = 4.5; // TS engine adds 4.5 to specified map height <3
+            const int InitialHeight = 3; // TS engine assumes the first cell to be at this height
+            const double HeightAddition = 5.0; // TS engine adds this specified map height <3
 
             int x = (int)(Map.LocalSize.X * Constants.CellSizeX);
             int y = (int)(Map.LocalSize.Y - InitialHeight) * Constants.CellSizeY + Constants.MapYBaseline;
@@ -1255,8 +1255,10 @@ namespace TSMapEditor.Rendering
 
                 Color lineColor = isCloning ? new Color(0, 255, 255) : Color.White;
                 if (!Map.CanPlaceObjectAt(draggedOrRotatedObject, tileUnderCursor.CoordsToPoint(), isCloning, overlapObjects) ||
-                    (isCloning && !draggedOrRotatedObject.IsTechno() && draggedOrRotatedObject.WhatAmI() != RTTIType.Terrain))
+                    (isCloning && !Helpers.IsCloningSupported(draggedOrRotatedObject)))
+                {
                     lineColor = Color.Red;
+                }
 
                 Point2D cameraAndCellCenterOffset = new Point2D(-Camera.TopLeftPoint.X + Constants.CellSizeX / 2,
                                                  -Camera.TopLeftPoint.Y + Constants.CellSizeY / 2);

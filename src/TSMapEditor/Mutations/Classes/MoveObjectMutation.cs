@@ -42,10 +42,18 @@ namespace TSMapEditor.Mutations.Classes
                 case RTTIType.Waypoint:
                     MutationTarget.Map.MoveWaypoint((Waypoint)movable, position);
                     break;
+                case RTTIType.CellTag:
+                    MutationTarget.Map.MoveCellTag((CellTag)movable, position);
+                    break;
             }
 
             MutationTarget.AddRefreshPoint(newPosition);
             MutationTarget.AddRefreshPoint(oldPosition);
+        }
+
+        public override string GetDisplayString()
+        {
+            return $"Move {movable.WhatAmI()} from {oldPosition} to {newPosition}";
         }
 
         public override void Perform()

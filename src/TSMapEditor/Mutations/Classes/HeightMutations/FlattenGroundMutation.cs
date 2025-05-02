@@ -25,6 +25,11 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
 
         private readonly int desiredHeightLevel;
 
+        public override string GetDisplayString()
+        {
+            return $"Flatten ground at {OriginCell} to a level of {desiredHeightLevel} with a brush size of {BrushSize}";
+        }
+
         public override void Perform() => FlattenGround();
 
         private void FlattenGround()

@@ -2,6 +2,7 @@
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Models;
@@ -11,6 +12,12 @@ using TSMapEditor.UI.CursorActions;
 
 namespace TSMapEditor.UI
 {
+    enum TileSetSortMode
+    {
+        ID,
+        Name
+    }
+
     public class TileSelector : XNAControl
     {
         private const int TileSetListWidth = 180;
@@ -45,8 +52,21 @@ namespace TSMapEditor.UI
 
         public TileDisplay TileDisplay { get; private set; }
 
+        private SortButton btnSort;
         private EditorSuggestionTextBox tbSearch;
-        private XNAListBox lbTileSetList;
+        private TileSetListBox lbTileSetList;
+        private XNAContextMenu tileSetContextMenu;
+
+        private TileSetSortMode _tileSetSortMode;
+        private TileSetSortMode TileSetSortMode
+        {
+            get => _tileSetSortMode;
+            set
+            {
+                _tileSetSortMode = value;
+                RefreshTileSets();
+            }
+        }
 
         private bool isBeingDragged = false;
         private int previousMouseY;
@@ -55,19 +75,25 @@ namespace TSMapEditor.UI
         {
             Name = nameof(TileSelector);
 
+            btnSort = new SortButton(WindowManager);
+            btnSort.Name = nameof(btnSort);
+            btnSort.X = TileSetListWidth - btnSort.Width;
+            AddChild(btnSort);
+
             tbSearch = new EditorSuggestionTextBox(WindowManager);
             tbSearch.Name = nameof(tbSearch);
-            tbSearch.Width = TileSetListWidth;
+            tbSearch.Width = TileSetListWidth - btnSort.Width;
             tbSearch.Suggestion = "搜索地形...";
             AddChild(tbSearch);
             UIHelpers.AddSearchTipsBoxToControl(tbSearch);
             tbSearch.TextChanged += TbSearch_TextChanged;
 
-            lbTileSetList = new XNAListBox(WindowManager);
+            lbTileSetList = new TileSetListBox(WindowManager, theaterGraphics.Theater.TileSets.Count);
             lbTileSetList.Name = nameof(lbTileSetList);
             lbTileSetList.Y = tbSearch.Bottom;
             lbTileSetList.Height = Height - tbSearch.Bottom;
             lbTileSetList.Width = TileSetListWidth;
+            lbTileSetList.AllowRightClickUnselect = false;
             lbTileSetList.SelectedIndexChanged += LbTileSetList_SelectedIndexChanged;
             AddChild(lbTileSetList);
 
@@ -81,6 +107,31 @@ namespace TSMapEditor.UI
             lbTileSetList.BackgroundTexture = TileDisplay.BackgroundTexture;
             lbTileSetList.PanelBackgroundDrawMode = TileDisplay.PanelBackgroundDrawMode;
 
+            var sortContextMenu = new EditorContextMenu(WindowManager);
+            sortContextMenu.Name = nameof(sortContextMenu);
+            sortContextMenu.Width = 200;
+            sortContextMenu.AddItem("Sort by ID", () => TileSetSortMode = TileSetSortMode.ID);
+            sortContextMenu.AddItem("Sort by Name", () => TileSetSortMode = TileSetSortMode.Name);
+            AddChild(sortContextMenu);
+
+            btnSort.LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
+
+            tileSetContextMenu = new EditorContextMenu(WindowManager);
+            tileSetContextMenu.Name = nameof(tileSetContextMenu);
+            tileSetContextMenu.Width = 200;
+            tileSetContextMenu.AddItem("Pin",
+                () => { lbTileSetList.SetTileSetAsFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index); RefreshTileSets(); },
+                null,
+                () => lbTileSetList.SelectedItem != null && !lbTileSetList.IsTileSetFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index));
+            tileSetContextMenu.AddItem("Unpin",
+                () => { lbTileSetList.ClearFavouriteStatus(((TileSet)lbTileSetList.SelectedItem.Tag).Index); RefreshTileSets(); },
+                null,
+                () => lbTileSetList.SelectedItem != null && lbTileSetList.IsTileSetFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index));
+            tileSetContextMenu.AddItem("Unselect", () => lbTileSetList.SelectedIndex = -1);
+            AddChild(tileSetContextMenu);
+
+            lbTileSetList.RightClick += LbTileSetList_RightClick;
+
             base.Initialize();
 
             RefreshTileSets();
@@ -88,6 +139,14 @@ namespace TSMapEditor.UI
             KeyboardCommands.Instance.NextTileSet.Action = NextTileSet;
             KeyboardCommands.Instance.PreviousTileSet.Action = PreviousTileSet;
             WindowManager.RenderResolutionChanged += WindowManager_RenderResolutionChanged;
+        }
+
+        private void LbTileSetList_RightClick(object sender, EventArgs e)
+        {
+            lbTileSetList.SelectedIndex = lbTileSetList.HoveredIndex;
+
+            if (lbTileSetList.SelectedItem != null)
+                tileSetContextMenu.Open(GetCursorPoint());
         }
 
         private void WindowManager_RenderResolutionChanged(object sender, EventArgs e)
@@ -228,7 +287,17 @@ namespace TSMapEditor.UI
         private void RefreshTileSets()
         {
             lbTileSetList.Clear();
-            var sortedTileSets = theaterGraphics.Theater.TileSets.ToList(); // TODO sort tilesets
+            IOrderedEnumerable<TileSet> sortedTileSets = theaterGraphics.Theater.TileSets.OrderBy(ts => !lbTileSetList.IsTileSetFavourite(ts.Index));
+
+            switch (TileSetSortMode)
+            {
+                case TileSetSortMode.ID:
+                    sortedTileSets = sortedTileSets.ThenBy(ts => ts.Index);
+                    break;
+                case TileSetSortMode.Name:
+                    sortedTileSets = sortedTileSets.ThenBy(ts => ts.SetName);
+                    break;
+            }
 
             foreach (TileSet tileSet in sortedTileSets)
             {
@@ -243,6 +312,13 @@ namespace TSMapEditor.UI
                         Tag = tileSet,
                         TextColor = tileSet.Color.HasValue ? tileSet.Color.Value : UISettings.ActiveSettings.AltColor
                     });
+
+                    if (tileSet == TileDisplay.TileSet)
+                    {
+                        lbTileSetList.SelectedIndexChanged -= LbTileSetList_SelectedIndexChanged;
+                        lbTileSetList.SelectedIndex = lbTileSetList.Items.Count;
+                        lbTileSetList.SelectedIndexChanged += LbTileSetList_SelectedIndexChanged;
+                    }
                 }
             }
         }

@@ -19,6 +19,11 @@ namespace TSMapEditor.Mutations.Classes
         private readonly SmudgeCollection smudgeCollection;
         private readonly Point2D cellCoords;
 
+        public override string GetDisplayString()
+        {
+            return $"Place smudge collection {smudgeCollection.Name} at {cellCoords}";
+        }
+
         public override void Perform()
         {
             var cell = MutationTarget.Map.GetTile(cellCoords);

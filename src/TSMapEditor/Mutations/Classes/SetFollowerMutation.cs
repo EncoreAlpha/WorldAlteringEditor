@@ -15,6 +15,12 @@ namespace TSMapEditor.Mutations.Classes
         private Unit followerUnit;
         private Unit oldFollowerUnit;
 
+        public override string GetDisplayString()
+        {
+            return $"Set follower of vehicle {followedUnit.ObjectType.GetEditorDisplayName()} at {followedUnit.Position} " +
+                $"to {followerUnit.ObjectType.GetEditorDisplayName()} at {followerUnit.Position}";
+        }
+
         public override void Perform()
         {
             oldFollowerUnit = followedUnit.FollowerUnit;

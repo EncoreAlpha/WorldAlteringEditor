@@ -86,4 +86,6 @@ If you have a multi-monitor setup, when maximized with F11, WAE fills the monito
 
 WAE automatically saves a backup of your map every few minutes to prevent data loss in case of crash of the system or editor.
 
-**Auto-save does not overwrite your open map file**, but instead the save is written as `autosave.map` inside WAE's directory. If you encounter a crash or other issues that would cause work to be lost, you can find the `autosave.map` file from WAE's directory, copy it and continue your work from it.
+**Auto-save does not overwrite your open map file**, but instead the save is written to a subdirectory called `AutoSaves` inside WAE's directory. If you encounter a crash or other issues that would cause work to be lost, you can find the latest autosave file from WAE's directory, copy it and continue your work from it.
+
+Auto-saves older than one day are purged automatically. The latest 5 auto-saves are never purged automatically.

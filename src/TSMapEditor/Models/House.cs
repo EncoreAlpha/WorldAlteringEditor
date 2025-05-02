@@ -137,5 +137,37 @@ namespace TSMapEditor.Models
                 iniSection.RemoveKey(i.ToString("D3"));
             }
         }
+
+        /// <summary>
+        /// Sometimes mappers might, unfortunately, give houses the same IDs
+        /// as other heap object types, like unit types.
+        /// Simply removing the house's section would then also erase the unit type's INI data.
+        ///
+        /// This function removes only the house's data from the INI file.
+        /// The relevant section is removed only if it has no keys left after house data has been erased.
+        /// </summary>
+        /// <param name="iniFile">The INI file to remove this house's data from.</param>
+        public void EraseFromIniFile(IniFile iniFile)
+        {
+            if (string.IsNullOrWhiteSpace(ININame))
+                return;
+
+            ArgumentNullException.ThrowIfNull(iniFile);
+
+            var section = iniFile.GetSection(ININame);
+            if (section == null)
+                return;
+
+            section.RemoveKey("NodeCount");
+            for (int i = 0; i < MaxBaseNodeCount; i++)
+            {
+                section.RemoveKey(i.ToString("D3"));
+            }
+
+            ErasePropertiesFromIniSection(section);
+
+            if (section.Keys.Count == 0)
+                iniFile.RemoveSection(ININame);
+        }
     }
 }

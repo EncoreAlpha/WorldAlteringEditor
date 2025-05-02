@@ -98,20 +98,21 @@ namespace TSMapEditor.UI.TopBar
 
             var editContextMenu = new EditorContextMenu(WindowManager);
             editContextMenu.Name = nameof(editContextMenu);
-            editContextMenu.AddItem("配置复制对象...", () => windowController.CopiedEntryTypesWindow.Open(), null, null, null, KeyboardCommands.Instance.ConfigureCopiedObjects.GetKeyDisplayString());
-            editContextMenu.AddItem("复制", () => KeyboardCommands.Instance.Copy.DoTrigger(), null, null, null, KeyboardCommands.Instance.Copy.GetKeyDisplayString());
-            editContextMenu.AddItem("自定义形状复制", () => KeyboardCommands.Instance.CopyCustomShape.DoTrigger(), null, null, null, KeyboardCommands.Instance.CopyCustomShape.GetKeyDisplayString());
-            editContextMenu.AddItem("粘贴", () => KeyboardCommands.Instance.Paste.DoTrigger(), null, null, null, KeyboardCommands.Instance.Paste.GetKeyDisplayString());
+            editContextMenu.AddItem("配置复制对象...", () => windowController.CopiedEntryTypesWindow.Open(), null, null, null, () => KeyboardCommands.Instance.ConfigureCopiedObjects.GetKeyDisplayString());
+            editContextMenu.AddItem("复制", () => KeyboardCommands.Instance.Copy.DoTrigger(), null, null, null, () => KeyboardCommands.Instance.Copy.GetKeyDisplayString());
+            editContextMenu.AddItem("自定义形状复制", () => KeyboardCommands.Instance.CopyCustomShape.DoTrigger(), null, null, null, () => KeyboardCommands.Instance.CopyCustomShape.GetKeyDisplayString());
+            editContextMenu.AddItem("粘贴", () => KeyboardCommands.Instance.Paste.DoTrigger(), null, null, null, () => KeyboardCommands.Instance.Paste.GetKeyDisplayString());
             editContextMenu.AddItem(" ", null, () => false, null, null);
-            editContextMenu.AddItem("撤销", () => mutationManager.Undo(), () => mutationManager.CanUndo(), null, null, KeyboardCommands.Instance.Undo.GetKeyDisplayString());
-            editContextMenu.AddItem("重做", () => mutationManager.Redo(), () => mutationManager.CanRedo(), null, null, KeyboardCommands.Instance.Redo.GetKeyDisplayString());
+            editContextMenu.AddItem("撤销", () => mutationManager.Undo(), () => mutationManager.CanUndo(), null, null, () => KeyboardCommands.Instance.Undo.GetKeyDisplayString());
+            editContextMenu.AddItem("重做", () => mutationManager.Redo(), () => mutationManager.CanRedo(), null, null, () => KeyboardCommands.Instance.Redo.GetKeyDisplayString());
+            editContextMenu.AddItem("历史操作", () => windowController.HistoryWindow.Open());
             editContextMenu.AddItem(" ", null, () => false, null, null);
             editContextMenu.AddItem("基本设置", () => windowController.BasicSectionConfigWindow.Open(), null, null, null);
             editContextMenu.AddItem("地图大小", () => windowController.MapSizeWindow.Open(), null, null, null, null);
             editContextMenu.AddItem(" ", null, () => false, null, null);
             editContextMenu.AddItem("光照设置", () => windowController.LightingSettingsWindow.Open(), null, null, null);
             editContextMenu.AddItem(" ", null, () => false, null, null);
-            editContextMenu.AddItem("放置隧道", () => mapUI.EditorState.CursorAction = placeTubeCursorAction, null, null, null, KeyboardCommands.Instance.PlaceTunnel.GetKeyDisplayString());
+            editContextMenu.AddItem("放置隧道", () => mapUI.EditorState.CursorAction = placeTubeCursorAction, null, null, null, () => KeyboardCommands.Instance.PlaceTunnel.GetKeyDisplayString());
             editContextMenu.AddItem("删除隧道", () => mapUI.EditorState.CursorAction = deleteTunnelCursorAction, null, null, null);
             editContextMenu.AddItem(" ", null, () => false, null, null);
 
@@ -142,8 +143,8 @@ namespace TSMapEditor.UI.TopBar
                 }
                 else
                 {
-                    editContextMenu.AddItem("重复上一次绘制连接图块", RepeatLastConnectedTile, null, null, null, KeyboardCommands.Instance.RepeatConnectedTile.GetKeyDisplayString());
-                    editContextMenu.AddItem("绘制连接图块...", () => windowController.SelectConnectedTileWindow.Open(), null, null, null, KeyboardCommands.Instance.PlaceConnectedTile.GetKeyDisplayString());
+                    editContextMenu.AddItem("重复上一次绘制连接图块", RepeatLastConnectedTile, null, null, null, () => KeyboardCommands.Instance.RepeatConnectedTile.GetKeyDisplayString());
+                    editContextMenu.AddItem("绘制连接图块...", () => windowController.SelectConnectedTileWindow.Open(), null, null, null, () => KeyboardCommands.Instance.PlaceConnectedTile.GetKeyDisplayString());
                 }
             }
 
@@ -202,8 +203,8 @@ namespace TSMapEditor.UI.TopBar
             if (windowController.AutoApplyImpassableOverlayWindow.IsAvailable)
                 toolsContextMenu.AddItem("应用不可通行覆盖物...", () => windowController.AutoApplyImpassableOverlayWindow.Open(), null, null, null);
 
-            toolsContextMenu.AddItem("地形生成器选项...", () => windowController.TerrainGeneratorConfigWindow.Open(), null, null, null, KeyboardCommands.Instance.ConfigureTerrainGenerator.GetKeyDisplayString());
-            toolsContextMenu.AddItem("生成地形", () => EnterTerrainGenerator(), null, null, null, KeyboardCommands.Instance.GenerateTerrain.GetKeyDisplayString());
+            toolsContextMenu.AddItem("地形生成器选项...", () => windowController.TerrainGeneratorConfigWindow.Open(), null, null, null, () => KeyboardCommands.Instance.ConfigureTerrainGenerator.GetKeyDisplayString());
+            toolsContextMenu.AddItem("生成地形", () => EnterTerrainGenerator(), null, null, null, () => KeyboardCommands.Instance.GenerateTerrain.GetKeyDisplayString());
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
             toolsContextMenu.AddItem("INI编辑...", () => windowController.ApplyINICodeWindow.Open(), null, null, null);
             toolsContextMenu.AddItem("工具脚本...", () => windowController.RunScriptWindow.Open(), null, null, null, null);
@@ -214,10 +215,10 @@ namespace TSMapEditor.UI.TopBar
             toolsContextMenu.AddItem(" ", null, () => false, () => !Constants.IsFlatWorld, null);
             toolsContextMenu.AddItem("平滑冰层(无效)", SmoothenIce, null, null, null, null);
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
-            toolsContextMenu.AddItem("计算距离...", () => mapUI.EditorState.CursorAction = checkDistanceCursorAction, null, null, null);
-            toolsContextMenu.AddItem("计算距离 (寻路)...", () => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction);
+            toolsContextMenu.AddItem("计算距离...", () => mapUI.EditorState.CursorAction = checkDistanceCursorAction, null, null, null, () => KeyboardCommands.Instance.CheckDistance.GetKeyDisplayString());
+            toolsContextMenu.AddItem("计算距离 (寻路)...", () => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction, null, null, null, () => KeyboardCommands.Instance.CheckDistancePathfinding.GetKeyDisplayString());
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
-            toolsContextMenu.AddItem("计算资源价值...", () => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction, null, null, null, KeyboardCommands.Instance.CalculateCredits.GetKeyDisplayString());
+            toolsContextMenu.AddItem("计算资源价值...", () => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction, null, null, null, () => KeyboardCommands.Instance.CalculateCredits.GetKeyDisplayString());
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
             toolsContextMenu.AddItem("载入全图投影...", () => MapWideOverlayLoadRequested?.Invoke(this, EventArgs.Empty), null, null, null, null);
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
@@ -261,6 +262,8 @@ namespace TSMapEditor.UI.TopBar
             KeyboardCommands.Instance.PlaceConnectedTile.Triggered += (s, e) => windowController.SelectConnectedTileWindow.Open();
             KeyboardCommands.Instance.RepeatConnectedTile.Triggered += (s, e) => RepeatLastConnectedTile();
             KeyboardCommands.Instance.CalculateCredits.Triggered += (s, e) => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction;
+            KeyboardCommands.Instance.CheckDistance.Triggered += (s, e) => mapUI.EditorState.CursorAction = checkDistanceCursorAction;
+            KeyboardCommands.Instance.CheckDistancePathfinding.Triggered += (s, e) => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction;
             KeyboardCommands.Instance.Save.Triggered += (s, e) => SaveMap();
 
             windowController.TerrainGeneratorConfigWindow.ConfigApplied += TerrainGeneratorConfigWindow_ConfigApplied;

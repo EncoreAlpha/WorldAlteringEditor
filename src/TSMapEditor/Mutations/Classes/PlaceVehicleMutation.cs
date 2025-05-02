@@ -17,7 +17,12 @@ namespace TSMapEditor.Mutations.Classes
 
         private readonly UnitType unitType;
         private readonly Point2D cellCoords;
-        private Unit unit; 
+        private Unit unit;
+
+        public override string GetDisplayString()
+        {
+            return $"Place '{unitType.GetEditorDisplayName()}' at {cellCoords}";
+        }
 
         public override void Perform()
         {

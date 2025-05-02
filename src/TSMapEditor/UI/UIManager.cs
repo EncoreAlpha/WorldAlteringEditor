@@ -353,8 +353,8 @@ namespace TSMapEditor.UI
             };
 
             map.MapAutoSaved += (s, e) => notificationManager.AddNotification("地图已自动保存");
+            map.MapSaveFailed += (s, e) => notificationManager.AddNotification("Saving map failed! Please see the log file for details.");
         }
-
 
         private void RefreshWindowTitle()
         {

@@ -402,6 +402,7 @@ namespace TSMapEditor.UI
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     tbGameDirectory.Text = Path.GetDirectoryName(openFileDialog.FileName);
+                    InputIgnoreTime = TimeSpan.FromSeconds(Constants.UIAccidentalClickPreventionTime);
                 }
             }
 #endif
@@ -419,6 +420,7 @@ namespace TSMapEditor.UI
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     tbMapPath.Text = openFileDialog.FileName;
+                    InputIgnoreTime = TimeSpan.FromSeconds(Constants.UIAccidentalClickPreventionTime);
                     BtnLoad_LeftClick(this, new EventArgs());
                 }
             }
