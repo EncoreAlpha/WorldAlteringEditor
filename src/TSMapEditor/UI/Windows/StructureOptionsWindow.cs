@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using TSMapEditor.Models;
+using TSMapEditor.Models.Enums;
+using TSMapEditor.Rendering;
 using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows
@@ -13,14 +15,16 @@ namespace TSMapEditor.UI.Windows
     /// </summary>
     public class StructureOptionsWindow : INItializableWindow
     {
-        public StructureOptionsWindow(WindowManager windowManager, Map map) : base(windowManager)
+        public StructureOptionsWindow(WindowManager windowManager, Map map, EditorState editorState) : base(windowManager)
         {
             this.map = map;
+            this.editorState = editorState;
         }
 
         public event EventHandler<TagEventArgs> TagOpened;
 
         private readonly Map map;
+        private readonly EditorState editorState;
 
         private XNATrackbar trbStrength;
         private XNALabel lblStrengthValue;
@@ -104,7 +108,7 @@ namespace TSMapEditor.UI.Windows
         private void FillUpgradesForDropDown(XNADropDown dropDown, int index, List<BuildingType> upgrades)
         {
             dropDown.Items.Clear();
-            dropDown.AddItem("None");
+            dropDown.AddItem(Translate(this, "None", "None"));
             dropDown.AllowDropDown = false;
 
             if (structure.ObjectType.Upgrades > index)
@@ -156,6 +160,8 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnOK_LeftClick(object sender, EventArgs e)
         {
+            bool wasPowered = structure.Powered;
+
             structure.HP = Math.Max(0, Math.Min(trbStrength.Value, Constants.ObjectHealthMax));
             structure.AISellable = chkSellable.Checked;
             structure.AIRebuildable = chkRebuild.Checked;
@@ -169,6 +175,12 @@ namespace TSMapEditor.UI.Windows
             structure.AttachedTag = (Tag)attachedTagSelector.Tag;
 
             structure.UpdatePowerUpAnims();
+
+            if (wasPowered != chkPowered.Checked && structure.ObjectType.LightIntensity != 0.0)
+            {
+                map.RefreshCellLighting(editorState.IsLighting ? editorState.LightingPreviewState : LightingPreviewMode.NoLighting,
+                    editorState.LightDisabledLightSources, structure.LitTiles);
+            }
 
             Hide();
         }

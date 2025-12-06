@@ -42,7 +42,7 @@ namespace TSMapEditor.UI.Sidebar
             SearchBox.Y = Constants.UIEmptyTopSpace;
             SearchBox.Width = Width - Constants.UIEmptySideSpace * 2;
             SearchBox.Height = Constants.UITextBoxHeight;
-            SearchBox.Suggestion = "搜索污染... (CTRL + F)";
+            SearchBox.Suggestion = Translate(this, "SearchSmudges", "Search smudge... (CTRL + F)");
             AddChild(SearchBox);
             SearchBox.TextChanged += SearchBox_TextChanged;
             SearchBox.EnterPressed += SearchBox_EnterPressed;
@@ -167,13 +167,13 @@ namespace TSMapEditor.UI.Sidebar
 
             categories.Add(new TreeViewCategory()
             {
-                Text = "擦除污染",
+                Text = Translate(this, "EraseSmudges", "Erase Smudges"),
                 Tag = new object()
             });
 
             if (Map.EditorConfig.SmudgeCollections.Count > 0)
             {
-                var collectionsCategory = new TreeViewCategory() { Text = "集合" };
+                var collectionsCategory = new TreeViewCategory() { Text = Translate(this, "SmudgeCollections", "Collections") };
                 categories.Add(collectionsCategory);
 
                 foreach (var collection in Map.EditorConfig.SmudgeCollections)
@@ -188,7 +188,7 @@ namespace TSMapEditor.UI.Sidebar
 
                     collectionsCategory.Nodes.Add(new TreeViewNode()
                     {
-                        Text = collection.Name,
+                        Text = collection.UIName,
                         Tag = collection,
                         Texture = GetSidebarTextureForSmudge(firstEntry.SmudgeType, renderTarget)
                     }); ;
@@ -208,7 +208,7 @@ namespace TSMapEditor.UI.Sidebar
 
                 if (string.IsNullOrEmpty(smudgeType.EditorCategory))
                 {
-                    category = FindOrMakeCategory("未分类", categories);
+                    category = FindOrMakeCategory(Translate(this, "Uncategorized", "Uncategorized"), categories);
                 }
                 else
                 {

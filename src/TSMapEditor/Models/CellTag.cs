@@ -17,6 +17,8 @@ namespace TSMapEditor.Models
             Tag = tag;
         }
 
+        public bool IsOnBridge() => false;
+
         public Point2D Position { get; set; }
         public Tag Tag { get; set; }
 

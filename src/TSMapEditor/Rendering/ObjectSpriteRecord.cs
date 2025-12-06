@@ -7,55 +7,68 @@ using TSMapEditor.Models;
 
 namespace TSMapEditor.Rendering
 {
+    /// <summary>
+    /// Struct for sprite entries. These are the primary kinds of structs _submitted_ into the record.
+    /// The record does not store these - it receives them and processes them into ObjectDetailEntries or ShadowEntries.
+    /// </summary>
     public struct ObjectSpriteEntry
     {
-        public Texture2D PaletteTexture; // 8 bytes
-        public Texture2D Texture;        // 16 bytes
-        public Rectangle DrawingBounds;        // 24 bytes
-        public Color Color;              // 28 bytes
-        public bool UseRemap;            // 29 bytes
-        public bool UseShadow;           // 30 bytes
-        public float Depth;              // 34 bytes
+        public Texture2D PaletteTexture;  // 8 bytes
+        public Texture2D Texture;         // 16 bytes
+        public Rectangle SourceRectangle; // 32 bytes
+        public Rectangle DrawingBounds;   // 48 bytes
+        public Color Color;               // 52 bytes
+        public bool UseRemap;             // 53 bytes
+        public bool UseShadow;            // 54 bytes
+        public DepthRectangle Depth;      // 70 bytes
 
-        public ObjectSpriteEntry(Texture2D paletteTexture, Texture2D texture, Rectangle drawingBounds, Color color, bool useRemap, bool useShadow, float depth)
+        public ObjectSpriteEntry(Texture2D paletteTexture, Texture2D texture, Rectangle sourceRectangle, Rectangle drawingBounds, Color color, bool useRemap, bool useShadow, DepthRectangle depthRectangle)
         {
             PaletteTexture = paletteTexture;
             Texture = texture;
+            SourceRectangle = sourceRectangle;
             DrawingBounds = drawingBounds;
             Color = color;
             UseRemap = useRemap;
             UseShadow = useShadow;
-            Depth = depth;
+            Depth = depthRectangle;
         }
+
+        public ObjectSpriteEntry(Texture2D paletteTexture, PositionedTexture texture, Rectangle drawingBounds, Color color, bool useRemap, bool useShadow, DepthRectangle depthRectangle)
+            : this(paletteTexture, texture.Texture, texture.SourceRectangle, drawingBounds, color, useRemap, useShadow, depthRectangle) { }
     }
 
     public struct ObjectDetailEntry
     {
         public Texture2D Texture;
+        public Rectangle SourceRectangle;
         public Rectangle DrawingBounds;
         public Color Color;
-        public float Depth;
+        public DepthRectangle DepthRectangle;
 
-        public ObjectDetailEntry(Texture2D texture, Rectangle drawingBounds, Color color, float depth)
+        public ObjectDetailEntry(Texture2D texture, Rectangle sourceRectangle, Rectangle drawingBounds, Color color, DepthRectangle depthRectangle)
         {
             Texture = texture;
+            SourceRectangle = sourceRectangle;
             DrawingBounds = drawingBounds;
             Color = color;
-            Depth = depth;
+            DepthRectangle = depthRectangle;
         }
     }
 
     public struct ShadowEntry
     {
         public Texture2D Texture;
+        public Rectangle SourceRectangle;
         public Rectangle DrawingBounds;
-        public float Depth;
+        public DepthRectangle DepthRectangle;
 
-        public ShadowEntry(Texture2D texture, Rectangle drawingBounds, float depth)
+        public ShadowEntry(Texture2D texture, Rectangle sourceRectangle, Rectangle drawingBounds, DepthRectangle depthRectangle)
         {
             Texture = texture;
+            SourceRectangle = sourceRectangle;
             DrawingBounds = drawingBounds;
-            Depth = depth;
+            DepthRectangle = depthRectangle;
         }
     }
 
@@ -116,14 +129,14 @@ namespace TSMapEditor.Rendering
             // Shadows are handled separately
             if (entry.UseShadow)
             {
-                ShadowEntries.Add(new ShadowEntry(entry.Texture, entry.DrawingBounds, entry.Depth));
+                ShadowEntries.Add(new ShadowEntry(entry.Texture, entry.SourceRectangle, entry.DrawingBounds, entry.Depth));
                 return;
             }
 
             // If the entry has no palette, we can store it separately
             if (entry.PaletteTexture == null)
             {
-                NonPalettedSpriteEntries.Add(new ObjectDetailEntry(entry.Texture, entry.DrawingBounds, new Color(entry.Color.R / 255.0f, entry.Color.G / 255.0f, entry.Color.B / 255.0f, entry.Depth), entry.Depth));
+                NonPalettedSpriteEntries.Add(new ObjectDetailEntry(entry.Texture, entry.SourceRectangle, entry.DrawingBounds, entry.Color, entry.Depth));
                 return;
             }
 
@@ -136,7 +149,7 @@ namespace TSMapEditor.Rendering
                 SpriteEntries.Add(key, list);
             }
 
-            list.Add(new ObjectDetailEntry(entry.Texture, entry.DrawingBounds, entry.Color, entry.Depth));
+            list.Add(new ObjectDetailEntry(entry.Texture, entry.SourceRectangle, entry.DrawingBounds, entry.Color, entry.Depth));
         }
 
         public void AddTextEntry(TextEntry textEntry) => TextEntries.Add(textEntry);

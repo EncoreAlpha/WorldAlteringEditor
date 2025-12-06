@@ -18,7 +18,7 @@ namespace TSMapEditor.UI.Controls
 
     public class FileBrowserListBox : EditorListBox
     {
-        private const string DirectoryPrefix = "<目录> ";
+        private const string DirectoryPrefix = "<DIR> ";
 
         public FileBrowserListBox(WindowManager windowManager) : base(windowManager)
         {
@@ -115,7 +115,7 @@ namespace TSMapEditor.UI.Controls
                 return;
             }
 
-            AddItem(new XNAListBoxItem(".. <目录>", Color.Gray) { Tag = new object() });
+            AddItem(new XNAListBoxItem(Translate(this, "ListFiles.DirectoryUp",".. <Directory Up>"), Color.Gray) { Tag = new object() });
 
             var directories = Directory.GetDirectories(DirectoryPath);
             foreach (string dir in directories)

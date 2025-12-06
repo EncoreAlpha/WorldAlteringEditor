@@ -39,8 +39,13 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnApply_LeftClick(object sender, EventArgs e)
         {
-            string allies = string.Join(',', new string[] { house.ININame }.Concat(checkBoxes.FindAll(chk => chk.Checked).Select(chk => chk.Text)));
-            house.Allies = allies;
+            List<House> alliedHousesList = [house];
+            var alliedHouses = checkBoxes.FindAll(chk => chk.Checked).Select(chk => (House)chk.Tag);
+
+            foreach (var alliedHouse in alliedHouses)
+                alliedHousesList.Add(alliedHouse);
+                        
+            house.Allies = alliedHousesList;
 
             AlliesUpdated?.Invoke(this, EventArgs.Empty);
 
@@ -61,11 +66,9 @@ namespace TSMapEditor.UI.Windows
             checkBoxes.ForEach(chk => panelCheckBoxes.RemoveChild(chk));
             checkBoxes.Clear();
 
-            string[] existingAllies = house.Allies.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
             int y = 0;
 
-            bool useTwoColumns = map.Houses.Count > 16;
+            bool useTwoColumns = map.Houses.Count > 8;
             bool isSecondColumn = false;
 
             foreach (var otherHouse in map.Houses)
@@ -78,7 +81,8 @@ namespace TSMapEditor.UI.Windows
                 checkBox.X = isSecondColumn ? 150 : 0;
                 checkBox.Y = y;
                 checkBox.Text = otherHouse.ININame;
-                checkBox.Checked = Array.Exists(existingAllies, s => s == otherHouse.ININame);
+                checkBox.Checked = house.Allies.Contains(otherHouse);
+                checkBox.Tag = otherHouse;
                 panelCheckBoxes.AddChild(checkBox);
                 checkBoxes.Add(checkBox);
 

@@ -34,6 +34,7 @@ namespace TSMapEditor.UI.Windows
 
             placeCellTagCursorAction = new PlaceCellTagCursorAction(cursorActionTarget);
             changeAttachedTagCursorAction = new ChangeAttachedTagCursorAction(cursorActionTarget);
+            copiedTriggerData = new CopiedTriggerData();
         }
 
         public event EventHandler<TeamTypeEventArgs> TeamTypeOpened;
@@ -50,6 +51,7 @@ namespace TSMapEditor.UI.Windows
             TriggerParamType.Waypoint,
             TriggerParamType.WaypointZZ
         };
+        private readonly CopiedTriggerData copiedTriggerData;
 
         private XNADropDown ddActions;
 
@@ -102,7 +104,10 @@ namespace TSMapEditor.UI.Windows
         private SelectStringWindow selectStringWindow;
         private SelectSpeechWindow selectSpeechWindow;
         private SelectSoundWindow selectSoundWindow;
+        private SelectSuperWeaponTypeWindow selectSuperWeaponTypeWindow;
         private SelectParticleSystemTypeWindow selectParticleSystemTypeWindow;
+        private SelectColorsWindow selectColorsWindow;
+        private CreateRandomTriggerSetWindow createRandomTriggerSetWindow;
 
         private XNAContextMenu actionContextMenu;
         private XNAContextMenu eventContextMenu;
@@ -124,8 +129,8 @@ namespace TSMapEditor.UI.Windows
                 if (value != _triggerSortMode)
                 {
                     _triggerSortMode = value;
-                    ListTriggers();
                 }
+                ListTriggers();
             }
         }
 
@@ -151,10 +156,10 @@ namespace TSMapEditor.UI.Windows
 
             // Init color dropdown options
             ddTriggerColor = FindChild<XNADropDown>(nameof(ddTriggerColor));
-            ddTriggerColor.AddItem("None");
+            ddTriggerColor.AddItem(Translate(this, "Color.None", "None"));
             Array.ForEach(Trigger.SupportedColors, sc =>
             {
-                ddTriggerColor.AddItem(sc.Name, sc.Value);
+                ddTriggerColor.AddItem(Translate("NamedColors." + sc.Name, sc.Name), sc.Value);
             });
 
             lbEvents = FindChild<EditorListBox>(nameof(lbEvents));
@@ -182,9 +187,9 @@ namespace TSMapEditor.UI.Windows
             AddChild(ctxActionParameterPresetValues);
             ctxActionParameterPresetValues.OptionSelected += CtxActionParameterPresetValues_OptionSelected;
 
-            ddType.AddItem("0 - 一次性、单一对象条件");
-            ddType.AddItem("1 - 一次性、多对象条件");
-            ddType.AddItem("2 - 重复、单一对象条件");
+            ddType.AddItem(Translate(this, "Type0", "0 - one-time, single-object condition"));
+            ddType.AddItem(Translate(this, "Type1", "1 - one-time, multi-object condition"));
+            ddType.AddItem(Translate(this, "Type2", "2 - repeating, single-object condition"));
 
             lbEvents.AllowMultiLineItems = false;
             lbActions.AllowMultiLineItems = false;
@@ -192,30 +197,33 @@ namespace TSMapEditor.UI.Windows
             var triggerContextMenu = new EditorContextMenu(WindowManager);
             triggerContextMenu.Name = nameof(triggerContextMenu);
             triggerContextMenu.Width = 270;
-            triggerContextMenu.AddItem("放置单元标记", PlaceCellTag);
-            triggerContextMenu.AddItem("清除单元标记", ClearCellTags);
-            triggerContextMenu.AddItem("关联到对象", AttachTagToObjects);
-            triggerContextMenu.AddItem("查看已关联列表", ShowReferences);
+            triggerContextMenu.AddItem(Translate(this, "PlaceCellTag", "Place CellTag"), PlaceCellTag, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "ClearCellTags", "Clear CellTags"), ClearCellTags, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "AttachToObjects", "Attach to Objects"), AttachTagToObjects, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "ViewReferences", "View References"), ShowReferences, null, () => editedTrigger != null);
             if (!Constants.IsRA2YR)
             {
-                triggerContextMenu.AddItem("Wrap in EVA disable/enable actions", WrapInEVADisableAndEnableActions);
+                triggerContextMenu.AddItem(Translate(this, "WrapEVA", "Wrap in EVA disable/enable actions"), WrapInEVADisableAndEnableActions, null,() => editedTrigger != null);
             }
-            triggerContextMenu.AddItem("为更简单的难度复制", CloneForEasierDifficulties);
-            triggerContextMenu.AddItem("为更简单的难度复制 (不带任何关联)", CloneForEasierDifficultiesWithoutDependencies);
+            triggerContextMenu.AddItem(Translate(this, "CloneDiffs", "Clone for Easier Diffs"), CloneForEasierDifficulties, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "CloneDiffsNoDeps", "Clone for Easier Diffs (No Dependencies)"), CloneForEasierDifficultiesWithoutDependencies, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "CopyTrigger", "Copy Trigger"), CopyTrigger, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "PasteTrigger", "Paste Trigger"), PasteTrigger, () => Trigger.HasTriggerInClipboard());
             AddChild(triggerContextMenu);
 
             FindChild<EditorButton>("btnNewTrigger").LeftClick += BtnNewTrigger_LeftClick;
             FindChild<EditorButton>("btnDeleteTrigger").LeftClick += BtnDeleteTrigger_LeftClick;
             FindChild<EditorButton>("btnCloneTrigger").LeftClick += BtnCloneTrigger_LeftClick;
             ddActions = FindChild<XNADropDown>(nameof(ddActions));
-            ddActions.AddItem("高级...");
+            ddActions.AddItem(Translate(this, "ActionsAdvanced", "Advanced..."));
             // Add context menu options to Advanced menu for backwards compatibility
             for (int i = 0; i < triggerContextMenu.Items.Count; i++)
             {
                 var contextMenuOption = triggerContextMenu.Items[i];
                 ddActions.AddItem(new XNADropDownItem() { Text = contextMenuOption.Text, Tag = contextMenuOption.SelectAction });
             }
-            ddActions.AddItem(new XNADropDownItem() { Text = "重置触发ID", Tag = new Action(RegenerateIDs) });
+            ddActions.AddItem(new XNADropDownItem() { Text = Translate(this, "RegenerateTriggerIDs", "Re-generate Trigger IDs"), Tag = new Action(RegenerateIDs) });
+            ddActions.AddItem(new XNADropDownItem() { Text = Translate(this, "CreateRandomTriggerSet", "Create Random Trigger Set"), Tag = new Action(OpenCreateRandomTriggersSetWindow) });
 
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;
@@ -277,7 +285,7 @@ namespace TSMapEditor.UI.Windows
             var tutorialDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectTutorialLineWindow);
             tutorialDarkeningPanel.Hidden += TutorialDarkeningPanel_Hidden;
 
-            selectThemeWindow = new SelectThemeWindow(WindowManager, map);
+            selectThemeWindow = new SelectThemeWindow(WindowManager, map, false);
             var themeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectThemeWindow);
             themeDarkeningPanel.Hidden += ThemeDarkeningPanel_Hidden;
 
@@ -305,51 +313,72 @@ namespace TSMapEditor.UI.Windows
             var particleSystemTypeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectParticleSystemTypeWindow);
             particleSystemTypeDarkeningPanel.Hidden += ParticleSystemTypeDarkeningPanel_Hidden;
 
+            selectSuperWeaponTypeWindow = new SelectSuperWeaponTypeWindow(WindowManager, map);
+            var swDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectSuperWeaponTypeWindow);
+            swDarkeningPanel.Hidden += SuperWeaponDarkeningPanel_Hidden;
+
+            selectColorsWindow = new SelectColorsWindow(WindowManager, map);
+            var colorDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectColorsWindow);
+            colorDarkeningPanel.Hidden += ColorDarkeningPanel_Hidden;
+
+            createRandomTriggerSetWindow = new CreateRandomTriggerSetWindow(WindowManager, map);
+            var createRandomTriggersSetDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, createRandomTriggerSetWindow);
+            createRandomTriggerSetWindow.RandomTriggerSetTriggersCreated += CreateRandomTriggerSetWindow_RandomTriggersSetCreated;
+
             eventContextMenu = new EditorContextMenu(WindowManager);
             eventContextMenu.Name = nameof(eventContextMenu);
             eventContextMenu.Width = lbEvents.Width;
-            eventContextMenu.AddItem("上移", EventContextMenu_MoveUp, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex > 0);
-            eventContextMenu.AddItem("下移", EventContextMenu_MoveDown, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex < lbEvents.Items.Count - 1);
-            eventContextMenu.AddItem("复制", EventContextMenu_CloneEvent, () => editedTrigger != null && lbEvents.SelectedItem != null);
-            eventContextMenu.AddItem("删除", () => BtnDeleteEvent_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem(Translate(this, "MoveUp","Move Up"), EventContextMenu_MoveUp, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex > 0);
+            eventContextMenu.AddItem(Translate(this, "MoveDown", "Move Down"), EventContextMenu_MoveDown, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex < lbEvents.Items.Count - 1);
+            eventContextMenu.AddItem(Translate(this, "CloneEvent", "Clone Event"), EventContextMenu_CloneEvent, () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem(Translate(this, "DeleteEvent", "Delete Event"), () => BtnDeleteEvent_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem(Translate(this, "CopyEvent", "Copy Event"), EventContextMenu_CopyAction, () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem(Translate(this, "PasteEvent", "Paste Event"), EventContextMenu_PasteEvent, () => editedTrigger != null && copiedTriggerData.HasTriggerEventDataInClipboard());
             AddChild(eventContextMenu);
 
             lbEvents.AllowRightClickUnselect = false;
-            lbEvents.RightClick += (s, e) => { if (editedTrigger != null) { lbEvents.OnMouseLeftDown(); eventContextMenu.Open(GetCursorPoint()); } };
+            lbEvents.RightClick += (s, e) => { if (editedTrigger != null) { lbEvents.OnMouseLeftDown(new InputEventArgs()); eventContextMenu.Open(GetCursorPoint()); } };
 
             actionContextMenu = new EditorContextMenu(WindowManager);
             actionContextMenu.Name = nameof(actionContextMenu);
             actionContextMenu.Width = lbActions.Width;
-            actionContextMenu.AddItem("上移", ActionContextMenu_MoveUp, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
-            actionContextMenu.AddItem("下移", ActionContextMenu_MoveDown, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
-            actionContextMenu.AddItem("复制", ActionContextMenu_CloneAction, () => editedTrigger != null && lbActions.SelectedItem != null);
-            actionContextMenu.AddItem("删除", () => BtnDeleteAction_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem(Translate(this, "MoveUp", "Move Up"), ActionContextMenu_MoveUp, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
+            actionContextMenu.AddItem(Translate(this, "MoveUp", "Move Down"), ActionContextMenu_MoveDown, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
+            actionContextMenu.AddItem(Translate(this, "CloneAction", "Clone Action"), ActionContextMenu_CloneAction, () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem(Translate(this, "DeleteAction", "Delete Action"), () => BtnDeleteAction_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem(Translate(this, "CopyAction", "Copy Action"), ActionContextMenu_CopyAction, () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem(Translate(this, "PasteAction", "Paste Action"), ActionContextMenu_PasteAction, () => editedTrigger != null && copiedTriggerData.HasTriggerActionDataInClipboard());
             AddChild(actionContextMenu);
 
             lbActions.AllowRightClickUnselect = false;
-            lbActions.RightClick += (s, e) => { if (editedTrigger != null) { lbActions.OnMouseLeftDown(); actionContextMenu.Open(GetCursorPoint()); } };
+            lbActions.RightClick += (s, e) => { if (editedTrigger != null) { lbActions.OnMouseLeftDown(new InputEventArgs()); actionContextMenu.Open(GetCursorPoint()); } };
 
             var sortContextMenu = new EditorContextMenu(WindowManager);
             sortContextMenu.Name = nameof(sortContextMenu);
             sortContextMenu.Width = lbTriggers.Width;
-            sortContextMenu.AddItem("根据ID排序", () => TriggerSortMode = TriggerSortMode.ID);
-            sortContextMenu.AddItem("根据名称排序", () => TriggerSortMode = TriggerSortMode.Name);
-            sortContextMenu.AddItem("根据颜色排序", () => TriggerSortMode = TriggerSortMode.Color);
-            sortContextMenu.AddItem("先根据颜色,再根据名称排序", () => TriggerSortMode = TriggerSortMode.ColorThenName);
+            sortContextMenu.AddItem(Translate(this, "SortByID", "Sort by ID"), () => TriggerSortMode = TriggerSortMode.ID);
+            sortContextMenu.AddItem(Translate(this, "SortByName", "Sort by Name"), () => TriggerSortMode = TriggerSortMode.Name);
+            sortContextMenu.AddItem(Translate(this, "SortByColor" ,"Sort by Color"), () => TriggerSortMode = TriggerSortMode.Color);
+            sortContextMenu.AddItem(Translate(this, "SortByColorName", "Sort by Color, then by Name"), () => TriggerSortMode = TriggerSortMode.ColorThenName);
             AddChild(sortContextMenu);
 
             FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
 
             lbTriggers.AllowRightClickUnselect = false;
-            lbTriggers.RightClick += (s, e) => { lbTriggers.SelectedIndex = lbTriggers.HoveredIndex; if (lbTriggers.SelectedItem != null) triggerContextMenu.Open(GetCursorPoint()); };
+            lbTriggers.RightClick += (s, e) => { lbTriggers.OnMouseLeftDown(new InputEventArgs()); triggerContextMenu.Open(GetCursorPoint()); };
             lbTriggers.SelectedIndexChanged += LbTriggers_SelectedIndexChanged;
 
-            WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;
+            WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;            
+        }
+
+        private void CreateRandomTriggerSetWindow_RandomTriggersSetCreated(object sender, RandomTriggerSetTriggersCreatedEventArgs e)
+        {
+            ListTriggers();
+            SelectTrigger(e.BaseTrigger);
         }
 
         private void WindowManager_WindowSizeChangedByUser(object sender, EventArgs e)
         {
-            RefreshLayout();
             ListTriggers();
         }
 
@@ -400,8 +429,8 @@ namespace TSMapEditor.UI.Windows
             if (tag == null)
                 return;
 
-            var messageBox = EditorMessageBox.Show(WindowManager, "您确定吗？",
-                $"这将删除所有与触发 \"{editedTrigger.Name}\"相关的单元标记。无法取消操作。您想继续吗？",
+            var messageBox = EditorMessageBox.Show(WindowManager, Translate(this, "ClearCellTags.Title", "Are you sure?"),
+                string.Format(Translate(this, "ClearCellTags.Description", "This will delete all CellTags related to trigger \"{0}\". No un-do is available. Do you want to continue?"), editedTrigger.Name),
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ =>
@@ -429,10 +458,11 @@ namespace TSMapEditor.UI.Windows
 
             if (tag == null)
             {
-                EditorMessageBox.Show(WindowManager, "未找到标签",
-                    $"所选触发 '{editedTrigger.Name}' 没有" +
-                    $"关联标签。 因此，它不能关联（未启用关联触发情况下）在任何物体上。" + Environment.NewLine + Environment.NewLine +
-                    "",
+                EditorMessageBox.Show(WindowManager,
+                    Translate(this, "NoTagFound.Title", "No tag found"),
+                    string.Format(Translate(this, "NoTagFound.Description", "The selected trigger '{0}' has no associated tag. As such, it cannot be attached to any objects." + Environment.NewLine + Environment.NewLine +
+                        "This should never happen, have you modified the map with another editor?"), 
+                        editedTrigger.Name),
                     MessageBoxButtons.OK);
 
                 return;
@@ -454,7 +484,7 @@ namespace TSMapEditor.UI.Windows
             var tag = map.Tags.Find(t => t.Trigger == editedTrigger);
             if (tag == null)
             {
-                stringBuilder.Append($"The selected trigger {editedTrigger.Name} has no associated tag. As such, it is not attached to any objects.");
+                stringBuilder.Append(string.Format(Translate(this, "NoAssociatedTag", "The selected trigger {0} has no associated tag. As such, it is not attached to any objects."), editedTrigger.Name));
             }
             else
             {
@@ -466,7 +496,7 @@ namespace TSMapEditor.UI.Windows
 
                 if (objectList.Count > 0)
                 {
-                    stringBuilder.Append($"The selected trigger '{editedTrigger.Name}' is linked to the following objects:\r\n");
+                    stringBuilder.Append(string.Format(Translate(this, "ObjectReferences", "The selected trigger '{0}' is linked to the following objects:\r\n"), editedTrigger.Name));
 
                     objectList.ForEach(techno =>
                     {
@@ -497,7 +527,7 @@ namespace TSMapEditor.UI.Windows
                 {
                     foreach (var teamType in teamTypes)
                     {
-                        stringBuilder.Append($"The trigger is linked to TeamType '{teamType.Name}' ({teamType.ININame}).");
+                        stringBuilder.Append(string.Format(Translate(this, "TeamTypeReferences", "The trigger is linked to TeamType '{0}' ({1})."), teamType.Name, teamType.ININame));
                         stringBuilder.Append(Environment.NewLine);
                     }
                 }
@@ -506,14 +536,18 @@ namespace TSMapEditor.UI.Windows
                 if (celltag != null)
                 {
                     stringBuilder.Append(Environment.NewLine);
-                    stringBuilder.Append("The trigger is linked to one or more celltags (first match at " + celltag.Position + ").");
+                    stringBuilder.Append(string.Format(Translate(this, "LinkedCellTags", "The trigger is linked to one or more celltags (first match at {0})."), celltag.Position));
                 }
             }
 
             // Check other triggers to see whether this trigger is referenced by them
-            var allReferringTriggers = map.Triggers.FindAll(trig => {
+            var allReferringTriggers = map.Triggers.FindAll(trig =>
+            {
                 foreach (var triggerAction in trig.Actions)
                 {
+                    if (!map.EditorConfig.TriggerEventTypes.ContainsKey(triggerAction.ActionIndex))
+                        continue;
+
                     var actionType = map.EditorConfig.TriggerActionTypes[triggerAction.ActionIndex];
 
                     for (int i = 0; i < triggerAction.Parameters.Length && i < actionType.Parameters.Length; i++)
@@ -535,14 +569,15 @@ namespace TSMapEditor.UI.Windows
             if (allReferringTriggers.Count > 0)
             {
                 stringBuilder.Append(Environment.NewLine);
-                stringBuilder.Append("The trigger is referenced by the following other triggers:");
-                allReferringTriggers.ForEach(trig => stringBuilder.Append(Environment.NewLine + $"    - {trig.Name} ({trig.ID})"));
+                stringBuilder.Append(Translate(this, "TriggerReferences", "The trigger is referenced by the following other triggers:"));
+                allReferringTriggers.ForEach(trig => stringBuilder.Append(Environment.NewLine + string.Format(Translate(this, "TriggerReference", "    - {0} ({1})"), trig.Name, trig.ID)));
             }
 
             if (stringBuilder.Length == 0)
             {
-                EditorMessageBox.Show(WindowManager, "Linked Objects",
-                    $"The selected trigger '{editedTrigger.Name}' is not linked to any objects, CellTags or other triggers.",
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "LinkedObjects.Title", "Linked Objects"),
+                    string.Format(Translate(this, "NoLinkedObjects.Description", "The selected trigger '{0}' is not linked to any objects, CellTags or other triggers."), editedTrigger.Name),
                     MessageBoxButtons.OK);
             }
             else
@@ -550,7 +585,7 @@ namespace TSMapEditor.UI.Windows
                 if (stringBuilder[0] == Environment.NewLine[0])
                     stringBuilder.Remove(0, Environment.NewLine.Length);
 
-                EditorMessageBox.Show(WindowManager, "Linked Objects", stringBuilder.ToString(), MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, Translate(this, "LinkedObjects.Title", "Linked Objects"), stringBuilder.ToString(), MessageBoxButtons.OK);
             }
 
             return;
@@ -581,13 +616,19 @@ namespace TSMapEditor.UI.Windows
 
             if (!map.EditorConfig.TriggerActionTypes.TryGetValue(TSDisableSpeechActionIndex, out TriggerActionType disableSpeechTriggerActionType))
             {
-                EditorMessageBox.Show(WindowManager, "Trigger action type not found", $"Could not find trigger action type for \"Disable Speech\" {TSDisableSpeechActionIndex}", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "ActionTypeNotFound.Title", "Trigger action type not found"), 
+                    string.Format(Translate(this, "DisableSpeechNotFound", "Could not find trigger action type for \"Disable Speech\" {0}"), TSDisableSpeechActionIndex), 
+                    MessageBoxButtons.OK);
                 return;
             }
 
             if (!map.EditorConfig.TriggerActionTypes.TryGetValue(TSEnableSpeechActionIndex, out TriggerActionType enableSpeechTriggerActionType))
             {
-                EditorMessageBox.Show(WindowManager, "Trigger action type not found", $"Could not find trigger action type for \"Enable Speech\" {TSEnableSpeechActionIndex}", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "ActionTypeNotFound.Title", "Trigger action type not found"), 
+                    string.Format(Translate(this, "EnableSpeechNotFound", "Could not find trigger action type for \"Enable Speech\" {0}"), TSEnableSpeechActionIndex), 
+                    MessageBoxButtons.OK);
                 return;
             }
 
@@ -601,11 +642,13 @@ namespace TSMapEditor.UI.Windows
 
         private void RegenerateIDs()
         {
-            var messageBox = EditorMessageBox.Show(WindowManager, "您确定吗？",
-                "这将为您地图上所有的触发重新生成内部 ID (01000000, 01000001 等等) 。" + Environment.NewLine +
-                "以 0100 开头的 ID（所有编辑器生成的脚本元素都是如此）。" + Environment.NewLine + Environment.NewLine +
-                "这可能会使列表更加合理（有删除过的触发后）。" + Environment.NewLine +
-                "不过，该功能是试验性的，如果出错，可能会破坏您的所有触发。您想继续吗？",
+            var messageBox = EditorMessageBox.Show(WindowManager, 
+                Translate(this, "RegenerateIDs.Title", "Are you sure?"),
+                Translate(this, "RegenerateIDs.Description", 
+                    "This will re-generate the internal IDs (01000000, 01000001 etc.) for ALL* of your map's script elements" + Environment.NewLine +
+                    "that start their ID with 0100 (all editor-generated script elements do)." + Environment.NewLine + Environment.NewLine +
+                    "It might make the list more sensible in case there are deleted triggers. However, this feature is" + Environment.NewLine +
+                    "experimental and if it goes wrong, it can destroy all of your scripting. Do you want to continue?"),
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => map.RegenerateInternalIds();
@@ -619,13 +662,15 @@ namespace TSMapEditor.UI.Windows
                 return;
 
             var messageBox = EditorMessageBox.Show(WindowManager,
-                "您确定吗？",
-                "为更简单的难度复制将为中等难度和简单难度创建此触发的副本。" + Environment.NewLine +
-                "如果触发关联了作战小队，则也会为更简单的难度的触发创建作战小队及其特遣部队的副本。" + Environment.NewLine +
-                "" + Environment.NewLine + Environment.NewLine +
-                "" + Environment.NewLine +
-                "" + Environment.NewLine + Environment.NewLine +
-                "无法撤销，您想继续吗?", MessageBoxButtons.YesNo);
+                Translate(this, "CloneForEasierDiffs.Title", "Are you sure?"),
+                Translate(this, "CloneForEasierDiffs.Description", 
+                    "Cloning this trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
+                    "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals" + Environment.NewLine +
+                    "with respective globals of easier difficulties." + Environment.NewLine + Environment.NewLine +
+                    "In case the trigger references TeamTypes, duplicates of the TeamTypes" + Environment.NewLine +
+                    "and their TaskForces are also created for the easier-difficulty triggers." + Environment.NewLine + Environment.NewLine +
+                    "No un-do is available. Do you want to continue?"),
+                MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties(true);
         }
@@ -636,11 +681,13 @@ namespace TSMapEditor.UI.Windows
                 return;
 
             var messageBox = EditorMessageBox.Show(WindowManager,
-                "您确定吗？",
-                "为更简单的难度复制将为中等难度和简单难度创建此触发的副本。" + Environment.NewLine +
-                "如果触发关联了作战小队，该选项不会创建所关联的作战小队及其特遣部队的副本。" + Environment.NewLine +
-                "" + Environment.NewLine + Environment.NewLine +
-                "无法撤销，您想继续吗?", MessageBoxButtons.YesNo);
+                Translate(this, "CloneForEasierDiffsNoDependencies.Title", "Are you sure?"),
+                Translate(this, "CloneForEasierDiffsNoDependencies.Description",
+                    "Cloning this trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
+                    "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals" + Environment.NewLine +
+                    "with respective globals of easier difficulties." + Environment.NewLine + Environment.NewLine +
+                    "No un-do is available. Do you want to continue?"),
+                MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties(false);
         }
@@ -674,6 +721,8 @@ namespace TSMapEditor.UI.Windows
 
         private void DoCloneForEasierDifficulties(bool cloneDependencies)
         {
+            map.TriggersChanged -= Map_TriggersChanged;
+
             var originalTag = map.Tags.Find(t => t.Trigger == editedTrigger);
 
             var mediumDifficultyTrigger = editedTrigger.Clone(map.GetNewUniqueInternalId());
@@ -704,7 +753,7 @@ namespace TSMapEditor.UI.Windows
                 easyDifficultyTrigger.Name = editedTrigger.Name[..^2] + " E";
             }
 
-            map.Tags.Add(new Tag()
+            map.AddTag(new Tag()
             {
                 ID = map.GetNewUniqueInternalId(),
                 Name = mediumDifficultyTrigger.Name + " (tag)",
@@ -712,7 +761,7 @@ namespace TSMapEditor.UI.Windows
                 Repeating = originalTag == null ? 0 : originalTag.Repeating
             });
 
-            map.Tags.Add(new Tag()
+            map.AddTag(new Tag()
             {
                 ID = map.GetNewUniqueInternalId(),
                 Name = easyDifficultyTrigger.Name + " (tag)",
@@ -794,6 +843,8 @@ namespace TSMapEditor.UI.Windows
             }
 
             ListTriggers();
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         #region Event and action context menus
@@ -836,6 +887,98 @@ namespace TSMapEditor.UI.Windows
 
         private void ActionContextMenu_CloneAction() => CloneEventOrAction(lbActions, editedTrigger?.Actions);
 
+        private void ActionContextMenu_CopyAction() => CopyActionOrEvent(false);
+
+        private void EventContextMenu_CopyAction() => CopyActionOrEvent(true);
+
+        private void CopyActionOrEvent(bool isEvent)
+        {
+            var relevantListBox = isEvent ? lbEvents : lbActions;
+            var tag = relevantListBox.SelectedItem?.Tag;
+            if (tag == null)
+                return;
+
+            if (isEvent)
+                copiedTriggerData.SetCopiedTriggerEvent((TriggerCondition)tag);
+            else
+                copiedTriggerData.SetCopiedTriggerAction((TriggerAction)tag);
+
+            copiedTriggerData.CopyToClipboard();
+        }
+
+        private void CopyTrigger()
+        {
+            if (editedTrigger == null)
+                return;
+
+            var associatedTag = map.Tags.Find(tag => tag.Trigger == editedTrigger);
+            if (associatedTag == null)
+                return;
+
+            Trigger.CopyToClipboard(editedTrigger, associatedTag);
+        }
+
+        private void PasteTrigger()
+        {
+            var (trigger, tag) = Trigger.GetTriggerAndTagFromClipboard(map);
+            if (trigger == null || tag == null)
+                return;
+
+            map.AddTrigger(trigger);
+            map.AddTag(tag);
+
+            ListTriggers();
+
+            int triggerIndex = lbTriggers.Items.FindIndex(listedTrigger => listedTrigger.Tag == trigger);
+            if (triggerIndex >= 0)
+            {
+                lbTriggers.SelectedIndex = triggerIndex;
+                lbTriggers.ScrollToSelectedElement();
+            }
+        }
+
+        private void EventContextMenu_PasteEvent() => PasteActionOrEvent(true);
+        private void ActionContextMenu_PasteAction() => PasteActionOrEvent(false);
+
+        private void PasteActionOrEvent(bool isEvent)
+        {
+            if (editedTrigger == null)
+                return;
+
+            if (isEvent)
+            {
+                var triggerEvent = copiedTriggerData.GetTriggerEventFromClipboard();
+                if (triggerEvent == null)
+                    return;
+
+                editedTrigger.Conditions.Add(triggerEvent);
+                EditTrigger(editedTrigger);
+
+                int eventIndex = lbEvents.Items.FindIndex(listedEvent => listedEvent.Tag == triggerEvent);
+                if (eventIndex >= 0)
+                {
+                    lbEvents.SelectedIndex = eventIndex;
+                    lbEvents.ScrollToSelectedElement();
+                }
+            }
+            else
+            {
+                var triggerAction = copiedTriggerData.GetTriggerActionFromClipboard();
+                if (triggerAction == null)
+                    return;
+
+                editedTrigger.Actions.Add(triggerAction);
+                EditTrigger(editedTrigger);
+
+                int actionIndex = lbActions.Items.FindIndex(listedAction => listedAction.Tag == triggerAction);
+                if (actionIndex >= 0)
+                {
+                    lbActions.SelectedIndex = actionIndex;
+                    lbActions.ScrollToSelectedElement();
+                }
+            }
+        }
+
         private void CloneEventOrAction<T>(XNAListBox listBox, List<T> objectList) where T : ICloneable
         {
             if (editedTrigger == null || listBox.SelectedItem == null)
@@ -861,6 +1004,17 @@ namespace TSMapEditor.UI.Windows
 
             if (triggerEventType == null)
                 return;
+
+            TriggerEventParam parameter = triggerEventType.Parameters[paramIndex];
+
+            // If the parameter has preset options defined, then show them in a context menu instead of opening a window
+            if (parameter.PresetOptions != null && parameter.PresetOptions.Count > 0)
+            {
+                ctxEventParameterPresetValues.ClearItems();
+                parameter.PresetOptions.ForEach(ctxEventParameterPresetValues.AddItem);
+                ctxEventParameterPresetValues.Open(GetCursorPoint());
+                return;
+            }
 
             int paramValue;
             switch (triggerEventType.Parameters[paramIndex].TriggerParamType)
@@ -921,10 +1075,17 @@ namespace TSMapEditor.UI.Windows
                     ctxEventParameterPresetValues.Open(GetCursorPoint());
                     break;
                 case TriggerParamType.SuperWeapon:
-                    ctxEventParameterPresetValues.ClearItems();
-                    ctxEventParameterPresetValues.Width = 250;
-                    map.Rules.SuperWeaponTypes.ForEach(sw => ctxEventParameterPresetValues.AddItem(sw.GetDisplayString()));
-                    ctxEventParameterPresetValues.Open(GetCursorPoint());
+                    int swTypeIndex = Conversions.IntFromString(triggerEvent.Parameters[paramIndex], -1);
+                    selectSuperWeaponTypeWindow.IsForEvent = true;
+                    selectSuperWeaponTypeWindow.UseININameAsValue = false;
+                    if (swTypeIndex > -1 && swTypeIndex < map.Rules.SuperWeaponTypes.Count)
+                        selectSuperWeaponTypeWindow.Open(map.Rules.SuperWeaponTypes[swTypeIndex]);
+                    break;
+                case TriggerParamType.SuperWeaponName:
+                    string swTypeID = triggerEvent.Parameters[paramIndex];
+                    selectSuperWeaponTypeWindow.IsForEvent = true;
+                    selectSuperWeaponTypeWindow.UseININameAsValue = true;
+                    selectSuperWeaponTypeWindow.Open(map.Rules.SuperWeaponTypes.Find(swType => swType.ININame.Equals(swTypeID, StringComparison.Ordinal)));
                     break;
                 case TriggerParamType.TeamType:
                     TeamType existingTeamType = map.TeamTypes.Find(tt => tt.ININame == triggerEvent.Parameters[paramIndex]);
@@ -1042,10 +1203,18 @@ namespace TSMapEditor.UI.Windows
                     selectStringWindow.Open(existingString);
                     break;
                 case TriggerParamType.SuperWeapon:
-                    ctxActionParameterPresetValues.ClearItems();
-                    ctxActionParameterPresetValues.Width = 250;
-                    map.Rules.SuperWeaponTypes.ForEach(sw => ctxActionParameterPresetValues.AddItem(sw.GetDisplayString()));
-                    ctxActionParameterPresetValues.Open(GetCursorPoint());
+                    int swTypeIndex = Conversions.IntFromString(triggerAction.Parameters[paramIndex], -1);
+                    selectSuperWeaponTypeWindow.IsForEvent = false;
+                    selectSuperWeaponTypeWindow.UseININameAsValue = false;
+                    if (swTypeIndex > -1 && swTypeIndex < map.Rules.SuperWeaponTypes.Count)
+                        selectSuperWeaponTypeWindow.Open(map.Rules.SuperWeaponTypes[swTypeIndex]);
+                    break;
+                case TriggerParamType.SuperWeaponName:
+                    string swTypeID = triggerAction.Parameters[paramIndex];
+                    selectSuperWeaponTypeWindow.IsForEvent = false;
+                    selectSuperWeaponTypeWindow.UseININameAsValue = true;
+                    if (!string.IsNullOrEmpty(swTypeID))
+                        selectSuperWeaponTypeWindow.Open(map.Rules.SuperWeaponTypes.Find(swType => swType.ININame.Equals(swTypeID, StringComparison.Ordinal)));
                     break;
                 case TriggerParamType.ParticleSystem:
                     ParticleSystemType existingParticleSystemType = map.Rules.ParticleSystemTypes.Find(pst => pst.Index == Conversions.IntFromString(triggerAction.Parameters[paramIndex], -1));
@@ -1072,6 +1241,14 @@ namespace TSMapEditor.UI.Windows
                     BuildingType buildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == triggerAction.Parameters[paramIndex]);
                     selectBuildingTypeWindow.Open(buildingType);
                     break;
+                case TriggerParamType.Color:
+                    int colorIndex = Conversions.IntFromString(triggerAction.Parameters[paramIndex], -1);
+                    selectColorsWindow.IsForEvent = false;
+                    if (colorIndex > -1 && colorIndex < map.Rules.Colors.Count)
+                        selectColorsWindow.Open(map.Rules.Colors[colorIndex]);
+                    else
+                        selectColorsWindow.Open(null);
+                    break;                    
                 default:
                     break;
             }
@@ -1080,6 +1257,9 @@ namespace TSMapEditor.UI.Windows
         private void btnActionGoToTarget_LeftClick(object sender, EventArgs e)
         {
             if (lbActions.SelectedItem == null)
+                return;
+
+            if (lbActionParameters.SelectedItem == null)
                 return;
 
             GetTriggerActionAndParamIndex(out TriggerAction triggerAction, out int paramIndex);            
@@ -1256,6 +1436,28 @@ namespace TSMapEditor.UI.Windows
             AssignParamValue(selectParticleSystemTypeWindow.IsForEvent, selectParticleSystemTypeWindow.SelectedObject.Index);
         }
 
+        private void SuperWeaponDarkeningPanel_Hidden(object sender, EventArgs e)
+        {
+            if (selectSuperWeaponTypeWindow.SelectedObject == null)
+                return;
+
+            var swType = selectSuperWeaponTypeWindow.SelectedObject;
+
+            if (selectSuperWeaponTypeWindow.UseININameAsValue)
+                AssignParamValue(selectSuperWeaponTypeWindow.IsForEvent, swType.ININame);
+            else
+                AssignParamValue(selectSuperWeaponTypeWindow.IsForEvent, swType.Index);
+        }
+
+        private void ColorDarkeningPanel_Hidden(object sender, EventArgs e)
+        {
+            if (selectColorsWindow.SelectedObject == null)
+                return;
+
+            int colorIndex = selectColorsWindow.SelectedObject.Index;
+            AssignParamValue(selectColorsWindow.IsForEvent, colorIndex);
+        }
+
         private void AssignParamValue(bool isForEvent, int paramValue)
         {
             if (isForEvent)
@@ -1328,11 +1530,15 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnNewTrigger_LeftClick(object sender, EventArgs e)
         {
+            map.TriggersChanged -= Map_TriggersChanged;
+
             var newTrigger = new Trigger(map.GetNewUniqueInternalId()) { Name = "New trigger", HouseType = "Neutral" };
-            map.Triggers.Add(newTrigger);
-            map.Tags.Add(new Tag() { ID = map.GetNewUniqueInternalId(), Name = "New tag", Trigger = newTrigger });
+            map.AddTrigger(newTrigger);
+            map.AddTag(new Tag() { ID = map.GetNewUniqueInternalId(), Name = "New tag", Trigger = newTrigger });
             ListTriggers();
             SelectTrigger(newTrigger);
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         private void BtnCloneTrigger_LeftClick(object sender, EventArgs e)
@@ -1340,13 +1546,17 @@ namespace TSMapEditor.UI.Windows
             if (editedTrigger == null)
                 return;
 
+            map.TriggersChanged -= Map_TriggersChanged;
+
             var originalTag = map.Tags.Find(t => t.Trigger == editedTrigger);
 
             var clone = editedTrigger.Clone(map.GetNewUniqueInternalId());
-            map.Triggers.Add(clone);
-            map.Tags.Add(new Tag() { ID = map.GetNewUniqueInternalId(), Name = clone.Name + " (tag)", Trigger = clone, Repeating = originalTag == null ? 0 : originalTag.Repeating });
+            map.AddTrigger(clone);
+            map.AddTag(new Tag() { ID = map.GetNewUniqueInternalId(), Name = clone.Name + " (tag)", Trigger = clone, Repeating = originalTag == null ? 0 : originalTag.Repeating });
             ListTriggers();
             SelectTrigger(clone);
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         private void BtnDeleteTrigger_LeftClick(object sender, EventArgs e)
@@ -1361,9 +1571,11 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var msgBox = EditorMessageBox.Show(WindowManager,
-                    "你确定吗?",
-                    "你真的想删除触发 \"" + editedTrigger.Name + "\"?" + Environment.NewLine + Environment.NewLine +
-                    "(您可以按住 Shift 键跳过该确认对话框。)", MessageBoxButtons.YesNo);
+                    Translate(this, "DeleteTrigger.Title", "Are you sure?"),
+                    string.Format(Translate(this, "DeleteTrigger.Description", "Do you really want to delete trigger \"{0}\"?" + Environment.NewLine + Environment.NewLine +
+                        "(You can hold Shift to skip this confirmation dialog.)"),
+                        editedTrigger.Name), 
+                    MessageBoxButtons.YesNo);
 
                 msgBox.YesClickedAction = _ => DeleteTrigger();
             }
@@ -1371,12 +1583,16 @@ namespace TSMapEditor.UI.Windows
 
         private void DeleteTrigger()
         {
-            map.Triggers.Remove(editedTrigger);
+            map.TriggersChanged -= Map_TriggersChanged;
+
+            map.RemoveTrigger(editedTrigger);
             map.Triggers.ForEach(t => { if (t.LinkedTrigger == editedTrigger) t.LinkedTrigger = null; });
-            map.Tags.RemoveAll(t => t.Trigger == editedTrigger);
+            map.RemoveTagsAssociatedWithTrigger(editedTrigger);
             editedTrigger = null;
 
             ListTriggers();
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         public void SelectTrigger(Trigger trigger)
@@ -1395,7 +1611,7 @@ namespace TSMapEditor.UI.Windows
 
             if (selectEventWindow.IsAddingNew)
             {
-                editedTrigger.Conditions.Add(new TriggerCondition());
+                editedTrigger.Conditions.Add(new TriggerCondition(triggerEventType));
                 EditTrigger(editedTrigger);
                 lbEvents.SelectedIndex = lbEvents.Items.Count - 1;
             }
@@ -1418,12 +1634,11 @@ namespace TSMapEditor.UI.Windows
 
                 if (triggerEventType.Parameters[i].TriggerParamType == TriggerParamType.Unused)
                 {
-                    // P3 needs to be empty instead of 0 if it's unused
-                    if (i == TriggerCondition.MAX_PARAM_COUNT - 1)
+                    // additional params need to be empty instead of 0 if they're unused
+                    if (i >= TriggerCondition.DEF_PARAM_COUNT)
                         condition.Parameters[i] = string.Empty;
                     else
                         condition.Parameters[i] = "0";
-                    continue;
                 }
             }
 
@@ -1656,7 +1871,7 @@ namespace TSMapEditor.UI.Windows
                 ddType.AllowDropDown = false;
 
                 if (ddType.Items.Count < 4)
-                    ddType.AddItem("错误： 此触发不存在标签！");
+                    ddType.AddItem(Translate(this, "NoTagError", "Error: No tag exists for this trigger!"));
             }
             else
             {
@@ -1785,8 +2000,8 @@ namespace TSMapEditor.UI.Windows
             var triggerAction = (TriggerAction)lbActions.SelectedItem.Tag;
             TriggerActionType triggerActionType = map.EditorConfig.TriggerActionTypes.GetValueOrDefault(triggerAction.ActionIndex);
 
-            selActionType.Text = triggerAction.ActionIndex + " " + (triggerActionType == null ? "Unknown" : triggerActionType.Name);
-            panelActionDescription.Text = triggerActionType == null ? "未知结果。很可能是用其他编辑器添加的。" : triggerActionType.Description;
+            selActionType.Text = triggerAction.ActionIndex + " " + (triggerActionType == null ? Translate(this, "UnknownActionType", "Unknown") : triggerActionType.Name);
+            panelActionDescription.Text = triggerActionType == null ? Translate(this, "UnknownActionDescription", "Unknown action. It has most likely been added with another editor.") : triggerActionType.Description;
 
             lbActionParameters.Clear();
             if (triggerActionType == null)
@@ -1834,6 +2049,7 @@ namespace TSMapEditor.UI.Windows
             if (lbActionParameters.SelectedItem == null || editedTrigger == null || lbActions.SelectedItem == null)
             {
                 tbActionParameterValue.Text = string.Empty;
+                btnActionGoToTarget.Disable();
                 return;
             }
 
@@ -1908,7 +2124,7 @@ namespace TSMapEditor.UI.Windows
 
             if (triggerActionType == null)
             {
-                lbActions.AddItem(new XNAListBoxItem() { Text = action.ActionIndex + " Unknown", Tag = action });
+                lbActions.AddItem(new XNAListBoxItem() { Text = action.ActionIndex + Translate(this, "UnknownActionType", "Unknown"), Tag = action });
                 return;
             }
 
@@ -1932,8 +2148,8 @@ namespace TSMapEditor.UI.Windows
             var triggerCondition = (TriggerCondition)lbEvents.SelectedItem.Tag;
             TriggerEventType triggerEventType = map.EditorConfig.TriggerEventTypes.GetValueOrDefault(triggerCondition.ConditionIndex);
 
-            selEventType.Text = triggerCondition.ConditionIndex + " " + (triggerEventType == null ? "Unknown" : triggerEventType.Name);
-            panelEventDescription.Text = triggerEventType == null ? "未知条件。很可能是用其他编辑器添加的。" : triggerEventType.Description;
+            selEventType.Text = triggerCondition.ConditionIndex + " " + (triggerEventType == null ? Translate(this, "UnknownEventType", "Unknown") : triggerEventType.Name);
+            panelEventDescription.Text = triggerEventType == null ? Translate(this, "UnknownEventDescription", "Unknown event. It has most likely been added with another editor.") : triggerEventType.Description;
 
             lbEventParameters.Clear();
             if (triggerEventType == null)
@@ -1987,12 +2203,13 @@ namespace TSMapEditor.UI.Windows
             TriggerCondition triggerCondition = editedTrigger.Conditions[lbEvents.SelectedIndex];
             int paramNumber = (int)lbEventParameters.SelectedItem.Tag;
             var triggerEventType = GetTriggerEventType(editedTrigger.Conditions[lbEvents.SelectedIndex].ConditionIndex);
+            var triggerEventParam = triggerEventType.Parameters[paramNumber];            
 
             if (triggerEventType != null)
             {
                 var triggerParamType = triggerEventType.Parameters[paramNumber]?.TriggerParamType ?? TriggerParamType.Unknown;
 
-                tbEventParameterValue.Text = GetParamValueText(triggerCondition.Parameters[paramNumber], triggerParamType, null);
+                tbEventParameterValue.Text = GetParamValueText(triggerCondition.Parameters[paramNumber], triggerParamType, triggerEventParam.PresetOptions);
                 tbEventParameterValue.TextColor = GetParamValueColor(triggerCondition.Parameters[paramNumber], triggerParamType);
             }
             else
@@ -2038,7 +2255,7 @@ namespace TSMapEditor.UI.Windows
 
             if (triggerEventType == null)
             {
-                lbEvents.AddItem(new XNAListBoxItem() { Text = condition.ConditionIndex + " Unknown", Tag = condition });
+                lbEvents.AddItem(new XNAListBoxItem() { Text = condition.ConditionIndex + Translate(this, "UnknownEventName",  "Unknown"), Tag = condition });
                 return;
             }
 
@@ -2094,6 +2311,12 @@ namespace TSMapEditor.UI.Windows
                         goto case TriggerParamType.Unused;
 
                     return trigger.XNAColor;
+                case TriggerParamType.Color:
+                    var color = map.Rules.Colors.Find(color => color.Index == intValue);
+                    if (color == null)
+                        goto case TriggerParamType.Unused;
+
+                    return color.XNAColor;
                 case TriggerParamType.Unused:
                 default:
                     return UISettings.ActiveSettings.AltColor;
@@ -2123,7 +2346,7 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (intValue >= map.Rules.AnimTypes.Count)
-                        return intValue + " - nonexistent animation";
+                        return intValue + Translate(this, "UnknownAnimation", " - nonexistent animation");
 
                     return intValue + " " + map.Rules.AnimTypes[intValue].ININame;
                 case TriggerParamType.HouseType:
@@ -2131,7 +2354,7 @@ namespace TSMapEditor.UI.Windows
                     {
                         var houseType = map.FindHouseType(intValue);
                         if (houseType == null)
-                            return intValue.ToString() + " - Unknown HouseType";
+                            return intValue.ToString() + Translate(this, "UnknownHouseType", " - Unknown HouseType");
 
                         return intValue + " " + houseType.ININame;
                     }
@@ -2142,7 +2365,7 @@ namespace TSMapEditor.UI.Windows
                     {
                         var houses = map.GetHouses();
                         if (intValue >= houses.Count)
-                            return intValue.ToString() + " - Unknown House";
+                            return intValue.ToString() + Translate(this, "UnknownHouse", " - Unknown House");
 
                         return intValue + " " + houses[intValue].ININame;
                     }
@@ -2153,7 +2376,7 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (!map.Rules.GlobalVariables.Exists(v => v.Index == intValue))
-                        return intValue + " - nonexistent variable";
+                        return intValue + Translate(this, "NonexistentGlobalVariable", " - nonexistent variable");
 
                     return intValue + " " + map.Rules.GlobalVariables.Find(v => v.Index == intValue).Name;
                 case TriggerParamType.LocalVariable:
@@ -2161,7 +2384,7 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (!map.LocalVariables.Exists(v => v.Index == intValue))
-                        return intValue + " - nonexistent variable";
+                        return intValue + Translate(this, "NonexistentLocalVariable", " - nonexistent variable");
 
                     return intValue + " " + map.LocalVariables.Find(v => v.Index == intValue).Name;
                 case TriggerParamType.WaypointZZ:
@@ -2197,7 +2420,7 @@ namespace TSMapEditor.UI.Windows
                     return GetObjectValueText(RTTIType.Unit, map.Rules.UnitTypes, paramValue);
                 case TriggerParamType.Text:
                     if (!intParseSuccess)
-                        return paramValue + " - Unknown text line";
+                        return paramValue + Translate(this, "UnknownTextLine", " - Unknown text line");
 
                     return paramValue + " " + map.Rules.TutorialLines.GetStringByIdOrEmptyString(intValue);
                 case TriggerParamType.Theme:
@@ -2206,14 +2429,14 @@ namespace TSMapEditor.UI.Windows
 
                     Theme theme = map.Rules.Themes.Get(intValue);
                     if (theme == null)
-                        return paramValue + " - nonexistent theme";
+                        return paramValue + Translate(this, "NonexistentTheme", " - nonexistent theme");
 
                     return theme.ToString();
                 case TriggerParamType.Tag:
                     Tag tag = map.Tags.Find(t => t.ID == paramValue);
 
                     if (tag == null)
-                        return paramValue + " - nonexistent tag";
+                        return paramValue + Translate(this, "NonexistentTag", " - nonexistent tag");
 
                     return paramValue + " " + tag.Name;
                 case TriggerParamType.SuperWeapon:
@@ -2221,15 +2444,22 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (intValue >= map.Rules.SuperWeaponTypes.Count)
-                        return intValue + " - nonexistent super weapon";
+                        return intValue + Translate(this, "NonexistentSuperWeapon", " - nonexistent super weapon");
 
                     return intValue + " " + map.Rules.SuperWeaponTypes[intValue].GetDisplayStringWithoutIndex();
+                case TriggerParamType.SuperWeaponName:
+                    var swType = map.Rules.SuperWeaponTypes.Find(sw => sw.ININame.Equals(paramValue, StringComparison.Ordinal));
+
+                    if (swType == null)
+                        return paramValue;
+
+                    return swType.GetDisplayStringWithoutIndex();
                 case TriggerParamType.ParticleSystem:
                     if (!intParseSuccess)
                         return paramValue;
 
                     if (intValue >= map.Rules.ParticleSystemTypes.Count)
-                        return intValue + " - nonexistent particle system";
+                        return intValue + Translate(this, "NonexistentParticleSystem", " - nonexistent particle system");
 
                     return intValue + " " + map.Rules.ParticleSystemTypes[intValue].ININame;
                 case TriggerParamType.Speech:
@@ -2240,7 +2470,7 @@ namespace TSMapEditor.UI.Windows
                         speech = map.Rules.Speeches.Get(paramValue);
 
                         if (speech == null)
-                            return paramValue + " - unknown speech";
+                            return paramValue + Translate(this, "UnknownSpeech", " - unknown speech");
 
                         return speech.Name;
                     }
@@ -2252,7 +2482,7 @@ namespace TSMapEditor.UI.Windows
                         speech = map.EditorConfig.Speeches.Get(intValue);
 
                         if (speech == null)
-                            return intValue + " - unknown speech";
+                            return intValue + Translate(this, "UnknownSpeech", " - unknown speech");
 
                         return $"{intValue} {speech.Name}";
                     }
@@ -2264,7 +2494,7 @@ namespace TSMapEditor.UI.Windows
                         sound = map.Rules.Sounds.Get(paramValue);
 
                         if (sound == null)
-                            return paramValue + " - unknown sound";
+                            return paramValue + Translate(this, "UnknownSound", " - unknown sound");
 
                         return sound.Name;
                     }
@@ -2276,7 +2506,7 @@ namespace TSMapEditor.UI.Windows
                         sound = map.Rules.Sounds.Get(intValue);
 
                         if (sound == null)
-                            return intValue + " - unknown sound";
+                            return intValue + Translate(this, "UnknownSound", " - unknown sound");
 
                         return $"{intValue} {sound.Name}";
                     }
@@ -2286,6 +2516,14 @@ namespace TSMapEditor.UI.Windows
 
                     float floatValue = BitConverter.ToSingle(BitConverter.GetBytes(intValue));
                     return floatValue.ToString(CultureInfo.InvariantCulture) + " (" + paramValue + ")";
+                case TriggerParamType.Color:
+                    if (!intParseSuccess)
+                        return paramValue;
+
+                    if (!map.Rules.Colors.Exists(color => color.Index == intValue))
+                        return intValue + Translate(this, "UnknownColor", " - nonexistent color");
+
+                    return intValue + " " + map.Rules.Colors.Find(v => v.Index == intValue).Name;
                 case TriggerParamType.Boolean:
                 default:
                     return paramValue;
@@ -2304,15 +2542,15 @@ namespace TSMapEditor.UI.Windows
                 switch (rtti)
                 {
                     case RTTIType.Aircraft:
-                        return intValue + " - Unknown Aircraft";
+                        return intValue + Translate(this, "UnknownAircraft", " - Unknown Aircraft");
                     case RTTIType.Building:
-                        return intValue + " - Unknown Building";
+                        return intValue + Translate(this, "UnknownBuilding", " - Unknown Building");
                     case RTTIType.Infantry:
-                        return intValue + " - Unknown Infantry";
+                        return intValue + Translate(this, "UnknownInfantry", " - Unknown Infantry");
                     case RTTIType.Unit:
-                        return intValue + " - Unknown Unit";
+                        return intValue + Translate(this, "UnknownUnit", " - Unknown Unit");
                     default:
-                        return intValue + " - Unknown Object";
+                        return intValue + Translate(this, "UnknownObject", " - Unknown Object");
                 }
             }
 
@@ -2323,6 +2561,21 @@ namespace TSMapEditor.UI.Windows
         {
             TeamTypeOpened?.Invoke(this, new TeamTypeEventArgs(teamType));
             PutOnBackground();
+        }
+
+        private void OpenCreateRandomTriggersSetWindow()
+        {
+            createRandomTriggerSetWindow.Open();
+            PutOnBackground();
+        }
+
+        private void Map_TriggersChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                ListTriggers();
+                SelectTrigger(editedTrigger);
+            }
         }
     }
 }

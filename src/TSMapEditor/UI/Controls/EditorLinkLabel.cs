@@ -26,8 +26,10 @@ namespace TSMapEditor.UI.Controls
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (!string.IsNullOrWhiteSpace(URL))
             {
                 try
@@ -44,7 +46,7 @@ namespace TSMapEditor.UI.Controls
                 }
             }
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
     }
 }

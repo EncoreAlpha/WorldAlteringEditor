@@ -30,7 +30,7 @@ namespace TSMapEditor.UI.CursorActions
             targetCellCoords = Point2D.NegativeOne;
         }
 
-        public override string GetName() => "Check Distance (Path)";
+        public override string GetName() => Translate("Name", "Check Distance (Path)");
 
         private byte[][] landPathfindingCache;
         private byte[][] navalPathfindingCache;
@@ -107,13 +107,13 @@ namespace TSMapEditor.UI.CursorActions
 
             if (source == null)
             {
-                DrawText(cellCoords, cameraTopLeftPoint, "单击选择源坐标，或右击退出", sourceColor);
+                DrawText(cellCoords, cameraTopLeftPoint, Translate("NoSource", "Click to select source coordinate, or right-click to exit"), sourceColor);
                 return;
             }
 
             string instruction = Environment.NewLine + Environment.NewLine +
-                "当前模式: " + (isInfantry ? "步兵" : "载具") + " (通过按 I 切换)" + Environment.NewLine + Environment.NewLine +
-                "当前移动区域: " + movementZone + " (按 C 在<陆地>、<水域>和<两者>之间切换)";
+                Translate("Mode", "Current mode: ") + (isInfantry ? Translate("Infantry", "Infantry") : Translate("Vehicle", "Vehicle")) + Translate("SwitchText", " (switch by pressing I)") + Environment.NewLine + Environment.NewLine +
+                Translate("MovementZone", "Current movement zone: ") + movementZone + Translate("CycleText", " (cycle between Land, Water and both by pressing C)");
 
             Func<Point2D, Map, Point2D> getCellCenterPoint = Is2DMode ? CellMath.CellCenterPointFromCellCoords : CellMath.CellCenterPointFromCellCoords_3D;
 
@@ -142,9 +142,9 @@ namespace TSMapEditor.UI.CursorActions
             string text;
 
             if (pathCellCoords.Count == 0)
-                text = "找不到路径!\r\n\r\n单击选择新源坐标，或右击退出" + instruction;
+                text = Translate("NoPathFound", "No path found!\r\n\r\nClick to select new source coordinate, or right-click to exit") + instruction;
             else
-                text = "以单元格为单位的路径长度: " + pathCellCoords.Count + "\r\n\r\n单击选择新源坐标，或右击退出" + instruction;
+                text = Translate("PathLength", "Path Length In Cells: ") + pathCellCoords.Count + Translate("ClickText", "\r\n\r\nClick to select new source coordinate, or right-click to exit") + instruction;
 
             DrawText(cellCoords, cameraTopLeftPoint, text, pathColor);
         }

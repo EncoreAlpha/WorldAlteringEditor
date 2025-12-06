@@ -44,8 +44,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                         throw new InvalidOperationException($"{nameof(OverlayRenderer)}.{nameof(GetExtraLight)}: Unknown lighting preview state");
                 }
 
-                const int highBridgeHeight = 4;
-                return level * highBridgeHeight;
+                return level * Constants.HighBridgeHeight;
             }
 
             return 0.0;
@@ -56,9 +55,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             if (gameObject.OverlayType.HighBridgeDirection == BridgeDirection.None)
                 return base.GetDrawPoint(gameObject);
 
-            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-            var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
+            var mapCell = Map.GetTile(gameObject.Position);
             int heightOffset = 0;
 
             if (!RenderDependencies.EditorState.Is2DMode)
@@ -88,10 +87,34 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 return Constants.DepthEpsilon * ObjectDepthAdjustments.Overlay;
             }
 
-            const int bridgeHeight = 4;
-
             var tile = Map.GetTile(gameObject.Position);
-            return (Constants.DepthEpsilon * ObjectDepthAdjustments.Overlay) + ((tile.Level + bridgeHeight) * Constants.CellHeight / (float)Map.HeightInPixelsWithCellHeight);
+            return (Constants.DepthEpsilon * ObjectDepthAdjustments.Overlay) + ((tile.Level + Constants.HighBridgeHeight) * Constants.CellHeight / (float)Map.HeightInPixelsWithCellHeight);
+        }
+
+        protected override DepthRectangle GetShadowDepthFromPosition(Overlay gameObject, Rectangle drawingBounds)
+        {
+            // Hack to prevent high bridge shadows from overlapping terrain on higher ground on bridge ends
+            if (gameObject.OverlayType.HighBridgeDirection != BridgeDirection.None)
+            {
+                var cell = Map.GetTile(gameObject.Position);
+                int y = drawingBounds.Y;
+                int bottom = drawingBounds.Bottom;
+                int yReference = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map).Y;
+                if (cell != null && !RenderDependencies.EditorState.Is2DMode)
+                {
+                    y += cell.Level * Constants.CellHeight;
+                    bottom += cell.Level * Constants.CellHeight;
+                }
+
+                int reduction = Constants.CellHeight * 5;
+
+                float depthTop = CellMath.GetDepthForPixel(y - reduction, yReference - reduction, cell, Map);
+                float depthBottom = CellMath.GetDepthForPixel(bottom - reduction, yReference - reduction, cell, Map);
+
+                return new DepthRectangle(depthTop, depthBottom);
+            }
+
+            return base.GetShadowDepthFromPosition(gameObject, drawingBounds);
         }
 
         protected override void Render(Overlay gameObject, Point2D drawPoint, in CommonDrawParams drawParams)

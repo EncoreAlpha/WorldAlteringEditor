@@ -52,13 +52,16 @@ namespace TSMapEditor.UI.Windows
         private XNALabel lblParameterDescription;
         private EditorNumberTextBox tbParameterValue;
         private MenuButton btnEditorPresetValues;
+        private EditorButton btnEditorPresetValuesWindow;
         private XNALabel lblActionDescriptionValue;
         private XNADropDown ddScriptColor;
 
         private SelectScriptActionWindow selectScriptActionWindow;
+        private SelectScriptActionPresetOptionWindow selectScriptActionPresetOptionWindow;
         private EditorContextMenu actionListContextMenu;
 
         private SelectBuildingTargetWindow selectBuildingTargetWindow;
+        private SelectAnimationWindow selectAnimationWindow;
 
         private Script editedScript;
 
@@ -73,9 +76,9 @@ namespace TSMapEditor.UI.Windows
             {
                 if (value != _scriptSortMode)
                 {
-                    _scriptSortMode = value;
-                    ListScripts();
+                    _scriptSortMode = value;                    
                 }
+                ListScripts();
             }
         }
 
@@ -92,13 +95,14 @@ namespace TSMapEditor.UI.Windows
             lblParameterDescription = FindChild<XNALabel>(nameof(lblParameterDescription));
             tbParameterValue = FindChild<EditorNumberTextBox>(nameof(tbParameterValue));
             btnEditorPresetValues = FindChild<MenuButton>(nameof(btnEditorPresetValues));
+            btnEditorPresetValuesWindow = FindChild<EditorButton>(nameof(btnEditorPresetValuesWindow));
             lblActionDescriptionValue = FindChild<XNALabel>(nameof(lblActionDescriptionValue));
             ddScriptColor = FindChild<XNADropDown>(nameof(ddScriptColor));            
 
-            ddScriptColor.AddItem("None");
+            ddScriptColor.AddItem(Translate(this, "None", "None"));
             Array.ForEach(Script.SupportedColors, supportedColor =>
             {
-                ddScriptColor.AddItem(supportedColor.Name, supportedColor.Value);
+                ddScriptColor.AddItem(Translate("NamedColors." + supportedColor.Name, supportedColor.Name), supportedColor.Value);
             });
 
             tbFilter.TextChanged += TbFilter_TextChanged;
@@ -109,6 +113,9 @@ namespace TSMapEditor.UI.Windows
             btnEditorPresetValues.ContextMenu.OptionSelected += ContextMenu_OptionSelected;
             btnEditorPresetValues.LeftClick += BtnEditorPresetValues_LeftClick;
 
+            btnEditorPresetValuesWindow.LeftClick += BtnEditorPresetValuesWindow_LeftClick;
+            btnEditorPresetValuesWindow.Disable();
+
             tbName.TextChanged += TbName_TextChanged;
             tbParameterValue.TextChanged += TbParameterValue_TextChanged;
             lbScriptTypes.SelectedIndexChanged += LbScriptTypes_SelectedIndexChanged;
@@ -117,10 +124,10 @@ namespace TSMapEditor.UI.Windows
             var sortContextMenu = new EditorContextMenu(WindowManager);
             sortContextMenu.Name = nameof(sortContextMenu);
             sortContextMenu.Width = lbScriptTypes.Width;
-            sortContextMenu.AddItem("根据ID排序", () => ScriptSortMode = ScriptSortMode.ID);
-            sortContextMenu.AddItem("根据名称排序", () => ScriptSortMode = ScriptSortMode.Name);
-            sortContextMenu.AddItem("根据颜色排序", () => ScriptSortMode = ScriptSortMode.Color);
-            sortContextMenu.AddItem("先根据颜色,再根据名称排序", () => ScriptSortMode = ScriptSortMode.ColorThenName);
+            sortContextMenu.AddItem(Translate(this, "SortByID", "Sort by ID"), () => ScriptSortMode = ScriptSortMode.ID);
+            sortContextMenu.AddItem(Translate(this, "SortByName", "Sort by Name"), () => ScriptSortMode = ScriptSortMode.Name);
+            sortContextMenu.AddItem(Translate(this, "SortByColor", "Sort by Color"), () => ScriptSortMode = ScriptSortMode.Color);
+            sortContextMenu.AddItem(Translate(this, "SortByColorName", "Sort by Color, then by Name"), () => ScriptSortMode = ScriptSortMode.ColorThenName);
             AddChild(sortContextMenu);
 
             FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
@@ -128,7 +135,7 @@ namespace TSMapEditor.UI.Windows
             var scriptContextMenu = new EditorContextMenu(WindowManager);
             scriptContextMenu.Name = nameof(scriptContextMenu);
             scriptContextMenu.Width = lbScriptTypes.Width;
-            scriptContextMenu.AddItem("查看已关联", ShowScriptReferences);
+            scriptContextMenu.AddItem(Translate(this, "ViewReferences", "View References"), ShowScriptReferences);
             AddChild(scriptContextMenu);
 
             lbScriptTypes.AllowRightClickUnselect = false;
@@ -143,9 +150,18 @@ namespace TSMapEditor.UI.Windows
             var selectScriptActionDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectScriptActionWindow);
             selectScriptActionDarkeningPanel.Hidden += SelectScriptActionDarkeningPanel_Hidden;
 
+            selectScriptActionPresetOptionWindow = new SelectScriptActionPresetOptionWindow(WindowManager, map);
+            var selectScriptActionPresetDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectScriptActionPresetOptionWindow);
+            selectScriptActionPresetDarkeningPanel.Hidden += SelectScriptActionPresetDarkeningPanel_Hidden;
+
             selectBuildingTargetWindow = new SelectBuildingTargetWindow(WindowManager, map);
             var buildingTargetWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectBuildingTargetWindow);
             buildingTargetWindowDarkeningPanel.Hidden += BuildingTargetWindowDarkeningPanel_Hidden;
+
+            selectAnimationWindow = new SelectAnimationWindow(WindowManager, map);
+            selectAnimationWindow.IncludeNone = false;
+            var animationWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectAnimationWindow);
+            animationWindowDarkeningPanel.Hidden += AnimationWindowDarkeningPanel_Hidden;
 
             selTypeOfAction.MouseLeftDown += SelTypeOfAction_MouseLeftDown;
 
@@ -164,15 +180,27 @@ namespace TSMapEditor.UI.Windows
             actionListContextMenu = new EditorContextMenu(WindowManager);
             actionListContextMenu.Name = nameof(actionListContextMenu);
             actionListContextMenu.Width = 180;
-            actionListContextMenu.AddItem("上移", MoveActionUp, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
-            actionListContextMenu.AddItem("下移", MoveActionDown, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
-            actionListContextMenu.AddItem("复制", CloneAction, () => editedScript != null && lbActions.SelectedItem != null);
-            actionListContextMenu.AddItem("插入到此处", InsertAction, () => editedScript != null && lbActions.SelectedItem != null);
-            actionListContextMenu.AddItem("删除", ActionListContextMenu_Delete, () => editedScript != null && lbActions.SelectedItem != null);
+            actionListContextMenu.AddItem(Translate(this, "MoveUp", "Move Up"), MoveActionUp, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
+            actionListContextMenu.AddItem(Translate(this, "MoveDown", "Move Down"), MoveActionDown, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
+            actionListContextMenu.AddItem(Translate(this, "CloneAction", "Clone Action"), CloneAction, () => editedScript != null && lbActions.SelectedItem != null);
+            actionListContextMenu.AddItem(Translate(this, "InsertNewAction", "Insert New Action Here"), InsertAction, () => editedScript != null && lbActions.SelectedItem != null);
+            actionListContextMenu.AddItem(Translate(this, "DeleteAction", "Delete Action"), ActionListContextMenu_Delete, () => editedScript != null && lbActions.SelectedItem != null);
             AddChild(actionListContextMenu);
 
             lbActions.AllowRightClickUnselect = false;
             lbActions.RightClick += (s, e) => { if (editedScript != null) { lbActions.SelectedIndex = lbActions.HoveredIndex; actionListContextMenu.Open(GetCursorPoint()); } };
+        }
+
+        private void AnimationWindowDarkeningPanel_Hidden(object sender, EventArgs e)
+        {
+            if (editedScript == null || lbActions.SelectedItem == null)
+                return;
+
+            if (selectAnimationWindow.SelectedObject != null)
+            {
+                editedScript.Actions[lbActions.SelectedIndex].Argument = selectAnimationWindow.SelectedObject.Index;
+                RefreshParameterEntryText();
+            }
         }
 
         private void BuildingTargetWindowDarkeningPanel_Hidden(object sender, EventArgs e)
@@ -285,13 +313,30 @@ namespace TSMapEditor.UI.Windows
             if (action.ParamType == TriggerParamType.Cell)
             {
                 editorState.CursorAction = selectCellCursorAction;
-                notificationManager.AddNotification("从地图上选择一个单元格。");
+                notificationManager.AddNotification(Translate(this, "SelectCell", "Select a cell from the map."));
             }
             else if (action.ParamType == TriggerParamType.BuildingWithProperty)
             {
                 var (index, property) = SplitBuildingWithProperty(entry.Argument);
                 selectBuildingTargetWindow.Open(index, property);
             }
+            else if (action.ParamType == TriggerParamType.Animation)
+            {
+                var animType = entry.Argument > -1 && entry.Argument < map.Rules.AnimTypes.Count ? map.Rules.AnimTypes[entry.Argument] : null;
+                selectAnimationWindow.Open(animType);
+            }
+        }
+
+        private void BtnEditorPresetValuesWindow_LeftClick(object sender, EventArgs e)
+        {
+            if (editedScript == null)
+                return;
+
+            if (lbActions.SelectedItem == null)
+                return;
+
+            var item = selectScriptActionPresetOptionWindow.GetMatchingItem(tbParameterValue.Text);
+            selectScriptActionPresetOptionWindow.Open(item);
         }
 
         private void ShowScriptReferences()
@@ -304,18 +349,27 @@ namespace TSMapEditor.UI.Windows
 
             if (referringLocalTeamTypes.Count == 0 && referringGlobalTeamTypes.Count == 0)
             {
-                EditorMessageBox.Show(WindowManager, "未找到关联",
-                    $"所选脚本 \"{editedScript.Name}\" ({editedScript.ININame}) 未被任何作战小队使用，无论是局部 (map) 还是全局 (AI.ini)。", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager,
+                    Translate(this, "NoReferencesFound.Title", "No references found"),
+                    string.Format(Translate(this, "NoReferencesFound.Description", "The selected Script \"{0}\" ({1}) is not used by any TeamTypes, either local (map) or global (AI.ini)."), 
+                        editedScript.Name, editedScript.ININame),
+                    MessageBoxButtons.OK);
             }
             else
             {
                 var stringBuilder = new StringBuilder();
-                referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Local TeamType \"{tt.Name}\" ({tt.ININame})"));
-                referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Global TeamType \"{tt.Name}\" ({tt.ININame})"));
+                referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine(
+                    string.Format(Translate(this, "ReferringTeamTypes.Local", 
+                        "- Local TeamType \"{0}\" ({1})"), tt.Name, tt.ININame)));
+                referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine(
+                    string.Format(Translate(this, "ReferringTeamTypes.Global", 
+                        "- Global TeamType \"{0}\" ({1})"), tt.Name, tt.ININame)));
 
-                EditorMessageBox.Show(WindowManager, "脚本关联",
-                    $"所选脚本 \"{editedScript.Name}\" ({editedScript.ININame}) 被以下作战小队使用：" + Environment.NewLine + Environment.NewLine +
-                    stringBuilder.ToString(), MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "ScriptReferences.Title", "Script References"),
+                    string.Format(Translate(this, "ScriptReferences.Description", "The selected Script \"{0}\" ({1}) is used by the following TeamTypes:" + Environment.NewLine + Environment.NewLine + "{2}"),
+                        editedScript.Name, editedScript.ININame, stringBuilder.ToString()),
+                    MessageBoxButtons.OK);
             }
         }
 
@@ -339,10 +393,11 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var messageBox = EditorMessageBox.Show(WindowManager,
-                    "确认",
-                    $"您确定要删除 '{editedScript.Name}'?" + Environment.NewLine + Environment.NewLine +
-                    $"您需要手动修改任何使用该脚本的作战小队。" + Environment.NewLine + Environment.NewLine +
-                    "(您可以按住 Shift 键跳过该确认对话框)",
+                    Translate(this, "DeleteConfirm.Title", "Confirm"),
+                    string.Format(Translate(this, "DeleteConfirm.Description", "Are you sure you wish to delete '{0}'?" + Environment.NewLine + Environment.NewLine +
+                        "You'll need to manually fix any TeamTypes using the Script." + Environment.NewLine + Environment.NewLine +
+                        "(You can hold Shift to skip this confirmation dialog.)"), 
+                        editedScript.Name),
                     MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = _ => DeleteScript();
             }
@@ -502,6 +557,30 @@ namespace TSMapEditor.UI.Windows
             InputIgnoreTime = TimeSpan.FromSeconds(Constants.UIAccidentalClickPreventionTime);
         }
 
+
+        private void SelectScriptActionPresetDarkeningPanel_Hidden(object sender, EventArgs e)
+        {
+            if (lbActions.SelectedItem == null || editedScript == null)
+            {
+                return;
+            }
+
+            if (selectScriptActionPresetOptionWindow.SelectedObject != null)
+                tbParameterValue.Text = selectScriptActionPresetOptionWindow.GetSelectedItemText();
+        }
+
+        private void RefreshParameterEntryText()
+        {
+            if (lbActions.SelectedItem == null || editedScript == null)
+                return;
+
+            ScriptActionEntry entry = editedScript.Actions[lbActions.SelectedIndex];
+            ScriptAction action = map.EditorConfig.ScriptActions.GetValueOrDefault(entry.Action);
+            tbParameterValue.TextChanged -= TbParameterValue_TextChanged;
+            SetParameterEntryText(entry, action);
+            tbParameterValue.TextChanged += TbParameterValue_TextChanged;
+        }
+
         private void LbActions_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbActions.SelectedItem == null || editedScript == null)
@@ -509,7 +588,7 @@ namespace TSMapEditor.UI.Windows
                 selTypeOfAction.Text = string.Empty;
                 selTypeOfAction.Tag = null;
                 tbParameterValue.Text = string.Empty;
-                lblParameterDescription.Text = "Parameter:";
+                lblParameterDescription.Text = Translate(this, "ParameterDescriptionText", "Parameter:");
                 lblActionDescriptionValue.Text = string.Empty;
                 return;
             }
@@ -523,10 +602,28 @@ namespace TSMapEditor.UI.Windows
             SetParameterEntryText(entry, action);
             tbParameterValue.TextChanged += TbParameterValue_TextChanged;
 
-            lblParameterDescription.Text = action == null ? "Parameter:" : action.ParamDescription + ":";
+            lblParameterDescription.Text = action == null ? 
+                Translate(this, "ParameterDescriptionText", "Parameter:") :
+                action.ParamDescription + ":";
             lblActionDescriptionValue.Text = GetActionDescriptionFromIndex(entry.Action);
 
-            FillPresetContextMenu(entry, action);
+            string text = null;
+
+            if (action.UseWindowSelection && action.PresetOptions.Count > 0)
+            {
+                btnEditorPresetValues.Disable();
+                btnEditorPresetValuesWindow.Enable();
+                text = selectScriptActionPresetOptionWindow.FillPresetOptions(entry, action);
+            }
+            else
+            {
+                btnEditorPresetValues.Enable();
+                btnEditorPresetValuesWindow.Disable();
+                text = FillPresetContextMenu(entry, action);
+            }
+
+            if (text != null)
+                tbParameterValue.Text = text;
         }
 
         private void SetParameterEntryText(ScriptActionEntry scriptActionEntry, ScriptAction action)
@@ -540,6 +637,15 @@ namespace TSMapEditor.UI.Windows
             if (action.ParamType == TriggerParamType.BuildingWithProperty)
             {
                 tbParameterValue.Text = GetBuildingWithPropertyText(scriptActionEntry.Argument);
+                return;
+            }
+            else if (action.ParamType == TriggerParamType.Animation)
+            {
+                if (scriptActionEntry.Argument > -1 && scriptActionEntry.Argument < map.Rules.AnimTypes.Count)
+                    tbParameterValue.Text = scriptActionEntry.Argument.ToString(CultureInfo.InvariantCulture) + " - " + map.Rules.AnimTypes[scriptActionEntry.Argument].ININame;
+                else
+                    tbParameterValue.Text = scriptActionEntry.Argument.ToString(CultureInfo.InvariantCulture) + Translate(this, "UnknownAnimation", " - unknown animation");
+
                 return;
             }
 
@@ -574,7 +680,7 @@ namespace TSMapEditor.UI.Windows
             int value = buildingTypeIndex + (int)property;
 
             if (buildingType == null)
-                return value + " - invalid value";
+                return value + Translate(this, "InvalidValue", " - invalid value");
 
             return value + " - " + buildingType.GetEditorDisplayName() + " (" + description + ")";
         }
@@ -585,13 +691,13 @@ namespace TSMapEditor.UI.Windows
             return GetBuildingWithPropertyText(index, property);
         }
 
-        private void FillPresetContextMenu(ScriptActionEntry entry, ScriptAction action)
+        private string FillPresetContextMenu(ScriptActionEntry entry, ScriptAction action)
         {
             btnEditorPresetValues.ContextMenu.ClearItems();
 
             if (action == null)
             {
-                return;
+                return null;
             }
 
             action.PresetOptions.ForEach(p => btnEditorPresetValues.ContextMenu.AddItem(new XNAContextMenuItem() { Text = p.GetOptionText() }));
@@ -625,9 +731,14 @@ namespace TSMapEditor.UI.Windows
                 }
             }
 
-            var fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text.StartsWith(entry.Argument.ToString()));
+            var fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text == entry.Argument.ToString());
+            if (fittingItem == null)
+                fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text.StartsWith(entry.Argument.ToString()));
+
             if (fittingItem != null)
-                tbParameterValue.Text = fittingItem.Text;
+                return fittingItem.Text;
+
+            return null;
         }
 
         private void LbScriptTypes_SelectedIndexChanged(object sender, EventArgs e) => RefreshSelectedScript();
@@ -721,7 +832,7 @@ namespace TSMapEditor.UI.Windows
                 tbParameterValue.Text = string.Empty;
                 btnEditorPresetValues.ContextMenu.ClearItems();
                 lblActionDescriptionValue.Text = string.Empty;
-                lblParameterDescription.Text = "Parameter:";
+                lblParameterDescription.Text = Translate(this, "ParameterDescriptionText", "Parameter:");
                 ddScriptColor.SelectedIndex = -1;
 
                 return;
@@ -731,9 +842,9 @@ namespace TSMapEditor.UI.Windows
             for (int i = 0; i < editedScript.Actions.Count; i++)
             {
                 var actionEntry = editedScript.Actions[i];
-                lbActions.AddItem(new XNAListBoxItem() 
-                { 
-                    Text = GetActionEntryText(i, actionEntry), 
+                lbActions.AddItem(new XNAListBoxItem()
+                {
+                    Text = GetActionEntryText(i, actionEntry),
                     Tag = actionEntry
                 });
             }
@@ -751,7 +862,7 @@ namespace TSMapEditor.UI.Windows
         {
             ScriptAction action = GetScriptAction(entry.Action);
             if (action == null)
-                return "#" + index + " - Unknown (" +  entry.Argument.ToString(CultureInfo.InvariantCulture) + ")";
+                return "#" + index + " - Unknown (" + entry.Argument.ToString(CultureInfo.InvariantCulture) + ")";
 
             return "#" + index + " - " + action.Name + " (" + entry.Argument.ToString(CultureInfo.InvariantCulture) + ")";
         }
@@ -768,7 +879,7 @@ namespace TSMapEditor.UI.Windows
         private string GetActionDescriptionFromIndex(int index)
         {
             ScriptAction action = GetScriptAction(index);
-            string description = action == null ? "Unknown script action. It has most likely been added with another editor." : action.Description;
+            string description = action == null ? Translate(this, "UnknownScriptAction", "Unknown script action. It has most likely been added with another editor.") : action.Description;
 
             return Renderer.FixText(description,
                 lblActionDescriptionValue.FontIndex,

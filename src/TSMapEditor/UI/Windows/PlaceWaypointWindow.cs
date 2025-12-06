@@ -24,6 +24,7 @@ namespace TSMapEditor.UI.Windows
         private readonly IMutationTarget mutationTarget;
 
         private EditorNumberTextBox tbWaypointNumber;
+        private XNALabel lblDescription;
         private XNADropDown ddWaypointColor;
 
         private Point2D cellCoords;
@@ -36,12 +37,15 @@ namespace TSMapEditor.UI.Windows
             tbWaypointNumber = FindChild<EditorNumberTextBox>(nameof(tbWaypointNumber));
             tbWaypointNumber.MaximumTextLength = (Constants.MaxWaypoint - 1).ToString(CultureInfo.InvariantCulture).Length;
 
+            lblDescription = FindChild<XNALabel>(nameof(lblDescription));
+            lblDescription.Text = string.Format(Translate(this, "DescriptionText", "Input waypoint number (0-{0}):"), Constants.MaxWaypoint - 1);
+
             FindChild<EditorButton>("btnPlace").LeftClick += BtnPlace_LeftClick;
 
             // Init color dropdown options
             ddWaypointColor = FindChild<XNADropDown>(nameof(ddWaypointColor));
-            ddWaypointColor.AddItem("None");
-            Array.ForEach(Waypoint.SupportedColors, sc => ddWaypointColor.AddItem(sc.Name, sc.Value));
+            ddWaypointColor.AddItem(Translate(this, "None", "None"));
+            Array.ForEach(Waypoint.SupportedColors, sc => ddWaypointColor.AddItem(Translate("NamedColors." + sc.Name, sc.Name), sc.Value));
         }
 
         private void BtnPlace_LeftClick(object sender, EventArgs e)
@@ -53,14 +57,23 @@ namespace TSMapEditor.UI.Windows
                 return;
             }
 
-            if (tbWaypointNumber.Value < 0 || tbWaypointNumber.Value >= Constants.MaxWaypoint)
+            int waypointNumber = tbWaypointNumber.Value;
+
+            PlaceWaypoint(waypointNumber, cellCoords);
+            Hide();
+        }
+
+        public void PlaceWaypoint(int waypointNumber, Point2D cellCoords)
+        {
+            if (waypointNumber < 0 || waypointNumber >= Constants.MaxWaypoint)
                 return;
 
-            if (map.Waypoints.Exists(w => w.Identifier == tbWaypointNumber.Value))
+            if (map.Waypoints.Exists(w => w.Identifier == waypointNumber))
             {
                 EditorMessageBox.Show(WindowManager,
-                    "路径点已存在",
-                    $"地图上已经存在编号为 {tbWaypointNumber.Value} 的路径点！",
+                    Translate(this, "WaypointExists.Title", "Waypoint already exists"),
+                    string.Format(Translate(this, "WaypointExists.Description",
+                        "A waypoint with the given number {0} already exists on the map!"), waypointNumber),
                     MessageBoxButtons.OK);
 
                 return;
@@ -68,35 +81,43 @@ namespace TSMapEditor.UI.Windows
 
             string waypointColor = ddWaypointColor.SelectedItem != null ? ddWaypointColor.SelectedItem.Text : null;
 
-            mutationManager.PerformMutation(new PlaceWaypointMutation(mutationTarget, cellCoords, tbWaypointNumber.Value, waypointColor));
-
-            Hide();
+            mutationManager.PerformMutation(new PlaceWaypointMutation(mutationTarget, cellCoords, waypointNumber, waypointColor));
         }
 
         public void Open(Point2D cellCoords)
         {
             this.cellCoords = cellCoords;
 
+            int availableWaypointNumber = GetAvailableWaypointNumber();
+            if (availableWaypointNumber < 0)
+                return;
+
+            tbWaypointNumber.Value = availableWaypointNumber;
+
+            Show();
+        }
+
+        public int GetAvailableWaypointNumber()
+        {
             if (map.Waypoints.Count == Constants.MaxWaypoint)
             {
                 EditorMessageBox.Show(WindowManager,
-                    "路径点数量已到达极限",
-                    "地图上的所有有效路径点都已被使用！",
+                    Translate(this, "MaxWaypoints.Title", "Maximum waypoints reached"),
+                    Translate(this, "MaxWaypoints.Description", "All valid waypoints on the map are already in use!"),
                     MessageBoxButtons.OK);
 
-                return;
+                return -1;
             }
 
             for (int i = 0; i < Constants.MaxWaypoint; i++)
             {
                 if (!map.Waypoints.Exists(w => w.Identifier == i) && (Constants.IsRA2YR || i != Constants.TS_WAYPT_SPECIAL))
                 {
-                    tbWaypointNumber.Value = i;
-                    break;
+                    return i;
                 }
             }
 
-            Show();
+            return -1;
         }
     }
 }

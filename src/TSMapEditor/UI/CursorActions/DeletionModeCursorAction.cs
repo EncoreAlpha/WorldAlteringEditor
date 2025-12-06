@@ -16,9 +16,11 @@ namespace TSMapEditor.UI.CursorActions
         {
         }
 
-        public override string GetName() => "Delete Object";
+        public override string GetName() => Translate("Name", "Delete Object");
 
         public override bool DrawCellCursor => false;
+
+        public override bool UseOnBridge => true;
 
         public override void OnActionEnter()
         {
@@ -65,7 +67,7 @@ namespace TSMapEditor.UI.CursorActions
 
             cellCenterPoint = cellCenterPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
-            const string text = "删除";
+            string text = Translate("Text", "Delete");
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
             int x = cellCenterPoint.X - (int)(textDimensions.X / 2);
             int y = cellCenterPoint.Y - (int)(textDimensions.Y / 2);

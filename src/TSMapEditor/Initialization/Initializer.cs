@@ -44,7 +44,7 @@ namespace TSMapEditor.Initialization
         private Dictionary<Type, Action<IMap, AbstractObject, IniFile, IniSection>> objectTypeArtInitializers
             = new Dictionary<Type, Action<IMap, AbstractObject, IniFile, IniSection>>()
             {
-                { typeof(TerrainType), InitTerrainTypeArt },
+                { typeof(TerrainType), InitArtConfigGeneric },
                 { typeof(SmudgeType), InitSmudgeTypeArt },
                 { typeof(BuildingType), InitBuildingArtConfig },
                 { typeof(OverlayType), InitArtConfigGeneric },
@@ -223,13 +223,6 @@ namespace TSMapEditor.Initialization
             var terrainType = (TerrainType)obj;
             terrainType.SnowOccupationBits = (TerrainOccupation)section.GetIntValue("SnowOccupationBits", 0);
             terrainType.TemperateOccupationBits = (TerrainOccupation)section.GetIntValue("TemperateOccupationBits", 0);
-        }
-        
-        private static void InitTerrainTypeArt(IMap map, AbstractObject obj, IniFile artIni, IniSection artSection)
-        {
-            var terrainType = (TerrainType)obj;
-            terrainType.Theater = artSection.GetBooleanValue("Theater", terrainType.Theater);
-            terrainType.Image = artSection.GetStringValue("Image", terrainType.Image);
         }
 
         private static void InitSmudgeType(INIDefineable obj, IniFile rulesIni, IniSection section)

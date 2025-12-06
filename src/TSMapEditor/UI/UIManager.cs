@@ -28,6 +28,7 @@ namespace TSMapEditor.UI
             CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
             PanelBackgroundColor = new Color(0, 0, 0, 128);
             PanelBorderColor = new Color(128, 128, 128, 255);
+            DefaultAlphaRate = 1.0f; // ScrollBar textures need instant animations
         }
 
         public Color ListBoxBackgroundColor { get; set; } = Color.Black;
@@ -45,6 +46,7 @@ namespace TSMapEditor.UI
             this.map = map;
             this.theaterGraphics = theaterGraphics;
             this.editorGraphics = editorGraphics;
+            InputPassthrough = true;
         }
 
         public event EventHandler RenderResolutionChanged;
@@ -96,8 +98,7 @@ namespace TSMapEditor.UI
 
             // We should be the first control to subscribe to this event
             WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;
-
-            SetInitialDisplayMode();
+            WindowManager.RenderResolutionChanged += WindowManager_RenderResolutionChanged;
 
             InitTheme();
 
@@ -199,6 +200,8 @@ namespace TSMapEditor.UI
             WindowManager.SetMaximizeBox(true);
             WindowManager.GameClosing += WindowManager_GameClosing;
             KeyboardCommands.Instance.ToggleFullscreen.Triggered += ToggleFullscreen_Triggered;
+
+            SetInitialDisplayMode();
         }
 
         private void SetInitialDisplayMode()
@@ -210,7 +213,6 @@ namespace TSMapEditor.UI
 
             Game.Window.AllowUserResizing = true;
             var form = (System.Windows.Forms.Form)System.Windows.Forms.Form.FromHandle(Game.Window.Handle);
-            form.MaximizeBox = false;
 
             var screen = System.Windows.Forms.Screen.FromHandle(Game.Window.Handle);
             int width = screen.Bounds.Width - 300;
@@ -226,6 +228,30 @@ namespace TSMapEditor.UI
             RefreshRenderResolution();
             WindowManager.CenterOnScreen();
             WindowManager.SetBorderlessMode(borderless);
+
+            foreach (var child in Children)
+            {
+                ProcessChildrenForInitialDisplayMode(child);
+            }
+        }
+
+        private void ProcessChildrenForInitialDisplayMode(XNAControl control)
+        {
+            if (control is DarkeningPanel darkeningPanel)
+            {
+                darkeningPanel.SetPositionAndSize();
+            }
+
+            if (control is INItializableWindow initializableWindow)
+            {
+                initializableWindow.RefreshLayout();
+
+                if (initializableWindow.CenterByDefault)
+                    initializableWindow.CenterOnParent();
+            }
+
+            foreach (var child in control.Children)
+                ProcessChildrenForInitialDisplayMode(child);
         }
 
         private void ToggleFullscreen_Triggered(object sender, EventArgs e)
@@ -258,6 +284,12 @@ namespace TSMapEditor.UI
             }
         }
 
+        private void WindowManager_RenderResolutionChanged(object sender, EventArgs e)
+        {
+            Width = WindowManager.RenderResolutionX;
+            Height = WindowManager.RenderResolutionY;
+        }
+
         private void RefreshRenderResolution()
         {
             if (Game.Window.ClientBounds.Width == 0 || Game.Window.ClientBounds.Height == 0)
@@ -269,9 +301,10 @@ namespace TSMapEditor.UI
             if (newRenderWidth != WindowManager.RenderResolutionX || newRenderHeight != WindowManager.RenderResolutionY)
             {
                 WindowManager.SetRenderResolution(newRenderWidth, newRenderHeight);
+                // Done by event-handling code in WindowManager_RenderResolutionChanged
+                // Width = WindowManager.RenderResolutionX;
+                // Height = WindowManager.RenderResolutionY;
                 RenderResolutionChanged?.Invoke(this, EventArgs.Empty);
-                Width = WindowManager.RenderResolutionX;
-                Height = WindowManager.RenderResolutionY;
 
                 Parser.Instance.RefreshResolutionConstants(WindowManager);
                 SetNotificationManagerSizeAndPosition();
@@ -283,7 +316,11 @@ namespace TSMapEditor.UI
             RefreshRenderResolution();
         }
 
-        private void WindowManager_GameClosing(object sender, EventArgs e) => mapFileWatcher.StopWatching();
+        private void WindowManager_GameClosing(object sender, EventArgs e)
+        {
+            mapFileWatcher.StopWatching();
+            TranslatorSetup.DumpMissingValues();
+        }
 
         private void InitTheme()
         {
@@ -301,7 +338,7 @@ namespace TSMapEditor.UI
 
         private void InitKeyboard()
         {
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+            Keyboard.OnKeyDown += Keyboard_OnKeyDown;
 
             KeyboardCommands.Instance = new KeyboardCommands();
             KeyboardCommands.Instance.Undo.Triggered += UndoAction;
@@ -315,7 +352,7 @@ namespace TSMapEditor.UI
 
         private void ClearKeyboard()
         {
-            Keyboard.OnKeyPressed -= Keyboard_OnKeyPressed;
+            Keyboard.OnKeyDown -= Keyboard_OnKeyDown;
             KeyboardCommands.Instance.ClearCommandSubscriptions();
         }
 
@@ -347,21 +384,19 @@ namespace TSMapEditor.UI
 
             map.MapManuallySaved += (s, e) =>
             {
-                notificationManager.AddNotification("地图已保存");
+                notificationManager.AddNotification(Translate(this, "MapSaved", "Map saved."));
                 RefreshWindowTitle();
                 CheckForIssuesAfterManualSave(s, e);
             };
 
-            map.MapAutoSaved += (s, e) => notificationManager.AddNotification("地图已自动保存");
-            map.MapSaveFailed += (s, e) => notificationManager.AddNotification("Saving map failed! Please see the log file for details.");
+            map.MapAutoSaved += (s, e) => notificationManager.AddNotification(Translate(this, "MapAutoSaved", "Map auto-saved."));
+            map.MapSaveFailed += (s, e) => notificationManager.AddNotification(Translate(this, "MapSaveFailed", "Saving map failed! Please see the log file for details."));
         }
 
         private void RefreshWindowTitle()
         {
             string baseTitle = "C&C World-Altering Editor (WAE) - {0}";
-            string mapPath;
-
-            mapPath = string.IsNullOrWhiteSpace(map.LoadedINI.FileName) ? "New map" : map.LoadedINI.FileName;
+            string mapPath = string.IsNullOrWhiteSpace(map.LoadedINI.FileName) ? Translate(this, "NewMap", "New map") : map.LoadedINI.FileName;
 
             Game.Window.Title = string.Format(baseTitle, mapPath);
         }
@@ -379,8 +414,12 @@ namespace TSMapEditor.UI
 
                 string issuesString = string.Join(newline + newline, issues);
 
-                EditorMessageBox.Show(WindowManager, "发现问题",
-                    "地图已保存，但在地图中发现了一个或多个问题。请考虑解决这些问题。" + newline + newline + issuesString,
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "IssuesFound.Title", "Issues Found"),
+                    string.Format(Translate(this, "IssuesFound.Description", 
+                        "The map has been saved, but one or more issues have been found in the map. Please consider resolving them." +
+                        newline + newline +
+                        "{0}"), issuesString),
                     MessageBoxButtons.OK);
             }
         }
@@ -417,7 +456,10 @@ namespace TSMapEditor.UI
 
         private void StartLoadingMap()
         {
-            var messageBox = new EditorMessageBox(WindowManager, "载入中", "请稍候，正在载入地图...", MessageBoxButtons.None);
+            var messageBox = new EditorMessageBox(WindowManager, 
+                Translate(this, "Loading.Title", "Loading"),
+                Translate(this, "Loading.Description", "Please wait, loading map..."),
+                MessageBoxButtons.None);
             mapLoadDarkeningPanel = new DarkeningPanel(WindowManager);
             mapLoadDarkeningPanel.DrawOrder = int.MaxValue;
             mapLoadDarkeningPanel.UpdateOrder = int.MaxValue;
@@ -440,8 +482,11 @@ namespace TSMapEditor.UI
 
             if (error != null)
             {
-                EditorMessageBox.Show(WindowManager, "打开地图失败",
-                    error, MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                   Translate(this, "LoadMapFailure.Title", "Failed to open map"),
+                   error,
+                   MessageBoxButtons.OK);
+
                 loadMapStage = 0;
                 RemoveChild(mapLoadDarkeningPanel);
                 mapLoadDarkeningPanel.Kill();
@@ -476,6 +521,7 @@ namespace TSMapEditor.UI
 
             WindowManager.GameClosing -= WindowManager_GameClosing;
             WindowManager.WindowSizeChangedByUser -= WindowManager_WindowSizeChangedByUser;
+            WindowManager.RenderResolutionChanged -= WindowManager_RenderResolutionChanged;
             KeyboardCommands.Instance.ToggleFullscreen.Triggered -= ToggleFullscreen_Triggered;
 
             Disable();
@@ -565,7 +611,7 @@ namespace TSMapEditor.UI
             overlayFrameSelector.ClientRectangleUpdated += UpdateTileAndOverlaySelectorArea;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        private void Keyboard_OnKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
             if (!WindowManager.HasFocus)
                 return;
@@ -579,6 +625,12 @@ namespace TSMapEditor.UI
                 if (selectedControl is XNATextBox || selectedControl is XNAListBox)
                     return;
             }
+
+            // Send the key for the map UI. If there is a cursor action active, this allows
+            // the cursor action to handle input first.
+            mapUI.HandleKeyDown(sender, e);
+            if (e.Handled)
+                return;
 
             // First, check for commands that match when all modifiers are fully considered
             // - for example, if there's two commands, one that is activated by pressing A,
@@ -699,9 +751,10 @@ namespace TSMapEditor.UI
             {
                 if (mapFileWatcher.HandleModifyEvent())
                 {
-                    notificationManager.AddNotification("地图文件已在编辑器之外修改。地图的 INI 数据已重新加载。" + Environment.NewLine + Environment.NewLine +
-                        "如果您在编辑器之外对可见地图数据（地形、地形对象、覆盖物等）进行了编辑，您可以重载地图以应用效果。" + Environment.NewLine +
-                        "如果您只修改了其他 INI 数据，则可以忽略此信息。");
+                    notificationManager.AddNotification(
+                        Translate(this, "MapModifiedNotification", "The map file has been modified outside of the editor. The map's INI data has been reloaded." + Environment.NewLine + Environment.NewLine +
+                        "If you made edits to visible map data (terrain, objects, overlay etc.) outside of the editor, you can" + Environment.NewLine +
+                        "re-load the map to apply the effects. If you only made changes to other INI data, you can ignore this message."));
                 }
             }
         }
@@ -722,9 +775,10 @@ namespace TSMapEditor.UI
                 string error = autosaveTimer.Update(gameTime.ElapsedGameTime);
                 if (error != null)
                 {
-                    NotificationManager.AddNotification("自动保存地图失败" + Environment.NewLine + Environment.NewLine +
-                        "请确保不是在受写保护的目录中运行编辑器。(例如 Program Files)。" + Environment.NewLine + Environment.NewLine +
-                        "操作系统错误： " + error);
+                    NotificationManager.AddNotification(string.Format(Translate(this, "MapAutoSaveFailure", 
+                        "Failed to auto-save the map." + Environment.NewLine + Environment.NewLine + 
+                            "Please make sure that you are not running the editor from a write-protected directory (such as Program Files)." + Environment.NewLine + Environment.NewLine + 
+                            "Returned OS error: {0}"), error));
                 }
 
                 UpdateMapFileWatcher();

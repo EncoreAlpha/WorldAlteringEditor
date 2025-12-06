@@ -19,6 +19,7 @@ namespace TSMapEditor.UI.Windows
             this.map = map;
             this.editorState = editorState;
             this.setFollowerCursorAction = new SetFollowerCursorAction(cursorActionTarget);
+            this.cursorActionTarget = cursorActionTarget;
         }
 
         public event EventHandler<TagEventArgs> TagOpened;
@@ -26,6 +27,7 @@ namespace TSMapEditor.UI.Windows
         private readonly Map map;
         private readonly EditorState editorState;
         private readonly SetFollowerCursorAction setFollowerCursorAction;
+        private readonly ICursorActionTarget cursorActionTarget;
 
         private XNATrackbar trbStrength;
         private XNALabel lblStrengthValue;
@@ -133,7 +135,10 @@ namespace TSMapEditor.UI.Windows
             ddVeterancy.SelectedIndex = Math.Max(0, veterancyIndex);
             tbGroup.Value = unit.Group;
             followerSelector.Tag = unit.FollowerUnit;
-            followerSelector.Text = unit.FollowerUnit == null ? "none" : unit.FollowerUnit.UnitType.GetEditorDisplayName() + " at " + unit.FollowerUnit.Position;
+            followerSelector.Text = unit.FollowerUnit == null ? Translate(this, "None", "none") :
+                string.Format(Translate(this, "FollowerSelectorText",
+                    "{0} at {1}"), 
+                    unit.FollowerUnit.UnitType.GetEditorDisplayName(), unit.FollowerUnit.Position);
             chkOnBridge.Checked = unit.High;
             chkAutocreateNoRecruitable.Checked = unit.AutocreateNoRecruitable;
             chkAutocreateYesRecruitable.Checked = unit.AutocreateYesRecruitable;
@@ -148,7 +153,13 @@ namespace TSMapEditor.UI.Windows
             unit.Veterancy = (int)ddVeterancy.SelectedItem.Tag;
             unit.Group = tbGroup.Value;
             unit.FollowerUnit = followerSelector.Tag as Unit;
-            unit.High = chkOnBridge.Checked;
+
+            if (unit.High != chkOnBridge.Checked)
+            {
+                unit.High = chkOnBridge.Checked;
+                cursorActionTarget.AddRefreshPoint(unit.Position);
+            }
+
             unit.AutocreateNoRecruitable = chkAutocreateNoRecruitable.Checked;
             unit.AutocreateYesRecruitable = chkAutocreateYesRecruitable.Checked;
             unit.AttachedTag = (Tag)attachedTagSelector.Tag;

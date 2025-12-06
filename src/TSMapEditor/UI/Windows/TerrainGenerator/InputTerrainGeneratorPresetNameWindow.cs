@@ -38,7 +38,11 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
 
             if (userPresets.GetConfigurationsForCurrentTheater().Exists(c => c.Theater.Equals(map.LoadedTheaterName, StringComparison.OrdinalIgnoreCase) && c.Name == tbPresetName.Text))
             {
-                EditorMessageBox.Show(WindowManager, "预设已存在", $"当前 Theater 已经存在名称为 {tbPresetName.Text} 的预设！", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "PresetAlreadyExists.Title", "Preset already exists"),
+                    string.Format(Translate(this, "PresetAlreadyExists.Description", 
+                        "A preset with the name {0} already exists for the current theater!"), tbPresetName.Text),
+                    MessageBoxButtons.OK);
                 return;
             }
 

@@ -54,6 +54,8 @@ namespace TSMapEditor.Initialization
         void AddWaypoint(Waypoint waypoint);
         void AddTaskForce(TaskForce taskForce);
         void AddTrigger(Trigger trigger);
+        void RemoveTrigger(Trigger trigger);
+        void RemoveTagsAssociatedWithTrigger(Trigger trigger);
         void AddTag(Tag tag);
         void AddCellTag(CellTag cellTag);
         void RemoveCellTagFrom(Point2D cellCoords);

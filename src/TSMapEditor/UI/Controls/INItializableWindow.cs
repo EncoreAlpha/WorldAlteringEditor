@@ -18,7 +18,7 @@ namespace TSMapEditor.UI.Controls
         {
         }
 
-        protected IniFile ConfigIni { get; private set; }
+        protected IniFile ConfigIni { get; set; }
 
         private bool _initialized = false;
 
@@ -58,15 +58,24 @@ namespace TSMapEditor.UI.Controls
                 throw new InvalidOperationException("INItializableWindow cannot be initialized twice.");
 
             var dsc = Path.DirectorySeparatorChar;
-            string configIniPath = Path.Combine(Environment.CurrentDirectory, "Config", "UI", SubDirectory, Name + ".ini");
-            
-            if (!File.Exists(configIniPath))
-                throw new FileNotFoundException("Config INI not found: " + configIniPath);
 
-            ConfigIni = new IniFile(configIniPath);
+            if (ConfigIni == null)
+            {
+                string defaultConfigIniPath = Path.Combine(Environment.CurrentDirectory, "Config", "Default", "UI", SubDirectory, Name + ".ini");
+                string configIniPath = Path.Combine(Environment.CurrentDirectory, "Config", "UI", SubDirectory, Name + ".ini");
+
+                if (File.Exists(configIniPath))
+                    ConfigIni = new IniFile(configIniPath);
+                else if (File.Exists(defaultConfigIniPath))
+                    ConfigIni = new IniFile(defaultConfigIniPath);
+                else
+                    throw new FileNotFoundException("Config INI not found: " + configIniPath);
+            }
 
             Parser.Instance.SetPrimaryControl(this);
-            ReadINIForControl(this);
+            if (!ReadINIForControl(this))
+                throw new INIConfigException("No section '" + Name + "' found when parsing config file for INItializableWindow of the type!");
+
             ReadLateAttributesForControl(this);
 
             base.Initialize();
@@ -85,6 +94,19 @@ namespace TSMapEditor.UI.Controls
             }
 
             _initialized = true;
+
+            WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;
+        }
+
+        private void WindowManager_WindowSizeChangedByUser(object sender, EventArgs e)
+        {
+            RefreshLayout();
+        }
+
+        public override void Kill()
+        {
+            WindowManager.WindowSizeChangedByUser -= WindowManager_WindowSizeChangedByUser;
+            base.Kill();
         }
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
@@ -108,6 +130,11 @@ namespace TSMapEditor.UI.Controls
 
             if (btnClose != null)
                 btnClose.X = Width - btnClose.Width;
+
+            if (CenterByDefault)
+                CenterOnParent();
+
+            ConstrainPosition();
         }
 
         private bool ReadINIForControl(XNAControl control, bool isForLayout = false)
@@ -131,7 +158,7 @@ namespace TSMapEditor.UI.Controls
                     else
                     {
                         string childName = GetChildControlName(control, kvp.Value);
-                        var child = Children.First(cc => cc.Name == childName);
+                        var child = control.Children.First(cc => cc.Name == childName);
                         if (child == null)
                             throw new INIConfigException($"Processing {control.Name} in {nameof(INItializableWindow)}: Unable to find child control {kvp.Value} while calculating layout");
 
@@ -153,6 +180,14 @@ namespace TSMapEditor.UI.Controls
                 else if (kvp.Key == "$Height")
                 {
                     control.Height = Parser.Instance.GetExprValue(kvp.Value, control);
+                }
+                else if (kvp.Key == "$Text")
+                {
+                    control.Text = Parser.Instance.GetExprValueString(kvp.Value, "Text", control);
+                }
+                else if (kvp.Key == "$Suggestion" && control is XNASuggestionTextBox)
+                {
+                    ((XNASuggestionTextBox)control).Suggestion = Parser.Instance.GetExprValueString(kvp.Value, "Suggestion", control);
                 }
                 else if (kvp.Key == "$TextAnchor" && control is XNALabel)
                 {
@@ -246,6 +281,15 @@ namespace TSMapEditor.UI.Controls
                     {
                         var toolTipControl = new ToolTip(WindowManager, child);
                         toolTipControl.Text = toolTipText;
+                        toolTipControl.ToolTipDelay = 0;
+                    }
+
+                    string parsedToolTipText = childSection.GetStringValue("$ToolTip", null);
+                    if (parsedToolTipText != null)
+                    {
+                        parsedToolTipText = Parser.Instance.GetExprValueString(parsedToolTipText, "ToolTip", child);
+                        var toolTipControl = new ToolTip(WindowManager, child);
+                        toolTipControl.Text = parsedToolTipText;
                         toolTipControl.ToolTipDelay = 0;
                     }
                 }

@@ -29,6 +29,8 @@ namespace TSMapEditor.UI
             globalConstants.Add("IS_RA2YR", Constants.IsRA2YR ? 1 : 0);
             globalConstants.Add("OBJECT_HEALTH_MAX", Constants.ObjectHealthMax);
             globalConstants.Add("IS_FLAT_WORLD", Constants.IsFlatWorld ? 1 : 0);
+            globalConstants.Add("CELL_WIDTH", Constants.CellSizeX);
+            globalConstants.Add("CELL_HEIGHT", Constants.CellSizeY);
 
             _instance = this;
         }
@@ -45,6 +47,8 @@ namespace TSMapEditor.UI
         private static Dictionary<string, int> globalConstants;
 
         public string Input { get; private set; }
+
+        private string translationKeyName;
 
         private int tokenPlace;
         private XNAControl primaryControl;
@@ -85,6 +89,47 @@ namespace TSMapEditor.UI
         public void SetPrimaryControl(XNAControl primaryControl)
         {
             this.primaryControl = primaryControl;
+        }
+
+        private string GetExprValueStringWithContextSave(string input, XNAControl parsingControl)
+        {
+            string originalInput = Input;
+            int originalTokenPlace = tokenPlace;
+            string originalTranslationKeyName = translationKeyName;
+            string value = GetExprValueString(input, "Unused", parsingControl);
+            Input = originalInput;
+            tokenPlace = originalTokenPlace;
+            translationKeyName = originalTranslationKeyName;
+
+            return value;
+        }
+
+        public string GetExprValueString(string input, string translationKeyName, XNAControl parsingControl)
+        {
+            this.parsingControl = parsingControl;
+            this.translationKeyName = translationKeyName;
+            Input = input;
+            tokenPlace = 0;
+
+            string value = null;
+
+            while (true)
+            {
+                SkipWhitespace();
+
+                if (IsEndOfInput())
+                    return value;
+
+                char c = PeekChar();
+
+                switch (c)
+                {
+                    case '"':
+                        return GetLiteralString();
+                }
+
+                return GetFunctionStringValue();
+            }
         }
 
         public int GetExprValue(string input, XNAControl parsingControl)
@@ -165,7 +210,7 @@ namespace TSMapEditor.UI
                 }
                 else if (char.IsLower(c))
                 {
-                    value = GetFunctionValue();
+                    value = GetFunctionIntegerValue();
                 }
             }
         }
@@ -189,7 +234,7 @@ namespace TSMapEditor.UI
             }
             else if (char.IsLower(c))
             {
-                return GetFunctionValue();
+                return GetFunctionIntegerValue();
             }
             else if (c == '(')
             {
@@ -244,7 +289,7 @@ namespace TSMapEditor.UI
             return GetConstant(constantName);
         }
 
-        private int GetFunctionValue()
+        private (string, List<string>) GetFunctionNameAndParameters()
         {
             string functionName = GetIdentifier();
             SkipWhitespace();
@@ -261,29 +306,42 @@ namespace TSMapEditor.UI
 
                 sb.Clear();
                 int openParenCount = 0;
+                bool openQuote = false;
 
                 // Fetch single parameter, read until ',' or ')'
+                // Ignore these if there's a literal string marked with ""
                 while (true)
                 {
                     char c = PeekChar();
 
-                    if (c == ',')
+                    if (c == ',' && !openQuote)
                     {
                         break;
                     }
 
-                    if (c == '(')
+                    if (!openQuote)
                     {
-                        openParenCount++;
-                    }
-                    else if (c == ')')
-                    {
-                        openParenCount--;
-                        if (openParenCount < 0)
-                            break;
+                        if (c == '(')
+                        {
+                            openParenCount++;
+                        }
+                        else if (c == ')')
+                        {
+                            openParenCount--;
+                            if (openParenCount < 0)
+                                break;
+                        }
                     }
 
-                    sb.Append(c);
+                    if (c == '"')
+                    {
+                        openQuote = !openQuote;
+                    }
+                    else
+                    {
+                        sb.Append(c);
+                    }
+
                     ConsumeChar(c);
                 }
 
@@ -298,6 +356,13 @@ namespace TSMapEditor.UI
 
             SkipWhitespace();
             ConsumeChar(')');
+
+            return (functionName, parameters);
+        }
+
+        private int GetFunctionIntegerValue()
+        {
+            (string functionName, List<string> parameters) = GetFunctionNameAndParameters();
 
             // Evaluate function
             switch (functionName)
@@ -333,6 +398,69 @@ namespace TSMapEditor.UI
                 case "horizontalCenterOnParent":
                     parsingControl.CenterOnParentHorizontally();
                     return parsingControl.X;
+
+                default:
+                    throw new INIConfigException("Unknown function " + functionName + " in expression " + Input);
+            }
+        }
+
+        private string GetLiteralString()
+        {
+            ConsumeChar('"');
+
+            var sb = new StringBuilder();
+
+            while (true)
+            {
+                char c = PeekChar();
+
+                if (c == '"')
+                    break;
+
+                sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
+
+        private string GetFunctionStringValue()
+        {
+            (string functionName, List<string> parameters) = GetFunctionNameAndParameters();
+
+            string identifier;
+
+            switch (functionName)
+            {
+                case "translate":
+                    if (parameters.Count != 1)
+                        throw new InvalidOperationException($"Incorrect number of parameters for function {functionName} in expression {Input}");
+
+                    identifier = primaryControl.Name + ".";
+                    if (primaryControl != parsingControl)
+                        identifier += parsingControl.Name + ".";
+
+                    if (!string.IsNullOrWhiteSpace(translationKeyName))
+                        identifier += translationKeyName;
+
+                    return Translate(identifier, parameters[0].Replace("@", Environment.NewLine));
+                case "translateFunctionOutput":
+                    string functionOutput = GetExprValueStringWithContextSave(parameters[0], parsingControl);
+
+                    identifier = primaryControl.Name + ".";
+                    if (primaryControl != parsingControl)
+                        identifier += parsingControl.Name + ".";
+
+                    if (!string.IsNullOrWhiteSpace(translationKeyName))
+                        identifier += translationKeyName;
+
+                    return Translate(identifier, functionOutput);
+                case "translateWithoutContext":
+                    if (parameters.Count != 2)
+                        throw new InvalidOperationException($"Incorrect number of parameters for function {functionName} in expression {Input}");
+
+                    return Translate(parameters[0], parameters[1]);
+                case "getText":
+                    return GetControl(parameters[0]).Text;
                 default:
                     throw new INIConfigException("Unknown function " + functionName + " in expression " + Input);
             }

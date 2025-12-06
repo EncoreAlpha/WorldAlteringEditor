@@ -77,6 +77,9 @@ namespace TSMapEditor.CCEngine
         public List<TileSet> TileSets = new List<TileSet>();
         public List<LATGround> LATGrounds = new List<LATGround>();
         public TileSet RampTileSet { get; set; }
+        public TileSet BridgeTileSet { get; set; }
+        public TileSet TrainBridgeTileSet { get; set; }
+        public TileSet WoodBridgeTileSet { get; set; }
 
         private const string REQUIRED_SECTION = "General";
 
@@ -129,13 +132,25 @@ namespace TSMapEditor.CCEngine
             InitLATGround(theaterIni, "CrystalTile", "ClearToCrystalLat", null, null, null, "Crystal");
             InitLATGround(theaterIni, "BlueMoldTile", "ClearToBlueMoldLat", null, null, null, "Blue Mold");
 
-            int rampTileSetIndex = theaterIni.GetIntValue("General", "RampBase", -1);
-            if (rampTileSetIndex < 0 || rampTileSetIndex >= TileSets.Count)
+            RampTileSet = GetTileSetFromKey(theaterIni, "RampBase", false);
+            BridgeTileSet = GetTileSetFromKey(theaterIni, "BridgeSet", false);
+            TrainBridgeTileSet = GetTileSetFromKey(theaterIni, "TrainBridgeSet", true); // Unfortunately, YR terrain expansion was dumb and removed this key
+            WoodBridgeTileSet = GetTileSetFromKey(theaterIni, "WoodBridgeSet", true); // Wood bridges are optional as they do not exist in TS
+        }
+
+        private TileSet GetTileSetFromKey(IniFile theaterIni, string key, bool optional)
+        {
+            int index = theaterIni.GetIntValue("General", key, -1);
+
+            if (index < 0 || index >= TileSets.Count)
             {
-                throw new INIConfigException("Invalid value specified for RampBase= in the theater configuration file!");
+                if (optional)
+                    return null;
+
+                throw new INIConfigException($"Invalid value specified for {key}= in the theater configuration file!");
             }
 
-            RampTileSet = TileSets[rampTileSetIndex];
+            return TileSets[index];
         }
 
         public TileSet TryGetTileSetById(int id)

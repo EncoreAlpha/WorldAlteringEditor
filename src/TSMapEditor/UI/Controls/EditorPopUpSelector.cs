@@ -26,6 +26,18 @@ namespace TSMapEditor.UI.Controls
 
         private Color textColor;
 
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
+        {
+            inputEventArgs.Handled = true;
+            base.OnLeftClick(inputEventArgs);
+        }
+
+        public override void OnMouseLeftDown(InputEventArgs e)
+        {
+            e.Handled = true;
+            base.OnMouseLeftDown(e);
+        }
+
         public override void OnMouseEnter()
         {
             textColor = TextHoverColor;

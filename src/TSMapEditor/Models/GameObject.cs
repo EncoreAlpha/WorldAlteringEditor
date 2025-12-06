@@ -53,6 +53,8 @@ namespace TSMapEditor.Models
 
         public virtual bool HasShadow() => false;
 
+        public virtual bool IsOnBridge() => false;
+
         public virtual Color GetRemapColor() => Color.White;
     }
 }

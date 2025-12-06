@@ -42,8 +42,6 @@ namespace TSMapEditor.Models
 
     public class Script : IIDContainer
     {
-        public const int MaxActionCount = 50;
-
         public Script(string iniName)
         {
             ININame = iniName;
@@ -98,7 +96,7 @@ namespace TSMapEditor.Models
         public Script Clone(string iniName)
         {
             var script = new Script(iniName);
-            script.Name = Name + " (Clone)";
+            script.Name = Name + Translate(this, "CloneName", " (Clone)");
             script.EditorColor = EditorColor;
 
             foreach (var action in Actions)
@@ -120,7 +118,7 @@ namespace TSMapEditor.Models
                 scriptSection.SetStringValue(i.ToString(), $"{Actions[i].Action},{Actions[i].Argument}");
             }
 
-            scriptSection.SetStringValue("Name", Name);            
+            scriptSection.SetStringValue("Name", Name);
         }
 
         public void WriteEditorProperties(IniFile iniFile)
@@ -139,14 +137,17 @@ namespace TSMapEditor.Models
             var script = new Script(id);
             script.Name = scriptSection.GetStringValue("Name", string.Empty);
 
-            for (int i = 0; i < MaxActionCount; i++)
+            int i = 0;
+            while (true)
             {
                 if (!scriptSection.KeyExists(i.ToString()))
-                    continue;
+                    break;
 
                 var scriptActionEntry = ScriptActionEntry.ParseScriptActionEntry(scriptSection.GetStringValue(i.ToString(), "-1,-1"));
                 if (scriptActionEntry != null)
                     script.Actions.Add(scriptActionEntry);
+
+                i++;
             }
 
             return script;

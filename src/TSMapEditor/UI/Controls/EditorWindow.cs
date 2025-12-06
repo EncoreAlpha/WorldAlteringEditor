@@ -26,9 +26,11 @@ namespace TSMapEditor.UI.Controls
         /// to clean up event handlers when the window controller
         /// for a session is cleaned.
         /// </summary>
-        public EventHandler FocusSwitchEventHandler { get; set; }
+        public EventHandler<InputEventArgs> FocusSwitchEventHandler { get; set; }
 
         protected bool CanBeMoved { get; set; } = true;
+
+        public bool CenterByDefault { get; set; } = true;
 
         protected bool IsDragged;
         private Point lastCursorPoint;
@@ -47,7 +49,10 @@ namespace TSMapEditor.UI.Controls
 
         private void WindowManager_RenderResolutionChanged(object sender, EventArgs e)
         {
-            ConstrainPosition();
+            if (CenterByDefault)
+                CenterOnParent();
+            else
+                ConstrainPosition();
         }
 
         public override void Kill()
@@ -55,12 +60,6 @@ namespace TSMapEditor.UI.Controls
             WindowManager.RenderResolutionChanged -= WindowManager_RenderResolutionChanged;
 
             base.Kill();
-        }
-
-        private void CloseButton_LeftClick(object sender, EventArgs e)
-        {
-            Hide();
-            Closed?.Invoke(this, EventArgs.Empty);
         }
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
@@ -96,7 +95,7 @@ namespace TSMapEditor.UI.Controls
             InteractedWith?.Invoke(this, EventArgs.Empty);
         }
 
-        private void ConstrainPosition()
+        protected void ConstrainPosition()
         {
             if (ScaledWidth > WindowManager.RenderResolutionX)
                 X = (WindowManager.RenderResolutionX - ScaledWidth) / 2;
@@ -118,7 +117,10 @@ namespace TSMapEditor.UI.Controls
             base.Update(gameTime);
 
             if (Alpha <= 0f && AlphaRate < 0.0f)
+            {
+                Closed?.Invoke(this, EventArgs.Empty);
                 Disable();
+            }
 
             if (IsDragged)
             {
@@ -150,7 +152,7 @@ namespace TSMapEditor.UI.Controls
 
                 // Only allow moving window if the active child is not a control that is used by dragging
                 // TODO this could be made more object-oriented with a property at XNAControl level
-                if (activeChild == null || !(activeChild is XNAPanel || activeChild is XNAScrollBar || activeChild is XNATrackbar))
+                if (activeChild == null || !(activeChild is XNAPanel || activeChild.HandlesDragging))
                 {
                     InteractedWith?.Invoke(this, EventArgs.Empty);
                     IsDragged = true;

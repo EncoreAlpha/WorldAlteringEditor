@@ -1,11 +1,13 @@
-﻿using Rampastring.Tools;
+﻿using Microsoft.Xna.Framework;
+using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using TSMapEditor.Models.Enums;
 
 namespace TSMapEditor.CCEngine
 {
-    public struct ScriptActionPresetOption
+    public class ScriptActionPresetOption
     {
         public int Value;
         public string Text;
@@ -18,7 +20,10 @@ namespace TSMapEditor.CCEngine
 
         public string GetOptionText()
         {
-            return Value + " - " + Text;
+            if (string.IsNullOrEmpty(Text))
+                return Value.ToString();
+            else
+                return Value + " - " + Text;
         }
     }
 
@@ -30,21 +35,24 @@ namespace TSMapEditor.CCEngine
         }
 
         public int ID { get; set; }
-        public string Name { get; set; } = "Unknown action";
-        public string Description { get; set; } = "No description";
-        public string ParamDescription { get; set; } = "Use 0";
+        public string Name { get; set; } = Translate("ScriptAction.UnknownAction", "Unknown action");
+        public string Description { get; set; } = Translate("ScriptAction.NoDescription", "No description");
+        public string ParamDescription { get; set; } = Translate("ScriptAction.Use0", "Use 0");
         public string OptionsSectionName { get; set; } = string.Empty;
         public TriggerParamType ParamType { get; set; } = TriggerParamType.Unknown;
         public List<ScriptActionPresetOption> PresetOptions { get; } = new List<ScriptActionPresetOption>(0);
+        public bool UseWindowSelection { get; set; } = false;
 
         public void ReadIniSection(IniFile iniFile, string sectionName)
         {
             var iniSection = iniFile.GetSection(sectionName);
             ID = iniSection.GetIntValue("IDOverride", ID);
-            Name = iniSection.GetStringValue(nameof(Name), Name);
-            Description = iniSection.GetStringValue(nameof(Description), Description);
+            string untranslatedName = iniSection.GetStringValue(nameof(Name), Name);
+            Name = Translate(this, untranslatedName + ".Name", untranslatedName);
+            Description = Translate(this, untranslatedName + ".Description", iniSection.GetStringValue(nameof(Description), Description));
             OptionsSectionName = iniSection.GetStringValue(nameof(OptionsSectionName), OptionsSectionName);
             ParamDescription = iniSection.GetStringValue(nameof(ParamDescription), ParamDescription);
+            UseWindowSelection = iniSection.GetBooleanValue(nameof(UseWindowSelection), UseWindowSelection);
             if (Enum.TryParse(iniSection.GetStringValue(nameof(ParamType), "Unknown"), out TriggerParamType result))
             {
                 ParamType = result;
@@ -82,6 +90,7 @@ namespace TSMapEditor.CCEngine
 
                 int presetValue = Conversions.IntFromString(value.Substring(0, commaIndex), 0);
                 string presetText = value.Substring(commaIndex + 1);
+                presetText = Translate(this, untranslatedName + ".Option" + i.ToString(CultureInfo.InvariantCulture) + ".PresetText", presetText);
 
                 PresetOptions.Add(new ScriptActionPresetOption(presetValue, presetText));
 

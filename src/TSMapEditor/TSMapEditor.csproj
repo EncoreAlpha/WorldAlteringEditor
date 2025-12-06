@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
@@ -26,33 +26,15 @@
     <ApplicationIcon>editoricon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Config\Scripts\Activate Assign Mission Cursor Action.cs" />
+    <Compile Remove="Config\Scripts\Disable All Debug Triggers.cs" />
     <Compile Remove="Config\Scripts\Make Civilian Vehicles Sleep.cs" />
     <Compile Remove="Config\Scripts\Remove All Terrain Objects.cs" />
+    <Compile Remove="Config\Scripts\Set Map Difficulty Settings.cs" />
     <Compile Remove="Config\Scripts\Smoothen Water.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Config\Actions.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\ArtOverrides.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\BaseMap.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Bridges.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\BrushSizes.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\ConnectedOverlays.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\ConnectedTileDrawer.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Constants.ini">
+    <None Update="Config\DefaultSettings.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\Default\Actions.ini">
@@ -85,19 +67,13 @@
     <None Update="Config\Default\Events.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\EditorRules.ini">
+    <None Update="Config\Default\UI\Windows\SelectScriptActionPresetOptionWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\EditorThemes.ini">
+    <None Update="Config\Default\UI\Windows\SelectSuperWeaponTypeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Events.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\FileManagerConfig.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\MapCode\Add Reveal Map Trigger.ini">
+    <None Update="Config\Default\UI\Windows\SettingsPanel.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\MapCode\Enable Blue Tiberium Spreader Lighting.ini">
@@ -142,175 +118,163 @@
     <None Update="Config\Default\TerrainTypeImpassability.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\OverlayCollections.ini">
+    <None Update="Config\ReadMe.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\ScriptActions.ini">
+    <None Update="Config\Default\UI\EditorControlsPanel.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\SmudgeCollections.ini">
+    <None Update="Config\Default\UI\UIConstants.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Speeches.ini">
+    <None Update="Config\Default\UI\Windows\AboutWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\TeamTypeFlags.ini">
+    <None Update="Config\Default\UI\Windows\AITriggersWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\TerrainGeneratorPresets.ini">
+    <None Update="Config\Default\UI\Windows\ApplyINICodeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\TerrainObjectCollections.ini">
+    <None Update="Config\Default\UI\Windows\AutoApplyImpassableOverlayWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\TerrainTypeImpassability.ini">
+    <None Update="Config\Default\UI\Windows\BasicSectionConfigWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Theaters.ini">
+    <None Update="Config\Default\UI\Windows\ChangeHeightWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Tiberiums.ini">
+    <None Update="Config\Default\UI\Windows\ConfigureAlliesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\EditorControlsPanel.ini">
+    <None Update="Config\Default\UI\Windows\CopiedEntryTypesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\UIConstants.ini">
+    <None Update="Config\Default\UI\Windows\CreateNewMapWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\AboutWindow.ini">
+    <None Update="Config\Default\UI\Windows\DeleteTerrainGeneratorPresetWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\AITriggersWindow.ini">
+    <None Update="Config\Default\UI\Windows\HistoryWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\ApplyINICodeWindow.ini">
+    <None Update="Config\Default\UI\Windows\MegamapGenerationOptionsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\AutoApplyImpassableOverlayWindow.ini">
+    <None Update="Config\Default\UI\Windows\RenderedObjectsConfigurationWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\BasicSectionConfigWindow.ini">
+    <None Update="Config\Default\UI\Windows\DeletionModeConfigurationWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\ChangeHeightWindow.ini">
+    <None Update="Config\Default\UI\Windows\EditHouseTypeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\ConfigureAlliesWindow.ini">
+    <None Update="Config\Default\UI\Windows\FindWaypointWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\CopiedEntryTypesWindow.ini">
+    <None Update="Config\Default\UI\Windows\GenerateStandardHousesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\CreateNewMapWindow.ini">
+    <None Update="Config\Default\UI\Windows\HotkeyConfigurationWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\DeleteTerrainGeneratorPresetWindow.ini">
+    <None Update="Config\Default\UI\Windows\HousesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\HistoryWindow.ini">
+    <None Update="Config\Default\UI\Windows\CreateAllianceWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\MegamapGenerationOptionsWindow.ini">
+    <None Update="Config\Default\UI\Windows\InfantryOptionsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\RenderedObjectsConfigurationWindow.ini">
+    <None Update="Config\Default\UI\Windows\InputTerrainGeneratorPresetNameWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\DeletionModeConfigurationWindow.ini">
+    <None Update="Config\Default\UI\Windows\LightingSettingsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\EditHouseTypeWindow.ini">
+    <None Update="Config\Default\UI\Windows\LocalVariablesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\FindWaypointWindow.ini">
+    <None Update="Config\Default\UI\Windows\MapSizeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\GenerateStandardHousesWindow.ini">
+    <None Update="Config\Default\UI\Windows\NewHouseWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\HotkeyConfigurationWindow.ini">
+    <None Update="Config\Default\UI\Windows\PlaceWaypointWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\HousesWindow.ini">
+    <None Update="Config\Default\UI\Windows\RunScriptWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\InfantryOptionsWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectActionWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\InputTerrainGeneratorPresetNameWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectAnimationWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\LightingSettingsWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectBridgeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\LocalVariablesWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectBuildingTargetWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\MapSizeWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectBuildingTypeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\NewHouseWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectConnectedTileWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\PlaceWaypointWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectEventWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\RunScriptWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectGlobalVariableWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectActionWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectHouseTypeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectAnimationWindow.ini">
+    <None Update="Config\Translations.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectBridgeWindow.ini">
+    <None Update="Config\Translations\en\ObjectNames_en.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectBuildingTargetWindow.ini">
+    <None Update="Config\Translations\en\Translation_en.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectBuildingTypeWindow.ini">
+    <None Update="Config\UI\Windows\SelectScriptActionPresetOptionWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectConnectedTileWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectParticleSystemTypeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectEventWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectLocalVariableWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectGlobalVariableWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectScriptActionWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectHouseTypeWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectSoundWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectParticleSystemTypeWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectSpeechWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectLocalVariableWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectTechnoTypeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectScriptActionWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectHouseWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectSoundWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectStringWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectSpeechWindow.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\UI\Windows\SelectTechnoTypeWindow.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\UI\Windows\SelectHouseWindow.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\UI\Windows\SelectStringWindow.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\UI\Windows\ExpandMapWindow.ini">
+    <None Update="Config\Default\UI\Windows\ExpandMapWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\Default\BrushSizes.ini">
@@ -337,49 +301,55 @@
 	<None Update="Config\Default\Tiberiums.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\ScriptsWindow.ini">
+    <None Update="Config\Default\UI\Windows\ScriptsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectScriptWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectScriptWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectTagWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectTagWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectThemeWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectThemeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectTaskForceWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectTaskForceWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectTeamTypeWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectTeamTypeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectTileSetWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectTileSetWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectTriggerWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectTriggerWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\SelectTutorialLineWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectTutorialLineWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\StructureOptionsWindow.ini">
+    <None Update="Config\Default\UI\Windows\SelectColorsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\TaskforcesWindow.ini">
+    <None Update="Config\Default\UI\Windows\StructureOptionsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\TeamTypesWindow.ini">
+    <None Update="Config\Default\UI\Windows\TaskforcesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\TriggersWindow.ini">
+    <None Update="Config\Default\UI\Windows\TeamTypesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\AircraftOptionsWindow.ini">
+    <None Update="Config\Default\UI\Windows\TriggersWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\UI\Windows\VehicleOptionsWindow.ini">
+    <None Update="Config\Default\UI\Windows\AircraftOptionsWindow.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Default\UI\Windows\VehicleOptionsWindow.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Default\UI\Windows\CreateRandomTriggerSetWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Content\celltag.png">
@@ -433,6 +403,9 @@
     <None Update="Content\sbDownArrow.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Content\sbDownArrowHovered.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Content\sbMiddle.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -443,6 +416,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Content\sbUpArrow.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\sbUpArrowHovered.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Content\sortbutton.png">
@@ -508,9 +484,6 @@
     <None Update="Content\trackbarButton.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="MapEditorSettings.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="marble.mix">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -519,30 +492,43 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ImeSharp" Version="1.4.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.3" />
-    <PackageReference Include="Rampastring.Tools" Version="2.0.6" />
+    <PackageReference Include="Rampastring.Tools" Version="2.0.7" />
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.3" />
-    <PackageReference Include="Rampastring.XNAUI.WindowsDX" Version="2.6.4" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.10" />
+    <PackageReference Include="Rampastring.XNAUI.WindowsDX" Version="3.1.6" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
     <PackageReference Include="Westwind.Scripting" Version="1.3.3" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\ToolIcons\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Config\Scripts\Activate Assign Mission Cursor Action.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Config\Scripts\Smoothen Water.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Config\Scripts\Count Credits On Map.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Config\Scripts\Disable All Debug Triggers.cs" />
     <None Include="Config\Scripts\Make Civilian Vehicles Sleep.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Config\Scripts\Remove All Terrain Objects.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Config\Scripts\Set Map Difficulty Settings.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Config\Scripts\Add Map Reveal Trigger.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />

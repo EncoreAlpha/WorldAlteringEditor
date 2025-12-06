@@ -57,6 +57,11 @@ namespace TSMapEditor.Models
             return List.Find(theme => theme.Name == name);
         }
 
+        public Theme GetByININame(string iniName)
+        {
+            return List.Find(theme => theme.ININame == iniName);
+        }
+
         private void Initialize(IniFileEx themeIni)
         {
             var themes = new List<Theme>();

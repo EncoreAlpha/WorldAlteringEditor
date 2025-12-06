@@ -43,7 +43,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblSmudgeTypes.X = Constants.UIEmptySideSpace;
                 lblSmudgeTypes.Y = y;
                 lblSmudgeTypes.FontIndex = Constants.UIBoldFont;
-                lblSmudgeTypes.Text = $"污染类型 (组 #{i + 1})";
+                lblSmudgeTypes.Text = string.Format(Translate(this, "SmudgeType", "Smudge Types (Group #{0})"), i + 1);
                 AddChild(lblSmudgeTypes);
 
                 var tbSmudgeTypes = new EditorTextBox(WindowManager);
@@ -58,7 +58,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblOpenChance.Name = nameof(lblOpenChance) + i;
                 lblOpenChance.X = tbSmudgeTypes.Right + Constants.UIHorizontalSpacing;
                 lblOpenChance.Y = lblSmudgeTypes.Y;
-                lblOpenChance.Text = "空白单元格概率";
+                lblOpenChance.Text = Translate(this, "OpenCellChance", "Open cell chance:");
                 AddChild(lblOpenChance);
 
                 var tbOpenChance = new EditorNumberTextBox(WindowManager);
@@ -74,7 +74,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblOccupiedChance.Name = nameof(lblOccupiedChance) + i;
                 lblOccupiedChance.X = tbOpenChance.Right + Constants.UIHorizontalSpacing;
                 lblOccupiedChance.Y = lblOpenChance.Y;
-                lblOccupiedChance.Text = "占据单元格概率";
+                lblOccupiedChance.Text = Translate(this, "OccupiedCellChance", "Occupied cell chance:");
                 AddChild(lblOccupiedChance);
 
                 var tbOccupiedChance = new EditorNumberTextBox(WindowManager);
@@ -109,8 +109,11 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                     var smudgeType = map.Rules.SmudgeTypes.Find(tt => tt.ININame == parts[a]);
                     if (smudgeType == null)
                     {
-                        EditorMessageBox.Show(WindowManager, "生成器配置失败",
-                            $"指定污染类型 '{ parts[a] }'并不存在!", MessageBoxButtons.OK);
+                        EditorMessageBox.Show(WindowManager, 
+                            Translate(this, "GeneratorConfigError.SmudgeNotFound.Title", "Generator Config Error"),
+                            string.Format(Translate(this, "GeneratorConfigError.SmudgeNotFound.Description", 
+                                "Specified smudge type '{0}' does not exist!"), parts[a]),
+                            MessageBoxButtons.OK);
                         return null;
                     }
                     smudgeTypes.Add(smudgeType);

@@ -2,6 +2,7 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TSMapEditor.Settings;
 
 namespace TSMapEditor.CCEngine
 {
@@ -28,9 +29,7 @@ namespace TSMapEditor.CCEngine
 
         public void ReadConfig()
         {
-            string configPath =
-                Helpers.NormalizePath(Path.Combine(Environment.CurrentDirectory, "Config", "FileManagerConfig.ini"));
-            var iniFile = new IniFile(configPath);
+            var iniFile = Helpers.ReadConfigINI("FileManagerConfig.ini");
 
             AddSearchDirectory(Environment.CurrentDirectory);
             iniFile.DoForEveryValueInSection("SearchDirectories", v => AddSearchDirectory(Path.Combine(GameDirectory, v)));
@@ -145,7 +144,8 @@ namespace TSMapEditor.CCEngine
         {
             mixFiles.Add(mixFile);
 
-            // Logger.Log("Registering " + mixFile.GetEntries().Count + " file entries from " + Path.GetFileName(mixFile.FilePath));
+            if (UserSettings.Instance.LogFileLoading)
+                Logger.Log("Registering " + mixFile.GetEntries().Count + " file entries from " + Path.GetFileName(mixFile.FilePath));
 
             foreach (MixFileEntry fileEntry in mixFile.GetEntries())
             {
@@ -245,14 +245,17 @@ namespace TSMapEditor.CCEngine
 
         public byte[] LoadFile(string name)
         {
-            // Logger.Log("Loading file " + name);
+            if (UserSettings.Instance.LogFileLoading)
+                Logger.Log("Loading file " + name);
 
             foreach (string searchDirectory in searchDirectories)
             {
                 string looseFilePath = Path.Combine(searchDirectory, name);
                 if (File.Exists(looseFilePath))
                 {
-                    // Logger.Log("    File found from " + searchDirectory);
+                    if (UserSettings.Instance.LogFileLoading)
+                        Logger.Log("    File found from " + searchDirectory);
+
                     return File.ReadAllBytes(looseFilePath);
                 }
             }
@@ -261,11 +264,15 @@ namespace TSMapEditor.CCEngine
 
             if (fileLocationInfos.TryGetValue(id, out FileLocationInfo value))
             {
-                // Logger.Log("    File found from " + Path.GetFileName(value.MixFile.FilePath));
+                if (UserSettings.Instance.LogFileLoading)
+                    Logger.Log("    File found from " + Path.GetFileName(value.MixFile.FilePath));
+
                 return value.MixFile.GetSingleFileData(value.Offset, value.Size);
             }
 
-            // Logger.Log("    FAILED to find file: " + name);
+            if (UserSettings.Instance.LogFileLoading)
+                Logger.Log("    FAILED to find file: " + name);
+
             return null;
         }
 

@@ -57,7 +57,7 @@ namespace TSMapEditor.Models
 
         public List<(Structure Source, double DistanceInLeptons)> LightSources { get; set; } = new();
 
-        public void RefreshLighting(Lighting lighting, LightingPreviewMode lightingPreviewMode)
+        public void RefreshLighting(Lighting lighting, LightingPreviewMode lightingPreviewMode, bool lightDisabledLightSources)
         {
             if (lightingPreviewMode == LightingPreviewMode.NoLighting)
             {
@@ -92,6 +92,9 @@ namespace TSMapEditor.Models
             {
                 // Sources with intensity of 0.0 don't get any light applied
                 if (source.Source.ObjectType.LightIntensity == 0.0)
+                    continue;
+
+                if (!lightDisabledLightSources && !source.Source.Powered)
                     continue;
 
                 var buildingType = source.Source.ObjectType;
@@ -450,5 +453,14 @@ namespace TSMapEditor.Models
         public Point2D CoordsToPoint() => new Point2D(X, Y);
 
         public Point2D GetTileCenter() => new Point2D(Constants.CellSizeX / 2, Constants.CellSizeY / 2);
+
+        public bool MatchesLandType(LandType landType)
+        {
+            if (TileImage == null || TileImage.TMPImages == null) return false;
+
+            var subCellImage = SubTileIndex < TileImage.TMPImages.Length ? TileImage.TMPImages[SubTileIndex] : null;
+            var terrainType = subCellImage?.TmpImage?.TerrainType;
+            return terrainType == Helpers.LandTypeToInt(landType);
+        }
     }
 }

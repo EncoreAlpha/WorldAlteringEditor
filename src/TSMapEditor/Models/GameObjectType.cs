@@ -18,7 +18,7 @@ namespace TSMapEditor.Models
         public int Index { get; set; }
 
         public string Name { get; set; }
-        public string FSName { get; set; }
+        public string EditorName { get; set; }
         public string EditorCategory { get; set; }
         public string AlphaImage { get; set; }
         public ShapeImage AlphaShape { get; set; }
@@ -42,25 +42,11 @@ namespace TSMapEditor.Models
 
         public string GetEditorDisplayName()
         {
-            string name;
+            string name = EditorName;
+            if (string.IsNullOrWhiteSpace(name))
+                name = string.IsNullOrWhiteSpace(Name) ? ININame : Name;
 
-            if (!string.IsNullOrWhiteSpace(FSName))
-            {
-                name = FSName;
-            }
-            else if (!string.IsNullOrWhiteSpace(Name))
-            {
-                name = Name;
-            }
-            else
-            {
-                return ININame;
-            }
-
-            if (IsTechnoType() && ININame.StartsWith("AI") && !name.StartsWith("AI "))
-                return "AI " + name;
-
-            return name;
+            return TranslateObject(ININame, name);
         }
     }
 }

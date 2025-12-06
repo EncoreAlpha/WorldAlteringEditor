@@ -14,6 +14,8 @@ namespace TSMapEditor.UI.Windows
 
         private readonly Map map;
 
+        public bool IncludeNone { get; set; } = true;
+
         public override void Initialize()
         {
             Name = nameof(SelectAnimationWindow);
@@ -35,7 +37,8 @@ namespace TSMapEditor.UI.Windows
         {
             lbObjectList.Clear();
 
-            lbObjectList.AddItem(new XNAListBoxItem() { Text = "None" });
+            if (IncludeNone)
+                lbObjectList.AddItem(new XNAListBoxItem() { Text = Translate(this, "None", "None") });
 
             foreach (AnimType animType in map.Rules.AnimTypes)
             {

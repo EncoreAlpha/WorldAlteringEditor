@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
 [assembly: AssemblyProduct("World-Altering Editor (WAE)")]
-[assembly: AssemblyCopyright("Copyright © Rami 'Rampastring' Pasanen 2022-2024")]
+[assembly: AssemblyCopyright("Copyright © Rami 'Rampastring' Pasanen 2022-2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

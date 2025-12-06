@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TSMapEditor.GameMath;
 
 namespace TSMapEditor.Models
@@ -20,6 +21,8 @@ namespace TSMapEditor.Models
 
         public string StructureTypeName { get; set; }
         public Point2D Position { get; set; }
+
+        public bool IsOnBridge() => false;
 
         public static BaseNode FromIniString(string iniString)
         {
@@ -71,7 +74,9 @@ namespace TSMapEditor.Models
         public int IQ { get; set; }
         public string Edge { get; set; }
         public string Color { get; set; } = "White";
-        public string Allies { get; set; }
+
+        [INI(false)]
+        public List<House> Allies { get; set; } = [];
         public int Credits { get; set; }
 
         /// <summary>
@@ -96,7 +101,7 @@ namespace TSMapEditor.Models
         [INI(false)]
         public Color XNAColor { get; set; } = Microsoft.Xna.Framework.Color.White;
 
-        public List<BaseNode> BaseNodes { get; } = new List<BaseNode>();
+        public List<BaseNode> BaseNodes { get; private set; } = new List<BaseNode>();
 
         public void ReadFromIniSection(IniSection iniSection)
         {
@@ -118,6 +123,7 @@ namespace TSMapEditor.Models
         public void WriteToIniSection(IniSection iniSection)
         {
             WritePropertiesToIniSection(iniSection);
+            iniSection.SetListValue("Allies", Allies.Select(alliedHouse => alliedHouse.ININame).ToList(), ',');
 
             // Write base nodes
             // Format: Index=BuildingTypeName,X,Y
@@ -168,6 +174,15 @@ namespace TSMapEditor.Models
 
             if (section.Keys.Count == 0)
                 iniFile.RemoveSection(ININame);
+        }
+
+        public override AbstractObject Clone()
+        {
+            var clone = (House)base.Clone();
+            clone.Allies = new List<House>(Allies);
+            clone.Allies.Insert(0, clone);
+            clone.BaseNodes = new List<BaseNode>();
+            return clone;
         }
     }
 }

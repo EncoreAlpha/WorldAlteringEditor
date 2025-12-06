@@ -13,13 +13,21 @@ namespace TSMapEditor.UI.CursorActions
         {
         }
 
-        public override string GetName() => "Place Waypoint";
+        public override string GetName() => Translate("Name", "Place Waypoint");
 
         public PlaceWaypointWindow PlaceWaypointWindow { get; set; }
 
         public override void LeftClick(Point2D cellCoords)
         {
-            PlaceWaypointWindow.Open(cellCoords);
+            if (Keyboard.IsShiftHeldDown())
+            {
+                int availableWaypointNumber = PlaceWaypointWindow.GetAvailableWaypointNumber();
+                PlaceWaypointWindow.PlaceWaypoint(availableWaypointNumber, cellCoords);
+            }
+            else
+            {
+                PlaceWaypointWindow.Open(cellCoords);
+            }
         }
 
         public override void DrawPreview(Point2D cellCoords, Point2D cameraTopLeftPoint)

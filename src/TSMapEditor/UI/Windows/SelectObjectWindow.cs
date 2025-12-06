@@ -67,7 +67,6 @@ namespace TSMapEditor.UI.Windows
             AddChild(infoPanel);
 
             EnabledChanged += SelectObjectWindow_EnabledChanged;
-            WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;
         }
 
         private void ConfirmSelection()
@@ -79,14 +78,9 @@ namespace TSMapEditor.UI.Windows
             }
         }
 
-        private void WindowManager_WindowSizeChangedByUser(object sender, EventArgs e)
-        {
-            RefreshLayout();
-        }
-
         public override void Kill()
         {
-            WindowManager.WindowSizeChangedByUser -= WindowManager_WindowSizeChangedByUser;
+            Keyboard.OnKeyDown -= Keyboard_OnKeyDown;
             base.Kill();
         }
 
@@ -126,6 +120,20 @@ namespace TSMapEditor.UI.Windows
             if (!Enabled)
             {
                 HideInfoPanel();
+                Keyboard.OnKeyDown -= Keyboard_OnKeyDown;
+            }
+            else
+            {
+                Keyboard.OnKeyDown += Keyboard_OnKeyDown;
+            }
+        }
+
+        private void Keyboard_OnKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        {
+            if (e.PressedKey == Microsoft.Xna.Framework.Input.Keys.Enter)
+            {
+                ConfirmSelection();
+                e.Handled = true;
             }
         }
 

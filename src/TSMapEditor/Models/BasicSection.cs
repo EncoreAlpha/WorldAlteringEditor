@@ -13,6 +13,7 @@
         public string GameModes { get; set; }
         public int HomeCell { get; set; } = 98;
         public int AltHomeCell { get; set; } = 99;
+        public string Theme { get; set; }
         public int InitTime { get; set; }
         public bool Official { get; set; }
         public bool EndOfGame { get; set; }

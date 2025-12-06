@@ -226,12 +226,17 @@ namespace TSMapEditor.UI.Sidebar
                 SelectedNode = foundNode;
 
                 // Scroll the view to the found item
-                int totalHeight = GetTotalContentHeight();
-                if (accumulatedHeight + Height > totalHeight)
-                    accumulatedHeight = totalHeight - Height;
+                int contentHeight = GetTotalContentHeight();
+                if (accumulatedHeight + LineHeight + MARGIN > ViewTop + Height)
+                {
+                    ViewTop += accumulatedHeight + LineHeight + MARGIN - (ViewTop + Height);
+                }
+                else if (accumulatedHeight < ViewTop)
+                {
+                    ViewTop = accumulatedHeight - LineHeight;
+                }
 
                 RefreshScrollbar();
-                ViewTop = accumulatedHeight;
             }
         }
 
@@ -303,7 +308,7 @@ namespace TSMapEditor.UI.Sidebar
         /// <summary>
         /// Handles input from a scroll wheel.
         /// </summary>
-        public override void OnMouseScrolled()
+        public override void OnMouseScrolled(InputEventArgs inputEventArgs)
         {
             if (GetTotalContentHeight() < Height)
             {
@@ -312,6 +317,7 @@ namespace TSMapEditor.UI.Sidebar
             }
 
             ViewTop -= Cursor.ScrollWheelValue * ScrollBar.ScrollStep;
+            inputEventArgs.Handled = true;
 
             if (ViewTop < 0)
             {
@@ -325,7 +331,7 @@ namespace TSMapEditor.UI.Sidebar
                 ScrollToBottom();
             }
 
-            base.OnMouseScrolled();
+            base.OnMouseScrolled(inputEventArgs);
         }
 
         /// <summary>
@@ -345,8 +351,10 @@ namespace TSMapEditor.UI.Sidebar
             base.OnMouseLeave();
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             var node = GetItemOnCursor(GetCursorPoint());
 
             if (node == null)
@@ -370,7 +378,7 @@ namespace TSMapEditor.UI.Sidebar
                 SelectedNode = node;
             }
 
-            base.OnMouseLeftDown();
+            base.OnMouseLeftDown(inputEventArgs);
         }
 
         private TreeViewNode GetItemOnCursor(Point mouseLocation)

@@ -14,7 +14,7 @@ namespace TSMapEditor.Models
     {
         public EditorConfig() 
         {
-            EditorRulesIni = new IniFile(Environment.CurrentDirectory + "/Config/EditorRules.ini");
+            EditorRulesIni = Helpers.ReadConfigINI("EditorRules.ini");
         }
 
         private const string IniSystemSectionName = "INISystem";
@@ -66,7 +66,7 @@ namespace TSMapEditor.Models
 
         private void ReadTheaters()
         {
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/Theaters.ini");
+            var iniFile = Helpers.ReadConfigINI("Theaters.ini");
             var section = iniFile.GetSection("Theaters");
             if (section == null)
                 return;
@@ -88,7 +88,7 @@ namespace TSMapEditor.Models
         {
             OverlayCollections.Clear();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/OverlayCollections.ini");
+            var iniFile = Helpers.ReadConfigINI("OverlayCollections.ini");
 
             var keys = iniFile.GetSectionKeys("OverlayCollections");
             if (keys == null)
@@ -110,7 +110,7 @@ namespace TSMapEditor.Models
         {
             TerrainObjectCollections.Clear();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/TerrainObjectCollections.ini");
+            var iniFile = Helpers.ReadConfigINI("TerrainObjectCollections.ini");
 
             var keys = iniFile.GetSectionKeys("TerrainObjectCollections");
             if (keys == null)
@@ -132,7 +132,7 @@ namespace TSMapEditor.Models
         {
             SmudgeCollections.Clear();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/SmudgeCollections.ini");
+            var iniFile = Helpers.ReadConfigINI("SmudgeCollections.ini");
 
             var keys = iniFile.GetSectionKeys("SmudgeCollections");
             if (keys == null)
@@ -152,7 +152,7 @@ namespace TSMapEditor.Models
 
         private void ReadBrushSizes()
         {
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/BrushSizes.ini");
+            var iniFile = Helpers.ReadConfigINI("BrushSizes.ini");
             var section = iniFile.GetSection("BrushSizes");
             if (section == null)
                 return;
@@ -175,7 +175,7 @@ namespace TSMapEditor.Models
 
         private void ReadScriptActions()
         {
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/ScriptActions.ini");
+            var iniFile = Helpers.ReadConfigINI("ScriptActions.ini");
             List<string> sections = iniFile.GetSections();
 
             for (int i = 0; i < sections.Count; i++)
@@ -201,7 +201,7 @@ namespace TSMapEditor.Models
 
         private void ReadTriggerEventTypes()
         {
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/Events.ini");
+            var iniFile = Helpers.ReadConfigINI("Events.ini");
             List<string> sections = iniFile.GetSections();
 
             for (int i = 0; i < sections.Count; i++)
@@ -225,7 +225,7 @@ namespace TSMapEditor.Models
 
         private void ReadTriggerActionTypes()
         {
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/Actions.ini");
+            var iniFile = Helpers.ReadConfigINI("Actions.ini");
             List<string> sections = iniFile.GetSections();
 
             for (int i = 0; i < sections.Count; i++)
@@ -251,7 +251,7 @@ namespace TSMapEditor.Models
         {
             Bridges.Clear();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/Bridges.ini");
+            var iniFile = Helpers.ReadConfigINI("Bridges.ini");
             var section = iniFile.GetSection("Bridges");
             if (section == null)
                 return;
@@ -272,7 +272,7 @@ namespace TSMapEditor.Models
         {
             ConnectedOverlays.Clear();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/ConnectedOverlays.ini");
+            var iniFile = Helpers.ReadConfigINI("ConnectedOverlays.ini");
             var section = iniFile.GetSection("ConnectedOverlays");
             if (section == null)
                 return;
@@ -297,7 +297,7 @@ namespace TSMapEditor.Models
 
         private void ReadTiberiumOverlays(Rules rules)
         {
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/Tiberiums.ini");
+            var iniFile = Helpers.ReadConfigINI("Tiberiums.ini");
             const string sectionName = "Tiberiums";
 
             foreach (var tiberiumType in rules.TiberiumTypes)
@@ -313,19 +313,19 @@ namespace TSMapEditor.Models
 
                     var defaultOverlays = rules.OverlayTypes.Slice(TiberiumImageToOverlays[tiberiumType.Image].StartIndex, TiberiumImageToOverlays[tiberiumType.Image].Count);
                     tiberiumType.Overlays.AddRange(defaultOverlays);
-                    defaultOverlays.ForEach(ot =>
+                    foreach (var overlayType in defaultOverlays)
                     {
-                        if (ot.TiberiumType == null)
+                        if (overlayType.TiberiumType == null)
                         {
-                            ot.TiberiumType = tiberiumType;
+                            overlayType.TiberiumType = tiberiumType;
                         }
                         else
                         {
                             throw new INIConfigException(
-                                $"OverlayType {ot.ININame} is already associated with Tiberium {ot.TiberiumType.Index} ({ot.TiberiumType.ININame}), " +
+                                $"OverlayType {overlayType.ININame} is already associated with Tiberium {overlayType.TiberiumType.Index} ({overlayType.TiberiumType.ININame}), " +
                                 $"but it is also set to be associated with Tiberium {tiberiumType.Index} ({tiberiumType.ININame})!");
                         }
-                    });
+                    }
 
                     continue;
                 }
@@ -360,7 +360,7 @@ namespace TSMapEditor.Models
         {
             TeamTypeFlags.Clear();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/TeamTypeFlags.ini");
+            var iniFile = Helpers.ReadConfigINI("TeamTypeFlags.ini");
             const string sectionName = "TeamTypeFlags";
 
             var keys = iniFile.GetSectionKeys(sectionName);
@@ -370,7 +370,7 @@ namespace TSMapEditor.Models
             foreach (var key in keys)
             {
                 string value = iniFile.GetStringValue(sectionName, key, string.Empty);
-                var teamTypeFlag = new TeamTypeFlag(key, Conversions.BooleanFromString(value, false));
+                var teamTypeFlag = new TeamTypeFlag(key, Translate("TeamTypeFlag." + key, key), Conversions.BooleanFromString(value, false));
                 TeamTypeFlags.Add(teamTypeFlag);
             }
         }
@@ -383,7 +383,7 @@ namespace TSMapEditor.Models
 
             var speeches = new List<EvaSpeech>();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/Speeches.ini");
+            var iniFile = Helpers.ReadConfigINI("Speeches.ini");
             const string sectionName = "Speeches";
 
             foreach (var kvp in iniFile.GetSection(sectionName).Keys)
@@ -401,7 +401,7 @@ namespace TSMapEditor.Models
         {
             Cliffs.Clear();
 
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/ConnectedTileDrawer.ini");
+            var iniFile = Helpers.ReadConfigINI("ConnectedTileDrawer.ini");
             var section = iniFile.GetSection("ConnectedTiles");
             if (section == null)
                 return;

@@ -13,7 +13,7 @@ namespace TSMapEditor.UI
 
         public static void Initialize()
         {
-            var iniFile = new IniFile(Environment.CurrentDirectory + "/Config/EditorThemes.ini");
+            var iniFile = Helpers.ReadConfigINI("EditorThemes.ini");
             var themesSection = iniFile.GetSection("EditorThemes");
 
             if (themesSection == null || themesSection.Keys.Count == 0)

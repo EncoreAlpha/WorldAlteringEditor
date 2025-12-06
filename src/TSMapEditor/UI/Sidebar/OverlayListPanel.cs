@@ -46,7 +46,7 @@ namespace TSMapEditor.UI.Sidebar
             SearchBox.Y = Constants.UIEmptyTopSpace;
             SearchBox.Width = Width - Constants.UIEmptySideSpace * 2;
             SearchBox.Height = Constants.UITextBoxHeight;
-            SearchBox.Suggestion = "搜索覆盖物... (CTRL + F)";
+            SearchBox.Suggestion = Translate(this, "SearchOverlay", "Search overlay... (CTRL + F)");
             AddChild(SearchBox);
             SearchBox.TextChanged += SearchBox_TextChanged;
             SearchBox.EnterPressed += SearchBox_EnterPressed;
@@ -183,13 +183,13 @@ namespace TSMapEditor.UI.Sidebar
 
             categories.Add(new TreeViewCategory()
             {
-                Text = "擦除覆盖物",
+                Text = Translate(this, "EraseOverlay", "Erase Overlay"),
                 Tag = new object()
             });
 
             if (Map.EditorConfig.OverlayCollections.Count > 0)
             {
-                var collectionsCategory = new TreeViewCategory() { Text = "集合" };
+                var collectionsCategory = new TreeViewCategory() { Text = Translate(this, "OverlayCollections", "Collections") };
                 categories.Add(collectionsCategory);
 
                 foreach (var collection in Map.EditorConfig.OverlayCollections)
@@ -214,7 +214,7 @@ namespace TSMapEditor.UI.Sidebar
 
                     collectionsCategory.Nodes.Add(new TreeViewNode()
                     {
-                        Text = collection.Name,
+                        Text = collection.UIName,
                         Tag = collection,
                         Texture = GetSidebarTextureForOverlay(firstEntry.OverlayType, renderTarget, firstEntry.Frame),
                         RemapTexture = remapTexture,
@@ -225,7 +225,7 @@ namespace TSMapEditor.UI.Sidebar
 
             if (Map.EditorConfig.ConnectedOverlays.Count > 0)
             {
-                var connectedOverlaysCategory = new TreeViewCategory() { Text = "相连接的覆盖物" };
+                var connectedOverlaysCategory = new TreeViewCategory() { Text = Translate(this, "ConnectedOverlays", "Connected Overlays") };
                 categories.Add(connectedOverlaysCategory);
 
                 foreach (var connectedOverlay in Map.EditorConfig.ConnectedOverlays)
@@ -260,7 +260,7 @@ namespace TSMapEditor.UI.Sidebar
 
                 if (string.IsNullOrEmpty(overlayType.EditorCategory))
                 {
-                    category = FindOrMakeCategory("未分类", categories);
+                    category = FindOrMakeCategory(Translate(this, "Uncategorized", "Uncategorized"), categories);
                 }
                 else
                 {

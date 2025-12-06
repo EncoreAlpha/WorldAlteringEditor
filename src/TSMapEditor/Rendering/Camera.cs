@@ -98,19 +98,19 @@ namespace TSMapEditor.Rendering
 
         public void CenterOnMapCenterCell() => CenterOnCell(new Point2D((map.Size.X + map.Size.Y) / 2, (map.Size.X + map.Size.Y) / 2));
 
-        public void KeyboardUpdate(RKeyboard keyboard, int scrollRate)
+        public void KeyboardUpdate(RKeyboard keyboard, float scrollRate)
         {
-            scrollRate = (int)(scrollRate / ZoomLevel);
+            scrollRate = (float)(scrollRate / ZoomLevel);
 
             if (keyboard.IsKeyHeldDown(Microsoft.Xna.Framework.Input.Keys.Left))
-                TopLeftPoint += new Point2D(-scrollRate, 0);
+                FloatTopLeftPoint += new Vector2(-scrollRate, 0);
             else if (keyboard.IsKeyHeldDown(Microsoft.Xna.Framework.Input.Keys.Right))
-                TopLeftPoint += new Point2D(scrollRate, 0);
+                FloatTopLeftPoint += new Vector2(scrollRate, 0);
 
             if (keyboard.IsKeyHeldDown(Microsoft.Xna.Framework.Input.Keys.Up))
-                TopLeftPoint += new Point2D(0, -scrollRate);
+                FloatTopLeftPoint += new Vector2(0, -scrollRate);
             else if (keyboard.IsKeyHeldDown(Microsoft.Xna.Framework.Input.Keys.Down))
-                TopLeftPoint += new Point2D(0, scrollRate);
+                FloatTopLeftPoint += new Vector2(0, scrollRate);
         }
 
         private void ConstrainCamera()

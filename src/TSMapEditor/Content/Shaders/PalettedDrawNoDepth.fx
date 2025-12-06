@@ -9,6 +9,9 @@
 #define PS_SHADERMODEL ps_4_0
 #endif
 
+// Used for drawing paletted graphics in contexts where no depth is required.
+// Particularly, the overlay frame selector.
+
 float4 Lighting;
 
 sampler2D SpriteTextureSampler : register(s0)

@@ -69,11 +69,17 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
                 }
                 catch (IniParseException ex)
                 {
-                    return "The selected file does not appear to be a proper map file (INI file). Maybe it's corrupted?\r\n\r\nReturned error: " + ex.Message;
+                    return string.Format(Translate("MapSetup.InitializeMap.IniParseException", 
+                        "The selected file does not appear to be a proper map file (INI file). Maybe it's corrupted?" +
+                        Environment.NewLine + Environment.NewLine +
+                        "Returned error: {0}"), ex.Message);
                 }
                 catch (MapLoadException ex)
                 {
-                    return "Failed to load the selected map file.\r\n\r\nReturned error: " + ex.Message;
+                    return string.Format(Translate("MapSetup.InitializeMap.MapLoadException",
+                        "Failed to load the selected map file." +
+                        Environment.NewLine + Environment.NewLine +
+                        "Returned error: {0}"), ex.Message);
                 }
             }
 
@@ -127,13 +133,18 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
 
             if (errorListHeight > windowManager.RenderResolutionY - margin)
             {
-                EditorMessageBox.Show(windowManager, "加载地图时出现错误",
-                    "加载地图时遇到大量错误。详情请查看 MapEditorLog.log。", MessageBoxButtons.OK);
+                EditorMessageBox.Show(windowManager, 
+                    Translate("MapSetup.ManyMapLoadErrors.Title", "Errors while loading map"),
+                    Translate("MapSetup.ManyMapLoadErrors.Description", "A massive number of errors was encountered while loading the map. See MapEditorLog.log for details."),
+                    MessageBoxButtons.OK);
             }
             else if (MapLoader.MapLoadErrors.Count > 0)
             {
-                EditorMessageBox.Show(windowManager, "加载地图时出现错误",
-                    "加载地图时遇到一个或多个错误：\r\n\r\n" + errorList, MessageBoxButtons.OK);
+                EditorMessageBox.Show(windowManager, 
+                    Translate("MapSetup.MapLoadErrors.Title", "Errors while loading map"),
+                    string.Format(Translate("MapSetup.MapLoadErrors.Description", 
+                        "One or more errors were encountered while loading the map:" + Environment.NewLine + Environment.NewLine + "{0}"), errorList),
+                    MessageBoxButtons.OK);
             }
         }
 
@@ -186,7 +197,7 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
                     for (int i = 0; i < tile.SubTileCount; i++)
                     {
                         var subTile = tile.GetSubTile(i);
-                        if (subTile == null || subTile.TmpImage == null)
+                        if (subTile == null)
                             continue;
 
                         var offset = tile.GetSubTileCoordOffset(i).Value;

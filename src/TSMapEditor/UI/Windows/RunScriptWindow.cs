@@ -1,9 +1,9 @@
-﻿using Rampastring.Tools;
+﻿using Microsoft.Xna.Framework;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.IO;
-using TSMapEditor.Models;
 using TSMapEditor.Scripts;
 using TSMapEditor.UI.Controls;
 
@@ -11,14 +11,14 @@ namespace TSMapEditor.UI.Windows
 {
     public class RunScriptWindow : INItializableWindow
     {
-        public RunScriptWindow(WindowManager windowManager, Map map) : base(windowManager)
+        public RunScriptWindow(WindowManager windowManager, ScriptDependencies scriptDependencies) : base(windowManager)
         {
-            this.map = map;
+            this.scriptDependencies = scriptDependencies;
         }
 
         public event EventHandler ScriptRun;
 
-        private readonly Map map;
+        private readonly ScriptDependencies scriptDependencies;
 
         private EditorListBox lbScriptFiles;
 
@@ -35,42 +35,73 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnRunScript_LeftClick(object sender, EventArgs e)
         {
+            // Run script on next game loop frame so that in case the script displays
+            // UI, the UI will be shown on top of our window despite that the user
+            // clicked on our window this frame
+            AddCallback(RunScript_Callback);
+        }
+
+        private void RunScript_Callback()
+        {
             if (lbScriptFiles.SelectedItem == null)
                 return;
 
             string filePath = (string)lbScriptFiles.SelectedItem.Tag;
             if (!File.Exists(filePath))
             {
-                EditorMessageBox.Show(WindowManager, "找不到文件",
-                    "所选文件不存在！可能被删除了？", MessageBoxButtons.OK);
-
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "FileNotFound.Title", "Can't find file"),
+                    Translate(this, "FileNotFound.Description", "The selected file does not exist! Maybe it was deleted?"),
+                    MessageBoxButtons.OK);
                 return;
             }
 
             scriptPath = filePath;
 
-            (string error, string confirmation) = ScriptRunner.GetDescriptionFromScript(map, filePath);
+            string error = ScriptRunner.CompileScript(scriptDependencies, filePath);
 
             if (error != null)
             {
-                Logger.Log("Compilation error when attempting to run fetch script description: " + error);
-                EditorMessageBox.Show(WindowManager, "错误",
-                    "编译脚本失败！请检查语法，或联系作者寻求支持。" + Environment.NewLine + Environment.NewLine +
-                    "返回的错误信息: " + error, MessageBoxButtons.OK);
+                Logger.Log("Compilation error when attempting to run script: " + error);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "ScriptCompilationError.Title", "Error"),
+                    string.Format(Translate(this, "ScriptCompilationError.Description", 
+                        "Compiling the script failed! Check its syntax, or contact its author for support." + Environment.NewLine + Environment.NewLine +
+                        "Returned error was: {0}"), error),
+                   MessageBoxButtons.OK);
                 return;
             }
 
-            if (confirmation == null)
+            if (ScriptRunner.ActiveScriptAPIVersion == 1)
             {
-                EditorMessageBox.Show(WindowManager, "错误", "脚本没有提供说明！", MessageBoxButtons.OK);
-                return;
+                string confirmation = ScriptRunner.GetDescriptionFromScriptV1();
+
+                confirmation = Renderer.FixText(confirmation, Constants.UIDefaultFont, Width).Text;
+
+                var messageBox = EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "ConfirmationTitle", "Are you sure?"),
+                    confirmation, MessageBoxButtons.YesNo);
+                messageBox.YesClickedAction = (_) => ApplyCode();
+
             }
+            else if (ScriptRunner.ActiveScriptAPIVersion == 2)
+            {
+                error = ScriptRunner.RunScriptV2();
 
-            confirmation = Renderer.FixText(confirmation, Constants.UIDefaultFont, Width).Text;
-
-            var messageBox = EditorMessageBox.Show(WindowManager, "您确定吗?",
-                confirmation, MessageBoxButtons.YesNo);
-            messageBox.YesClickedAction = (_) => ApplyCode();
+                if (error != null)
+                    EditorMessageBox.Show(WindowManager, 
+                        Translate(this, "ScriptRunError.Title", "Error running script"),
+                        error,
+                        MessageBoxButtons.OK);
+            }
+            else
+            {
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "UnsupportedScriptApiVersion.Title", "Unsupported Scripting API Version"),
+                    string.Format(Translate(this, "UnsupportedScriptApiVersion.Description", 
+                        "Script uses an unsupported scripting API version: {0}"), ScriptRunner.ActiveScriptAPIVersion),
+                    MessageBoxButtons.OK);
+            }
         }
 
         private void ApplyCode()
@@ -78,10 +109,10 @@ namespace TSMapEditor.UI.Windows
             if (scriptPath == null)
                 throw new InvalidOperationException("Pending script path is null!");
 
-            string result = ScriptRunner.RunScript(map, scriptPath);
+            string result = ScriptRunner.RunScriptV1(scriptDependencies.Map, scriptPath);
             result = Renderer.FixText(result, Constants.UIDefaultFont, Width).Text;
 
-            EditorMessageBox.Show(WindowManager, "结果", result, MessageBoxButtons.OK);
+            EditorMessageBox.Show(WindowManager, Translate(this, "Result", "Result"), result, MessageBoxButtons.OK);
             ScriptRun?.Invoke(this, EventArgs.Empty);
         }
 
@@ -94,7 +125,11 @@ namespace TSMapEditor.UI.Windows
             if (!Directory.Exists(directoryPath))
             {
                 Logger.Log("WAE scipts directory not found!");
-                EditorMessageBox.Show(WindowManager, "错误", "未找到脚本目录！\r\n\r\n预期目录: " + directoryPath, MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "WAEScriptsDirectoryNotFound.Title", "Error"),
+                    string.Format(Translate(this, "WAEScriptsDirectoryNotFound.Description", 
+                        "Scripts directory not found!" + Environment.NewLine + Environment.NewLine + "Expected path: {0}"), directoryPath),
+                    MessageBoxButtons.OK);
                 return;
             }
 

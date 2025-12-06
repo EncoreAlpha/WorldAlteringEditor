@@ -25,6 +25,7 @@
         Theme,
         Speech,
         SuperWeapon,
+        SuperWeaponName,
         Animation,
         ParticleSystem,
         Waypoint,
@@ -38,6 +39,8 @@
         SpotlightBehaviour,
         RadarEvent,
         VoxelAnim,
-        StringTableEntry
+        StringTableEntry,
+        ComparisonType,
+        Color,
     }
 }

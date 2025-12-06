@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -117,9 +118,11 @@ namespace TSMapEditor.Initialization
             mapIni.RemoveSection(overlayPackSectionName);
             mapIni.RemoveSection(overlayDataPackSectionName);
 
-            var overlayArray = new byte[Constants.MAX_MAP_LENGTH_IN_DIMENSION * Constants.MAX_MAP_LENGTH_IN_DIMENSION];
+            bool needsExtendedOverlayPack = map.Basic.NewINIFormat >= 5;
+
+            var overlayArray = new byte[Constants.MAX_MAP_LENGTH_IN_DIMENSION * Constants.MAX_MAP_LENGTH_IN_DIMENSION * (needsExtendedOverlayPack ? 2 : 1)];
             for (int i = 0; i < overlayArray.Length; i++)
-                overlayArray[i] = Constants.NO_OVERLAY;
+                overlayArray[i] = 0xFF; // fill the entire array with 0xFF, which will be (sbyte)-1 or (short)-1, regardless of what format we're writing in
 
             var overlayDataArray = new byte[Constants.MAX_MAP_LENGTH_IN_DIMENSION * Constants.MAX_MAP_LENGTH_IN_DIMENSION];
 
@@ -130,7 +133,11 @@ namespace TSMapEditor.Initialization
 
                 int dataIndex = (tile.Y * Constants.MAX_MAP_LENGTH_IN_DIMENSION) + tile.X;
 
-                overlayArray[dataIndex] = (byte)tile.Overlay.OverlayType.Index;
+                if (needsExtendedOverlayPack)
+                    BinaryPrimitives.WriteUInt16LittleEndian(new Span<byte>(overlayArray, dataIndex * 2, 2), (ushort)tile.Overlay.OverlayType.Index);
+                else
+                    overlayArray[dataIndex] = (byte)tile.Overlay.OverlayType.Index;
+
                 overlayDataArray[dataIndex] = (byte)tile.Overlay.FrameIndex;
             });
 
@@ -364,12 +371,10 @@ namespace TSMapEditor.Initialization
                 iniFile.AddSection(enablesSection);
             }
 
-            // Enable local AI triggers that haven't been enabled or disabled
-            // by the user yet
+            // Enable or disable local AI triggers            
             for (int i = 0; i < aiTriggerTypes.Count; i++)
-            {
-                if (!enablesSection.KeyExists(aiTriggerTypes[i].ININame))
-                    enablesSection.SetStringValue(aiTriggerTypes[i].ININame, "yes");
+            {                
+                enablesSection.SetBooleanValue(aiTriggerTypes[i].ININame, aiTriggerTypes[i].Enabled, BooleanStringStyle.YESNO_LOWERCASE);
             }
         }
 

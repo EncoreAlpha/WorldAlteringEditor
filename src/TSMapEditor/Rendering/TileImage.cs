@@ -125,9 +125,9 @@ namespace TSMapEditor.Rendering
                 if (cellRightXCoordinate > maxX)
                     maxX = cellRightXCoordinate;
 
-                if (TMPImages[i].ExtraTexture != null)
+                if (TMPImages[i].TmpImage.HasExtraData())
                 {
-                    int extraRightXCoordinate = tmpData.X + TMPImages[i].TmpImage.XExtra + TMPImages[i].ExtraTexture.Width;
+                    int extraRightXCoordinate = tmpData.X + TMPImages[i].TmpImage.XExtra + TMPImages[i].ExtraSourceRectangle.Width;
                     if (extraRightXCoordinate > maxX)
                         maxX = extraRightXCoordinate;
                 }
@@ -168,10 +168,10 @@ namespace TSMapEditor.Rendering
                 if (cellBottom > bottom)
                     bottom = cellBottom;
 
-                if (TMPImages[i].ExtraTexture != null)
+                if (TMPImages[i].TmpImage.HasExtraData())
                 {
                     int extraCellTop = tmpData.YExtra - heightOffset;
-                    int extraCellBottom = extraCellTop + TMPImages[i].ExtraTexture.Height;
+                    int extraCellBottom = extraCellTop + TMPImages[i].ExtraSourceRectangle.Height;
 
                     if (extraCellTop < top)
                         top = extraCellTop;
@@ -224,12 +224,12 @@ namespace TSMapEditor.Rendering
                 if (tmpData == null)
                     continue;
 
-                if (TMPImages[i].ExtraTexture != null)
+                if (TMPImages[i].TmpImage.HasExtraData())
                 {
                     int heightOffset = Constants.CellHeight * tmpData.Height;
 
                     int extraTopCoord = TMPImages[i].TmpImage.YExtra - heightOffset;
-                    int extraBottomCoord = TMPImages[i].TmpImage.YExtra + TMPImages[i].ExtraTexture.Height - heightOffset;
+                    int extraBottomCoord = TMPImages[i].TmpImage.YExtra + TMPImages[i].ExtraSourceRectangle.Height - heightOffset;
 
                     if (extraTopCoord < maxTopCoord)
                         maxTopCoord = extraTopCoord;
@@ -245,15 +245,6 @@ namespace TSMapEditor.Rendering
                 yOffset = -(maxBottomCoord - height);
 
             return yOffset;
-        }
-
-        public void Dispose()
-        {
-            Array.ForEach(TMPImages, tmp =>
-            {
-                if (tmp != null)
-                    tmp.Dispose();
-            });
         }
     }
 }

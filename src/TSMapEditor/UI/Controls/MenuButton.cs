@@ -66,9 +66,10 @@ namespace TSMapEditor.UI.Controls
             }
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            base.OnMouseLeftDown();
+            inputEventArgs.Handled = true;
+            base.OnMouseLeftDown(inputEventArgs);
 
             if (!ContextMenu.Enabled)
             {
@@ -77,9 +78,10 @@ namespace TSMapEditor.UI.Controls
             }            
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
-            base.OnLeftClick();
+            inputEventArgs.Handled = true;
+            base.OnLeftClick(inputEventArgs);
 
             if ((!ContextMenu.Enabled && !contextMenuDisabledOnCurrentFrame) || contextMenuOpenedOnClick)
                 OpenContextMenu();

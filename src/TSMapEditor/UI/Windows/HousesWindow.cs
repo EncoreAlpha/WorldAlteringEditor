@@ -3,6 +3,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using TSMapEditor.Models;
@@ -37,7 +38,20 @@ namespace TSMapEditor.UI.Windows
         private EditorNumberTextBox tbMoney;
         private XNACheckBox chkPlayerControl;
 
-        private XNALabel lblStatsValue;
+        private XNALabel lblStatsPower;
+        private XNALabel lblStatsObjectsCount;
+        private XNALabel lblStatsAllianceMutualAlliance;
+        private XNALabel lblStatsAllianceOneSidedAllies;
+        private XNALabel lblStatsAllianceOneSidedEnemies;
+        private XNALabel lblStatsAllianceEnemies;
+
+        private ToolTip mutualAllianceToolTip;
+        private ToolTip oneSidedAlliesToolTip;
+        private ToolTip oneSidedEnemiesToolTip;
+        private ToolTip enemiesToolTip;
+
+        private List<XNALabel> statLabels = [];
+        private List<ToolTip> tooltips = [];
 
         private House editedHouse;
 
@@ -45,6 +59,7 @@ namespace TSMapEditor.UI.Windows
         private EditHouseTypeWindow editHouseTypeWindow;
         private NewHouseWindow newHouseWindow;
         private ConfigureAlliesWindow configureAlliesWindow;
+        private CreateAllianceWindow createAllianceWindow;
 
         public override void Initialize()
         {
@@ -66,8 +81,30 @@ namespace TSMapEditor.UI.Windows
             tbMoney = FindChild<EditorNumberTextBox>(nameof(tbMoney));
             chkPlayerControl = FindChild<XNACheckBox>(nameof(chkPlayerControl));
 
-            lblStatsValue = FindChild<XNALabel>(nameof(lblStatsValue));
-            lblStatsValue.Text = "";
+            lblStatsPower = FindChild<XNALabel>(nameof(lblStatsPower));
+            lblStatsObjectsCount = FindChild<XNALabel>(nameof(lblStatsObjectsCount));
+            lblStatsAllianceMutualAlliance = FindChild<XNALabel>(nameof(lblStatsAllianceMutualAlliance));
+            mutualAllianceToolTip = new ToolTip(WindowManager, lblStatsAllianceMutualAlliance);
+
+            lblStatsAllianceOneSidedAllies = FindChild<XNALabel>(nameof(lblStatsAllianceOneSidedAllies));
+            oneSidedAlliesToolTip = new ToolTip(WindowManager, lblStatsAllianceOneSidedAllies);
+
+            lblStatsAllianceOneSidedEnemies = FindChild<XNALabel>(nameof(lblStatsAllianceOneSidedEnemies));
+            oneSidedEnemiesToolTip = new ToolTip(WindowManager, lblStatsAllianceOneSidedEnemies);
+
+            lblStatsAllianceEnemies = FindChild<XNALabel>(nameof(lblStatsAllianceEnemies));
+            enemiesToolTip = new ToolTip(WindowManager, lblStatsAllianceEnemies);
+
+            statLabels.AddRange([
+                lblStatsPower, lblStatsObjectsCount,
+                lblStatsAllianceMutualAlliance, lblStatsAllianceOneSidedAllies,
+                lblStatsAllianceOneSidedEnemies, lblStatsAllianceEnemies
+            ]);
+
+            tooltips.AddRange([mutualAllianceToolTip, oneSidedAlliesToolTip, oneSidedEnemiesToolTip, enemiesToolTip]);
+
+            foreach (var statLabel in statLabels)            
+                statLabel.Text = "";            
 
             for (int i = 0; i < map.Rules.Sides.Count; i++)
             {
@@ -83,11 +120,13 @@ namespace TSMapEditor.UI.Windows
 
             FindChild<EditorButton>("btnAddHouse").LeftClick += BtnAddHouse_LeftClick;
             FindChild<EditorButton>("btnDeleteHouse").LeftClick += BtnDeleteHouse_LeftClick;
+            FindChild<EditorButton>("btnCloneHouse").LeftClick += BtnCloneHouse_LeftClick;
             FindChild<EditorButton>("btnStandardHouses").LeftClick += BtnStandardHouses_LeftClick;
             var btnEditHouseType = FindChild<EditorButton>("btnEditHouseType");
             btnEditHouseType.LeftClick += BtnEditHouseType_LeftClick;
             FindChild<EditorButton>("btnMakeHouseRepairBuildings").LeftClick += BtnMakeHouseRepairBuildings_LeftClick;
             FindChild<EditorButton>("btnMakeHouseNotRepairBuildings").LeftClick += BtnMakeHouseNotRepairBuildings_LeftClick;
+            FindChild<EditorButton>("btnCreateAlliance").LeftClick += (s, e) => createAllianceWindow.Open();
 
             ddHouseOfHumanPlayer.SelectedIndexChanged += DdHouseOfHumanPlayer_SelectedIndexChanged;
             lbHouseList.SelectedIndexChanged += LbHouseList_SelectedIndexChanged;
@@ -104,9 +143,13 @@ namespace TSMapEditor.UI.Windows
             var configureAlliesWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, configureAlliesWindow);
             configureAlliesWindow.AlliesUpdated += (s, e) => RefreshHouseInfo();
 
+            createAllianceWindow = new CreateAllianceWindow(WindowManager, map);
+            var setAlliancesWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, createAllianceWindow);
+            createAllianceWindow.AlliesUpdated += (s, e) => RefreshHouseInfo();
+
             if (Constants.IsRA2YR)
             {
-                btnEditHouseType.Text = "编辑所属方";
+                btnEditHouseType.Text = Translate(this, "EditCountry", "Edit Country");
                 newHouseWindow = new NewHouseWindow(WindowManager, map);
                 var newHouseWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, newHouseWindow);
                 newHouseWindowDarkeningPanel.Hidden += NewHouseWindowDarkeningPanel_Hidden;
@@ -143,51 +186,90 @@ namespace TSMapEditor.UI.Windows
             Helpers.FindDefaultSideForNewHouseType(houseType, map.Rules);
             map.HouseTypes.Add(houseType);
 
-            map.AddHouse(new House("NewHouse", houseType) 
+            House newHouse = new House("NewHouse", houseType)
             {
-                ActsLike = 0,
-                Allies = "NewHouse",
+                ActsLike = 0,                
                 Color = map.Rules.Colors[0].Name,
-                Credits = 0, 
+                Credits = 0,
                 Edge = "North",
                 ID = map.Houses.Count,
-                IQ = 0, 
-                PercentBuilt = 100, 
-                PlayerControl = false, 
+                IQ = 0,
+                PercentBuilt = 100,
+                PlayerControl = false,
                 TechLevel = Constants.MaxHouseTechLevel,
                 XNAColor = Color.White
-            });
+            };
+
+            newHouse.Allies.Add(newHouse);
+
+            map.AddHouse(newHouse);
 
             ListHouses();
             lbHouseList.SelectedIndex = lbHouseList.Items.Count - 1;
+            lbHouseList.ScrollToBottom();
         }
 
         private void BtnDeleteHouse_LeftClick(object sender, System.EventArgs e)
         {
-            if (editedHouse != null)
-            {
-                if (map.DeleteHouse(editedHouse))
-                {
-                    if (Constants.IsRA2YR)
-                    {
-                        // Also delete the associated HouseType if the HouseType is non-standard and is not used by any other House
-                        if (map.HouseTypes.Contains(editedHouse.HouseType) && !map.Houses.Exists(h => h.HouseType == editedHouse.HouseType))
-                            map.DeleteHouseType(editedHouse.HouseType);
-                    }
-                    else
-                    {
-                        // In Tiberian Sun, each House has one unique HouseType associated with it.
-                        // We need to always delete the associated HouseType, if that fails for some reason then
-                        // something has gone terribly wrong in our internal editor logic.
-                        if (!map.DeleteHouseType(editedHouse.HouseType))
-                            throw new InvalidOperationException("Failed to delete HouseType associated with house " + editedHouse.ININame);
-                    }
+            if (editedHouse == null)
+                return;
 
-                    editedHouse = null;
-                    lbHouseList.SelectedIndex = -1;
-                    ListHouses();
+            if (map.DeleteHouse(editedHouse))
+            {
+                if (Constants.IsRA2YR)
+                {
+                    // Also delete the associated HouseType if the HouseType is non-standard and is not used by any other House
+                    if (map.HouseTypes.Contains(editedHouse.HouseType) && !map.Houses.Exists(h => h.HouseType == editedHouse.HouseType))
+                        map.DeleteHouseType(editedHouse.HouseType);
                 }
+                else
+                {
+                    // In Tiberian Sun, each House has one unique HouseType associated with it.
+                    // We need to always delete the associated HouseType, if that fails for some reason then
+                    // something has gone terribly wrong in our internal editor logic.
+                    if (!map.DeleteHouseType(editedHouse.HouseType))
+                        throw new InvalidOperationException("Failed to delete HouseType associated with house " + editedHouse.ININame);
+                }
+
+                // Remove this house from all other houses that were allied to it
+                foreach (var house in map.Houses)
+                    house.Allies.Remove(editedHouse);
+
+                editedHouse = null;
+                lbHouseList.SelectedIndex = -1;
+                ListHouses();
             }
+        }
+
+        private void BtnCloneHouse_LeftClick(object sender, InputEventArgs e)
+        {
+            if (editedHouse == null)
+                return;
+
+            string cloneININame = Translate(this, "CloneININame", " Clone");
+
+            HouseType clonedHouseType = (HouseType)editedHouse.HouseType.Clone();
+            clonedHouseType.ININame = editedHouse.HouseType.ININame + cloneININame;
+            clonedHouseType.Index = map.HouseTypes.Count + (Constants.IsRA2YR ? map.Rules.RulesHouseTypes.Count : 0);
+            map.HouseTypes.Add(clonedHouseType);
+
+            House clonedHouse = (House)editedHouse.Clone();
+            clonedHouse.ID = map.Houses.Count;
+            clonedHouse.HouseType = clonedHouseType;
+            clonedHouse.ININame = editedHouse.ININame + cloneININame;
+            clonedHouse.Allies.ForEach(ally =>
+            {
+                if (ally == clonedHouse)
+                    return;
+
+                ally.Allies.Add(clonedHouse);
+            });
+
+            map.AddHouse(clonedHouse);
+
+            ListHouses();
+            lbHouseList.SelectedIndex = lbHouseList.Items.Count - 1;
+            lbHouseList.ScrollToBottom();
         }
 
         private void BtnStandardHouses_LeftClick(object sender, System.EventArgs e)
@@ -195,9 +277,10 @@ namespace TSMapEditor.UI.Windows
             if (map.Houses.Count > 0)
             {
                 EditorMessageBox.Show(WindowManager,
-                    "所属方已存在",
-                    "无法生成标准所属方，因为地图上已经指定了一个或多个所属方。" + Environment.NewLine + Environment.NewLine +
-                    "如果要生成标准所属方，请先删除现有所属方", MessageBoxButtons.OK);
+                    Translate(this, "HouseExists.Title", "Houses already exist"),
+                    Translate(this, "HouseExists.Description", "Cannot generate standard because the map already has one or more houses specified." + Environment.NewLine + Environment.NewLine +
+                    "If you want to generate standard houses, please delete the existing houses first."),
+                    MessageBoxButtons.OK);
 
                 return;
             }
@@ -217,30 +300,46 @@ namespace TSMapEditor.UI.Windows
         {
             if (editedHouse == null)
             {
-                EditorMessageBox.Show(WindowManager, "未选择所属方", "首先选择一个所属方。", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager,
+                    Translate(this, "NoHouseSelected.Title", "No House Selected"),
+                    Translate(this, "NoHouseSelected.Description", "Select a house first."),
+                    MessageBoxButtons.OK);
                 return;
             }
 
             var dialog = EditorMessageBox.Show(WindowManager,
-                "你确定吗？",
-                "这将在所有该所属方的建筑上启用 \"AI 修复\" 标志,使得 AI 修复这些建筑。" + Environment.NewLine + Environment.NewLine +
-                "无法撤销，您想继续吗？", MessageBoxButtons.YesNo);
-            dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = true);
+                Translate(this, "EnableAIRepairs.Title", "Are you sure?"),
+                Translate(this, "EnableAIRepairs.Description", "This enables the \"AI Repairs\" flag on all buildings of the house, which makes the AI repair them." + Environment.NewLine + Environment.NewLine + 
+                    "No un-do is available. Do you wish to continue?"),
+                MessageBoxButtons.YesNo);
+            dialog.YesClickedAction = _ =>
+            {
+                map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = true);
+                RefreshHouseInfo();
+            };
         }
 
         private void BtnMakeHouseNotRepairBuildings_LeftClick(object sender, EventArgs e)
         {
             if (editedHouse == null)
             {
-                EditorMessageBox.Show(WindowManager, "未选择所属方", "首先选择一个所属方。", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager,
+                    Translate(this, "NoHouseSelected.Title", "No House Selected"),
+                    Translate(this, "NoHouseSelected.Description", "Select a house first."),
+                    MessageBoxButtons.OK);                
                 return;
             }
 
             var dialog = EditorMessageBox.Show(WindowManager,
-                "你确定吗？",
-                "这将在所有该所属方的建筑上关闭 \"AI 修复\" 标志,使得 AI 不再修复这些建筑。" + Environment.NewLine + Environment.NewLine +
-                "无法撤销，您想继续吗？", MessageBoxButtons.YesNo);
-            dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = false);
+                Translate(this, "DisableAIRepairs.Title", "Are you sure?"),
+                Translate(this, "DisableAIRepairs.Description", "This disables the \"AI Repairs\" flag on all buildings of the house, which makes the AI NOT repair them." + Environment.NewLine + Environment.NewLine +
+                    "No un-do is available. Do you wish to continue?"),
+                MessageBoxButtons.YesNo);
+            dialog.YesClickedAction = _ =>
+            {
+                map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = false);
+                RefreshHouseInfo();
+            };
         }
 
         private void LbHouseList_SelectedIndexChanged(object sender, System.EventArgs e)
@@ -288,7 +387,10 @@ namespace TSMapEditor.UI.Windows
                 selAllies.Text = string.Empty;
                 tbMoney.Text = string.Empty;
                 chkPlayerControl.Checked = false;
-                lblStatsValue.Text = string.Empty;
+
+                foreach (var statLabel in statLabels)
+                    statLabel.Text = string.Empty;                
+                
                 return;
             }
 
@@ -311,7 +413,7 @@ namespace TSMapEditor.UI.Windows
             ddColor.SelectedIndex = ddColor.Items.FindIndex(item => item.Text == editedHouse.Color);
             ddTechnologyLevel.SelectedIndex = ddTechnologyLevel.Items.FindIndex(item => Conversions.IntFromString(item.Text, -1) == editedHouse.TechLevel);
             ddPercentBuilt.SelectedIndex = ddPercentBuilt.Items.FindIndex(item => Conversions.IntFromString(item.Text, -1) == editedHouse.PercentBuilt);
-            selAllies.Text = editedHouse.Allies ?? "";
+            selAllies.Text = string.Join(",", editedHouse.Allies.Select(alliedHouse => alliedHouse.ININame)) ?? "";
             tbMoney.Value = editedHouse.Credits;
             chkPlayerControl.Checked = editedHouse.PlayerControl;
 
@@ -338,11 +440,7 @@ namespace TSMapEditor.UI.Windows
 
             if (!string.IsNullOrWhiteSpace(editedHouse.ININame))
             {
-                editedHouse.Allies = string.Join(',',
-                    new string[] { editedHouse.ININame }
-                    .Concat(editedHouse.Allies.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)[1..]));
-
-                selAllies.Text = editedHouse.Allies;
+                selAllies.Text = string.Join(",", editedHouse.Allies.Select(alliedHouse => alliedHouse.ININame));
             }
 
             ListHouses();
@@ -425,6 +523,7 @@ namespace TSMapEditor.UI.Windows
         {
             Show();
             ListHouses();
+            RefreshHouseStats();
         }
 
         private void ListHouses()
@@ -432,7 +531,7 @@ namespace TSMapEditor.UI.Windows
             lbHouseList.Clear();
             ddHouseOfHumanPlayer.Items.Clear();
 
-            ddHouseOfHumanPlayer.AddItem("None");
+            ddHouseOfHumanPlayer.AddItem(Translate(this, "HumanPlayerHouse.None", "None"));
 
             ddActsLike.Items.Clear();
 
@@ -465,24 +564,58 @@ namespace TSMapEditor.UI.Windows
         {
             if (editedHouse == null)
             {
-                lblStatsValue.Text = "";
+                foreach (var statLabel in statLabels)                
+                    statLabel.Text = "";
+                
+
+                foreach (var tooltip in tooltips)                
+                    tooltip.Enabled = false;                
+
                 return;
             }
 
-            string stats = "Power: " + map.Structures.Aggregate<Structure, int>(0, (value, structure) => 
+            lblStatsPower.Text = Translate(this, "HouseStats.Power", "Power: ") + map.Structures.Aggregate<Structure, int>(0, (value, structure) =>
             {
                 if (structure.Owner == editedHouse)
                     return value + structure.ObjectType.Power;
 
                 return value;
-            }) + Environment.NewLine;
+            });
 
-            stats += Environment.NewLine + "Aircraft: " + map.Aircraft.Count(s => s.Owner == editedHouse);
-            stats += Environment.NewLine + "Infantry: " + map.Infantry.Count(s => s.Owner == editedHouse);
-            stats += Environment.NewLine + "Vehicles: " + map.Units.Count(s => s.Owner == editedHouse);
-            stats += Environment.NewLine + "Buildings: " + map.Structures.Count(s => s.Owner == editedHouse);
+            string objectCountStats = "";
 
-            lblStatsValue.Text = stats;
+            objectCountStats += Translate(this, "HouseStats.Aircraft", "Aircraft: ") + map.Aircraft.Count(s => s.Owner == editedHouse) + Environment.NewLine;
+            objectCountStats += Translate(this, "HouseStats.Infantry", "Infantry: ") + map.Infantry.Count(s => s.Owner == editedHouse) + Environment.NewLine;
+            objectCountStats += Translate(this, "HouseStats.Vehicles", "Vehicles: ") + map.Units.Count(s => s.Owner == editedHouse) + Environment.NewLine;
+            objectCountStats += Translate(this, "HouseStats.Buildings", "Buildings: ") + map.Structures.Count(s => s.Owner == editedHouse) + Environment.NewLine;
+            objectCountStats += Translate(this, "HouseStats.AIRepairable", "  AI repairable: ") + map.Structures.Count(s => s.Owner == editedHouse && s.AIRepairable) + Environment.NewLine;
+            objectCountStats += Translate(this, "HouseStats.NotAIRepairable", "  not AI repairable: ") + map.Structures.Count(s => s.Owner == editedHouse && !s.AIRepairable);
+
+            lblStatsObjectsCount.Text = objectCountStats;
+
+            List<House> mutualAllianceHouses = map.Houses.FindAll(house => house != editedHouse && editedHouse.Allies.Contains(house) && house.Allies.Contains(editedHouse));
+            List<House> oneSidedAlliesHouses = map.Houses.FindAll(house => editedHouse.Allies.Contains(house) && !house.Allies.Contains(editedHouse));
+            List<House> oneSidedEnemyHouses = map.Houses.FindAll(house => !editedHouse.Allies.Contains(house) && house.Allies.Contains(editedHouse));
+            List<House> enemyHouses = map.Houses.FindAll(house => !editedHouse.Allies.Contains(house) && !house.Allies.Contains(editedHouse));
+
+            lblStatsAllianceMutualAlliance.Text = $"{Translate(this, "HouseStats.MutualAlliances", "Mutual Alliances:")} {mutualAllianceHouses.Count}";
+            lblStatsAllianceOneSidedAllies.Text = $"{Translate(this, "HouseStats.OneSidedAllies", "One-Sided Allies:")} {oneSidedAlliesHouses.Count}";
+            lblStatsAllianceOneSidedEnemies.Text = $"{Translate(this, "HouseStats.OneSidedEnemies", "One-Sided Enemies:")} {oneSidedEnemyHouses.Count}";
+            lblStatsAllianceEnemies.Text = $"{Translate(this, "HouseStats.Enemies", "Enemies:")} {enemyHouses.Count}";
+
+            string noneText = Translate(this, "ToolTips.None", "None");
+
+            mutualAllianceToolTip.Text = Translate(this, "ToolTips.MutualAlliances", "Houses that are in a mutual alliance with this house:") + Environment.NewLine +
+                (mutualAllianceHouses.Count == 0 ? noneText : string.Join(", ", mutualAllianceHouses.Select(house => house.ININame)));
+            oneSidedAlliesToolTip.Text = Translate(this, "ToolTips.OneSidedAllies", "Houses that this house is allied to, but are hostile in return:") + Environment.NewLine +
+                (oneSidedAlliesHouses.Count == 0 ? noneText : string.Join(", ", oneSidedAlliesHouses.Select(house => house.ININame)));
+            oneSidedEnemiesToolTip.Text = Translate(this, "ToolTips.OneSidedEnemies", "Houses that this house is hostile towards, but are allied in return:") + Environment.NewLine +
+                (oneSidedEnemyHouses.Count == 0 ? noneText : string.Join(", ", oneSidedEnemyHouses.Select(house => house.ININame)));
+            enemiesToolTip.Text = Translate(this, "ToolTips.Enemies", "Houses that this house is mutually hostile towards:") + Environment.NewLine +
+                (enemyHouses.Count == 0 ? noneText : string.Join(", ", enemyHouses.Select(house => house.ININame)));
+
+            foreach (var tooltip in tooltips)
+                tooltip.Enabled = true;            
         }
     }
 }

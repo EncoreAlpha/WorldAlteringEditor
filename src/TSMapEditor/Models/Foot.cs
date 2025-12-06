@@ -26,5 +26,7 @@
         /// Is this unit available for recruitment for TeamTypes that have Autocreate=yes?
         /// </summary>
         public bool AutocreateYesRecruitable { get; set; }
+
+        public override bool IsOnBridge() => High;
     }
 }

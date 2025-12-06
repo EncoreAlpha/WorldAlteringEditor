@@ -1,7 +1,8 @@
-﻿using CNCMaps.FileFormats.Encodings;
+using CNCMaps.FileFormats.Encodings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -76,7 +77,8 @@ namespace TSMapEditor.Initialization
             {
                 if (t.TileIndex >= theaterGraphics.TileCount)
                 {
-                    AddMapLoadError($"Invalid tile index {t.TileIndex} for cell at {t.CoordsToPoint()} - setting it to 0");
+                    AddMapLoadError(string.Format(Translate("MapLoader.PostCheckMap.InvalidTileIndex",
+                    "Invalid tile index {0} for cell at {1} - setting it to 0"), t.TileIndex, t.CoordsToPoint()));
                     t.TileIndex = 0;
                     t.SubTileIndex = 0;
                     return;
@@ -87,24 +89,30 @@ namespace TSMapEditor.Initialization
                 int maxSubTileIndex = tile.SubTileCount - 1;
                 if (t.SubTileIndex > maxSubTileIndex)
                 {
-                    AddMapLoadError($"Invalid sub-tile index {t.SubTileIndex} for cell at {t.CoordsToPoint()} (max: {maxSubTileIndex}) - setting it to 0. " +
-                        $"TileSet: {tileSet.SetName} ({tileSet.FileName}), index of tile within its set: {tile.TileIndexInTileSet}");
+                    AddMapLoadError(string.Format(Translate("MapLoader.PostCheckMap.InvalidSubTileIndex", 
+                        "Invalid sub-tile index {0} for cell at {1} (max: {2}) - setting it to 0. " +
+                        "TileSet: {3} ({4}), index of tile within its set: {5}"),
+                        t.SubTileIndex, t.CoordsToPoint(), maxSubTileIndex, tileSet.SetName, tileSet.FileName, tile.TileIndexInTileSet));
 
                     t.SubTileIndex = 0;
 
                     if (maxSubTileIndex < 0)
                     {
-                        AddMapLoadError($"    Maximum sub-tile count of 0 detected for tile at {t.CoordsToPoint()}, also setting the cell's tile index to 0.");
+                        AddMapLoadError(string.Format(Translate("MapLoader.PostCheckMap.MaxSubTileCount", 
+                            "    Maximum sub-tile count of 0 detected for tile at {0}, also setting the cell's tile index to 0."),
+                            t.CoordsToPoint()));
                         t.TileIndex = 0;
                     }
 
                     return;
                 }
 
-                if (tile.GetSubTile(t.SubTileIndex).TmpImage == null)
+                if (tile.GetSubTile(t.SubTileIndex) == null)
                 {
-                    AddMapLoadError($"Null sub-tile {t.SubTileIndex} for cell at {t.CoordsToPoint()} - clearing the tile. " +
-                        $"TileSet: {tileSet.SetName} ({tileSet.FileName}), index of tile within its set: {tile.TileIndexInTileSet}");
+                    AddMapLoadError(string.Format(Translate("MapLoader.PostCheckMap.NullSubTile", 
+                        "Null sub-tile {0} for cell at {1} - clearing the tile. " +
+                        "TileSet: {2} ({3}), index of tile within its set: {4}"),
+                        t.SubTileIndex, t.CoordsToPoint(), tileSet.SetName, tileSet.FileName, tile.TileIndexInTileSet));
 
                     t.ChangeTileIndex(0, 0);
                 }
@@ -250,7 +258,9 @@ namespace TSMapEditor.Initialization
                 TerrainType terrainType = map.Rules.TerrainTypes.Find(tt => tt.ININame == kvp.Value);
                 if (terrainType == null)
                 {
-                    AddMapLoadError($"Skipping loading of terrain type {kvp.Value}, placed at {x}, {y}, because it does not exist in Rules.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTerrainObjects.NonexistentTerrainObjectType",
+                        "Skipping loading of terrain type {0}, placed at {1}, {2}, because it does not exist in Rules."),
+                        kvp.Value, x, y));
                     continue;
                 }
 
@@ -258,7 +268,9 @@ namespace TSMapEditor.Initialization
                 var tile = map.GetTile(x, y);
                 if (tile == null)
                 {
-                    AddMapLoadError($"Terrain object {terrainType.ININame} has been placed outside of the valid map area, at {x}, {y}. Skipping placing it on the map.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTerrainObjects.TerrainObjectOutsideOfMap", 
+                        "Terrain object {0} has been placed outside of the valid map area, at {1}, {2}. Skipping placing it on the map."),
+                        terrainType.ININame, x, y));
                     continue;
                 }
 
@@ -276,7 +288,9 @@ namespace TSMapEditor.Initialization
                 Tag tag = map.Tags.Find(t => t.ID == attachedTagString);
                 if (tag == null)
                 {
-                    AddMapLoadError($"Unable to find tag {attachedTagString} attached to {techno.WhatAmI()} at {techno.Position}");
+                    AddMapLoadError(string.Format(Translate("MapLoader.FindAttachedTag.TagNotFound",
+                        "Unable to find tag {0} attached to {1} at {2}"),
+                        attachedTagString, techno.WhatAmI(), techno.Position));
                     return;
                 }
 
@@ -320,7 +334,8 @@ namespace TSMapEditor.Initialization
                 var buildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == buildingTypeId);
                 if (buildingType == null)
                 {
-                    AddMapLoadError($"Unable to find building type {buildingTypeId} - skipping adding it to map.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.BuildingTypeNotFound",
+                        "Unable to find building type {0} - skipping adding it to map."), buildingTypeId));
                     continue;
                 }
 
@@ -349,21 +364,27 @@ namespace TSMapEditor.Initialization
                             var upgradeBuildingType = map.Rules.BuildingTypes.Find(b => b.ININame == upgradeIds[i]);
                             if (upgradeBuildingType == null)
                             {
-                                AddMapLoadError($"Invalid building upgrade specified for building {buildingTypeId}: " + upgradeIds[i]);
+                                AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.BuildingTypeForUpgradeNotFound", 
+                                    "Invalid building upgrade specified for building {0}: {1}"), 
+                                    buildingTypeId, upgradeIds[i]));
                                 continue;
                             }
 
                             if (string.IsNullOrWhiteSpace(upgradeBuildingType.PowersUpBuilding) || !upgradeBuildingType.PowersUpBuilding.Equals(buildingType.ININame, StringComparison.OrdinalIgnoreCase))
                             {
-                                AddMapLoadError($"Building {buildingTypeId} has an upgrade {upgradeBuildingType.ININame}, but \r\n{upgradeBuildingType.ININame} " +
-                                    $"does not specify {buildingTypeId} in its PowersUpBuilding= key. Skipping adding upgrade to map.");
+                                AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.UpgradeInvalid", 
+                                    "Building {0} has an upgrade {1}, but" + Environment.NewLine + "{2} " +
+                                    "does not specify {3} in its PowersUpBuilding= key. Skipping adding upgrade to map."),
+                                    buildingTypeId, upgradeBuildingType.ININame, upgradeBuildingType.ININame, buildingTypeId));
                                 continue;
                             }
 
                             if (appliedUpgrades >= buildingType.Upgrades)
                             {
-                                AddMapLoadError($"Building {buildingTypeId} at {building.Position} has more upgrades ({appliedUpgrades + 1}) " +
-                                    $"than specified by its Upgrades= value ({buildingType.Upgrades}) in Rules. Skipping adding one or more of the building's upgrades.");
+                                AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.UpgradeCountMismatch", 
+                                    "Building {0} at {1} has more upgrades ({2}) " +
+                                    "than specified by its Upgrades= value ({3}) in Rules. Skipping adding one or more of the building's upgrades."),
+                                    buildingTypeId, building.Position, appliedUpgrades + 1, buildingType.Upgrades));
                                 break;
                             }
 
@@ -375,38 +396,32 @@ namespace TSMapEditor.Initialization
 
                 FindAttachedTag(map, building, attachedTag);
 
-                bool isClear = true;
+                bool isClear = false;
 
                 void CheckFoundationCell(Point2D cellCoords)
                 {
-                    if (!isClear)
-                        return;
-
                     var tile = map.GetTile(cellCoords);
-                    if (tile == null)
+                    if (tile != null)
                     {
-                        isClear = false;
-                        AddMapLoadError($"Building {buildingType.ININame} has been placed outside of the map at {cellCoords}. Skipping adding it to map.");
-                        return;
-                    }
-
-                    if (tile.Structures.Count > 0)
-                    {
-                        Logger.Log($"NOTE: Building {buildingType.ININame} exists in the cell at {cellCoords} that already contains other buildings: {string.Join(", ", tile.Structures.Select(s => s.ObjectType.ININame))}");
+                        isClear = true;
+                        tile.Structures.Add(building);
                     }
                 }
 
+                // Go through foundation cells and register the building to all tiles that are valid on its foundation.
+                // If the building was added to no cells (all cells on its foundation were nonexistent),
+                // then the building is outside of the map and we should not consider it as belonging to the map.
                 buildingType.ArtConfig.DoForFoundationCoordsOrOrigin(offset => CheckFoundationCell(building.Position + offset));
 
                 if (!isClear)
+                {
+                    AddMapLoadError(string.Format(Translate("MapLoader.CheckFoundationCell.TileOutOfBounds",
+                        "Building {0} has been placed outside of the map at {1}. Skipping adding it to map."),
+                        buildingType.ININame, building.Position));
                     continue;
+                }
 
                 map.Structures.Add(building);
-                buildingType.ArtConfig.DoForFoundationCoordsOrOrigin(offset =>
-                {
-                    var tile = map.GetTile(building.Position + offset);
-                    tile.Structures.Add(building);
-                });
 
                 building.LightTiles(map.Tiles);
             }
@@ -449,7 +464,8 @@ namespace TSMapEditor.Initialization
                 var aircraftType = map.Rules.AircraftTypes.Find(ut => ut.ININame == aircraftTypeId);
                 if (aircraftType == null)
                 {
-                    AddMapLoadError($"Unable to find aircraft type {aircraftTypeId} - skipping adding it to map.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAircraft.AircraftTypeNotFound", 
+                        "Unable to find aircraft type {0} - skipping adding it to map."), aircraftTypeId));
                     continue;
                 }
 
@@ -512,7 +528,8 @@ namespace TSMapEditor.Initialization
                 var unitType = map.Rules.UnitTypes.Find(ut => ut.ININame == unitTypeId);
                 if (unitType == null)
                 {
-                    AddMapLoadError($"Unable to find unit type {unitTypeId} - skipping adding it to map.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadUnits.UnitTypeNotFound",
+                        "Unable to find unit type {0} - skipping adding it to map."), unitTypeId));
                     continue;
                 }
 
@@ -586,7 +603,8 @@ namespace TSMapEditor.Initialization
                 var infantryType = map.Rules.InfantryTypes.Find(it => it.ININame == infantryTypeId);
                 if (infantryType == null)
                 {
-                    AddMapLoadError($"Unable to find infantry type {infantryTypeId} - skipping adding it to map.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadInfantry.InfantryTypeNotFound",
+                        "Unable to find infantry type {0} - skipping adding it to map."), infantryTypeId));
                     continue;
                 }
 
@@ -630,7 +648,8 @@ namespace TSMapEditor.Initialization
 
                 if (values.Length < 3)
                 {
-                    AddMapLoadError($"Invalid syntax in smudge defined in map: {kvp.Value}");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadSmudges.InvalidSmudgeSyntax",
+                        "Invalid syntax in smudge defined in map: {0}"), kvp.Value));
                     continue;
                 }
 
@@ -639,21 +658,24 @@ namespace TSMapEditor.Initialization
                 int y = Conversions.IntFromString(values[2], -1);
                 if (values.Length > 3 && values[3] != "0")
                 {
-                    AddMapLoadError($"Invalid syntax in smudge at {x},{y}: {kvp.Value}");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadSmudges.InvalidSmudgeSyntaxAtPosition", 
+                        "Invalid syntax in smudge at {0},{1}: {2}"), x, y, kvp.Value));
                     continue;
                 }
 
                 var smudgeType = map.Rules.SmudgeTypes.Find(st => st.ININame == smudgeTypeId);
                 if (smudgeType == null)
                 {
-                    AddMapLoadError($"Cell at {x},{y} contains a smudge '{smudgeTypeId}' that does not exist in Rules.ini. Ignoring it.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadSmudges.SmudgeTypeNotFound", 
+                        "Cell at {0},{1} contains a smudge '{2}' that does not exist in Rules.ini. Ignoring it."), x, y, smudgeTypeId));
                     continue;
                 }
 
                 var cell = map.GetTile(x, y);
                 if (cell == null)
                 {
-                    AddMapLoadError($"Smudge at {x},{y} is placed outside of the map. Ignoring it.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadSmudges.SmudgeOutOfBounds", 
+                        "Smudge at {0},{1} is placed outside of the map. Ignoring it."), x, y));
                     continue;
                 }
 
@@ -672,10 +694,12 @@ namespace TSMapEditor.Initialization
             if (overlayPackSection == null || overlayDataPackSection == null)
                 return;
 
+            bool needsExtendedOverlayPack = map.Basic.NewINIFormat >= 5;
+
             var stringBuilder = new StringBuilder();
             overlayPackSection.Keys.ForEach(kvp => stringBuilder.Append(kvp.Value));
             byte[] compressedData = Convert.FromBase64String(stringBuilder.ToString());
-            byte[] uncompressedOverlayPack = new byte[Constants.MAX_MAP_LENGTH_IN_DIMENSION * Constants.MAX_MAP_LENGTH_IN_DIMENSION];
+            byte[] uncompressedOverlayPack = new byte[Constants.MAX_MAP_LENGTH_IN_DIMENSION * Constants.MAX_MAP_LENGTH_IN_DIMENSION * (needsExtendedOverlayPack ? 2 : 1)];
             Format5.DecodeInto(compressedData, uncompressedOverlayPack, Constants.OverlayPackFormat);
 
             stringBuilder.Clear();
@@ -693,13 +717,26 @@ namespace TSMapEditor.Initialization
                         continue;
 
                     int overlayDataIndex = (tile.Y * Constants.MAX_MAP_LENGTH_IN_DIMENSION) + tile.X;
-                    int overlayTypeIndex = uncompressedOverlayPack[overlayDataIndex];
+
+                    int overlayTypeIndex;
+                    if (needsExtendedOverlayPack)
+                    {
+                        ushort index = BinaryPrimitives.ReadUInt16LittleEndian(new ReadOnlySpan<byte>(uncompressedOverlayPack, overlayDataIndex * 2, 2));
+                        overlayTypeIndex = index != ushort.MaxValue ? index : Constants.NO_OVERLAY;
+                    }
+                    else
+                    {
+                        byte index = uncompressedOverlayPack[overlayDataIndex];
+                        overlayTypeIndex = index != byte.MaxValue ? index : Constants.NO_OVERLAY;
+                    }
+
                     if (overlayTypeIndex == Constants.NO_OVERLAY)
                         continue;
 
                     if (overlayTypeIndex >= map.Rules.OverlayTypes.Count)
-                    {
-                        AddMapLoadError("Ignoring overlay on tile at " + x + ", " + y + " because it's out of bounds compared to Rules.ini overlay list");
+                    {                        
+                        AddMapLoadError(string.Format(Translate("MapLoader.ReadOverlays.OverlayIndexOutOfBounds",
+                            "Ignoring overlay on tile at {0},{1} because it's out of bounds compared to Rules.ini overlay list"), x, y));
                         continue;
                     }
 
@@ -730,7 +767,8 @@ namespace TSMapEditor.Initialization
                 var waypoint = Waypoint.ParseWaypoint(kvp.Key, kvp.Value);
                 if (waypoint == null)
                 {
-                    AddMapLoadError($"Invalid syntax encountered for waypoint: {kvp.Key}={kvp.Value}");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadWaypoints.InvalidWaypointSyntax", 
+                        "Invalid syntax encountered for waypoint: {0}={1}"), kvp.Key, kvp.Value));
                     continue;
                 }
 
@@ -756,7 +794,9 @@ namespace TSMapEditor.Initialization
                     waypoint.Position = nearestCell;
                     tile = map.GetTile(waypoint.Position);
 
-                    AddMapLoadError($"Waypoint {waypoint.Identifier} at {oldPosition} was not within the valid map area. It has been moved to {waypoint.Position}.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadWaypoints.WaypointOutOfBounds", 
+                        "Waypoint {0} at {1} was not within the valid map area. It has been moved to {2}."),
+                            waypoint.Identifier, oldPosition, waypoint.Position));
                 }
 
                 if (tile.Waypoints.Count > 0)
@@ -856,7 +896,10 @@ namespace TSMapEditor.Initialization
 
                         if (valueToSet != null)
                         {
-                            AddMapLoadError($"Trigger \"{trigger.Name}\" had action \"{triggerActionType.Name}\" with invalid value for uncustomizable parameter #{i}: \"{action.Parameters[i]}\". It has been automatically corrected to \"{valueToSet}\".");
+                            AddMapLoadError(string.Format(Translate("MapLoader.TriggerFix.InvalidTriggerAction",
+                                "Trigger \"{0}\" had action \"{1}\" with invalid value for uncustomizable " +
+                                    "parameter #{2}: \"{3}\". It has been automatically corrected to \"{4}\"."),
+                                    trigger.Name, triggerActionType.Name, i, action.Parameters[i], valueToSet));
                             action.Parameters[i] = valueToSet;
                         }
                     }
@@ -866,7 +909,10 @@ namespace TSMapEditor.Initialization
                     if (triggerActionType.Parameters[lastParamIndex].TriggerParamType == TriggerParamType.Unused && action.Parameters[lastParamIndex] != "A")
                     {
                         string valueToSet = "A";
-                        AddMapLoadError($"Trigger '{trigger.Name}' had action \"{triggerActionType.Name}\" with invalid value for uncustomizable parameter #{lastParamIndex}: \"{action.Parameters[lastParamIndex]}\". It has been automatically corrected to \"{valueToSet}\".");
+                        AddMapLoadError(string.Format(Translate("MapLoader.TriggerFix.InvalidTriggerAction",
+                            "Trigger \"{0}\" had action \"{1}\" with invalid value for uncustomizable parameter #{2}: \"{3}\". " +
+                                "It has been automatically corrected to \"{4}\"."),
+                                trigger.Name, triggerActionType.Name, lastParamIndex, action.Parameters[lastParamIndex], valueToSet));
                         action.Parameters[lastParamIndex] = valueToSet;
                     }
                 }
@@ -903,7 +949,9 @@ namespace TSMapEditor.Initialization
                 Trigger trigger = map.Triggers.Find(t => t.ID == triggerId);
                 if (trigger == null)
                 {
-                    AddMapLoadError("Ignoring tag " + kvp.Key + " because its related trigger " + triggerId + " does not exist!");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTags.TriggerNotFound",
+                        "Ignoring tag {0} because its related trigger {1} does not exist!"),
+                            kvp.Key, triggerId));
                     continue;
                 }
 
@@ -955,7 +1003,8 @@ namespace TSMapEditor.Initialization
                 string[] parts = kvp.Value.Split(',', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length != AI_TRIGGER_PROPERTY_FIELD_COUNT)
                 {
-                    AddMapLoadError($"AITriggerType {kvp.Key} is invalid, skipping reading it.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.InvalidAITriggerType",
+                        "AITriggerType {0} is invalid, skipping reading it."), kvp.Key));
                     continue;
                 }
 
@@ -966,21 +1015,25 @@ namespace TSMapEditor.Initialization
 
                 if (aiTriggerType.PrimaryTeam == null)
                 {
-                    AddMapLoadError($"AITriggerType \"{aiTriggerType.Name}\" ({kvp.Key}) has a nonexistent team ({parts[1]}) specified as its primary team!");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.PrimaryTeamNotFound", 
+                        "AITriggerType \"{0}\" ({1}) has a nonexistent team ({2}) specified as its primary team!"),
+                            aiTriggerType.Name, kvp.Key, parts[1]));
                 }
 
                 aiTriggerType.OwnerName = parts[2];
 
                 if (!int.TryParse(parts[3], CultureInfo.InvariantCulture, out int techLevel))
                 {
-                    AddMapLoadError($"AITriggerType {kvp.Key} has an invalid tech level, skipping parsing of the AI trigger.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.InvalidTechLevel", 
+                        "AITriggerType {0} has an invalid tech level, skipping parsing of the AI trigger."), kvp.Key));
                     continue;
                 }
                 aiTriggerType.TechLevel = techLevel;
 
                 if (!int.TryParse(parts[4], CultureInfo.InvariantCulture, out int conditionType))
                 {
-                    AddMapLoadError($"AITriggerType {kvp.Key} has an invalid condition type, skipping parsing of the AI trigger.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.InvalidConditionType", 
+                        "AITriggerType {0} has an invalid condition type, skipping parsing of the AI trigger."), kvp.Key));
                     continue;
                 }
 
@@ -992,7 +1045,8 @@ namespace TSMapEditor.Initialization
 
                     if (conditionObject == null)
                     {
-                        AddMapLoadError($"AITriggerType {kvp.Key} has a non-existent condition object \"{parts[5]}\"");
+                        AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.ConditionObjectNotFound", 
+                            "AITriggerType {0} has a non-existent condition object \"{1}\""), kvp.Key, parts[5]));
                     }
 
                     aiTriggerType.ConditionObject = conditionObject;
@@ -1002,7 +1056,9 @@ namespace TSMapEditor.Initialization
                 AITriggerComparator? comparator = AITriggerComparator.Parse(aiTriggerType.LoadedComparatorString);
                 if (comparator == null)
                 {
-                    AddMapLoadError($"Failed to parse comparator of AITriggerType {kvp.Key} ({aiTriggerType.Name})! Skipping loading of the AI trigger.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.ConditionComparatorParseError", 
+                        "Failed to parse comparator of AITriggerType {0} ({1})! Skipping loading of the AI trigger."),
+                        kvp.Key, aiTriggerType.Name));
                     continue;
                 }
                 aiTriggerType.Comparator = comparator.Value;
@@ -1021,7 +1077,9 @@ namespace TSMapEditor.Initialization
 
                     if (aiTriggerType.SecondaryTeam == null)
                     {
-                        AddMapLoadError($"AITriggerType {kvp.Key} has a non-existent secondary team type \"{parts[14]}\"");
+                        AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.SecondaryTeamNotFound",
+                            "AITriggerType {0} has a non-existent secondary team type \"{1}\""),
+                            kvp.Key, parts[14]));
                     }
                 }
 
@@ -1033,6 +1091,23 @@ namespace TSMapEditor.Initialization
             }
 
             Logger.Log("AITriggerTypes read successfully.");
+
+            section = mapIni.GetSection("AITriggerTypesEnable");
+            if (section == null)
+                return;
+
+            foreach (var kvp in section.Keys)
+            {
+                string aiTriggerININame = kvp.Key;
+
+                var aiTrigger = map.AITriggerTypes.Find(aiTriggerType => aiTriggerType.ININame == aiTriggerININame);
+                if (aiTrigger == null)
+                    continue;
+
+                aiTrigger.Enabled = Conversions.BooleanFromString(kvp.Value, aiTrigger.Enabled);
+            }
+
+            Logger.Log("AITriggerTypesEnable read successfully.");
         }
 
         public static void ReadHouseTypes(IMap map, IniFile mapIni)
@@ -1138,7 +1213,9 @@ namespace TSMapEditor.Initialization
                 var invalidBaseNodes = house.BaseNodes.FindAll(bn => !map.Rules.BuildingTypes.Exists(bt => bt.ININame == bn.StructureTypeName));
                 invalidBaseNodes.ForEach(bn =>
                 {
-                    AddMapLoadError($"Skipping loading invalid base node of house {houseName} for building type \"{bn.StructureTypeName}\". The building type does not exist in Rules!");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadHouses.InvalidBaseNode", 
+                        "Skipping loading invalid base node of house {0} for building type \"{1}\". The building type does not exist in Rules!"),
+                            houseName, bn.StructureTypeName));
                     house.BaseNodes.Remove(bn);
                 });
 
@@ -1150,7 +1227,9 @@ namespace TSMapEditor.Initialization
                     if (houseType == null)
                     {
                         houseType = map.GetHouseTypes()[0];
-                        AddMapLoadError($"Nonexistent Country= or no Country= specified for House {houseName}. This makes it default to the first standard Country ({houseType.ININame}).");
+                        AddMapLoadError(string.Format(Translate("MapLoader.ReadHouses.InvalidCountry", 
+                            "Nonexistent Country= or no Country= specified for House {0}. This makes it default to the first standard Country ({1})."),
+                                houseName, houseType.ININame));
                     }
                 }
                 else
@@ -1163,6 +1242,29 @@ namespace TSMapEditor.Initialization
                 {
                     houseType.Color = house.Color;
                     houseType.XNAColor = house.XNAColor;
+                }
+            }
+            
+            // Once all houses were loaded into WAE, read and set up the alliances of each house as a list of allied houses
+            foreach (var house in map.Houses)
+            {
+                var houseSection = mapIni.GetSection(house.ININame);
+                if (houseSection != null)
+                {
+                    List<string> allyHouseNames = houseSection.GetListValue("Allies", ',', s => s);
+                    foreach (string allyHouseName in allyHouseNames)
+                    {
+                        var alliedHouse = map.Houses.Find(house => house.ININame == allyHouseName);
+                        if (alliedHouse == null)
+                        {
+                            AddMapLoadError(string.Format(Translate("MapLoader.ReadHouses.NonexistentAlliedHouse", 
+                                "House with name {0} was not found when loading up allies for the house {1}. Skipping the alliance."),
+                                    allyHouseName, house.ININame));
+                            continue;
+                        }
+
+                        house.Allies.Add(alliedHouse);
+                    }
                 }
             }
 
@@ -1209,13 +1311,15 @@ namespace TSMapEditor.Initialization
             {
                 if (!int.TryParse(kvp.Key, out int variableIndex))
                 {
-                    AddMapLoadError($"Invalid local variable index in entry {kvp.Key}: {kvp.Value}, skipping reading local variable.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.InvalidIndex", 
+                        "Invalid local variable index in entry {0}: {1}, skipping reading local variable."), kvp.Key, kvp.Value));
                     continue;
                 }
 
                 if (map.LocalVariables.Exists(c => c.Index == variableIndex))
                 {
-                    AddMapLoadError($"Duplicate local variable index in entry {kvp.Key}: {kvp.Value}, skipping reading local variable.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.DuplicateIndex", 
+                        "Duplicate local variable index in entry {0}: {1}, skipping reading local variable."), kvp.Key, kvp.Value));
                     continue;
                 }
 
@@ -1223,7 +1327,8 @@ namespace TSMapEditor.Initialization
 
                 if (parts.Length != 2)
                 {
-                    AddMapLoadError($"Invalid local variable syntax in entry {kvp.Key}: {kvp.Value}, skipping reading local variable.");
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.InvalidSyntax", 
+                        "Invalid local variable syntax in entry {0}: {1}, skipping reading local variable."), kvp.Key, kvp.Value));
                     continue;
                 }
 
@@ -1267,7 +1372,8 @@ namespace TSMapEditor.Initialization
 
                 if (enterX < 1 || enterY < 1 || exitX < 1 || exitY < 1 || (int)initialFacing < -1 || initialFacing > TubeDirection.Max)
                 {
-                    AddMapLoadError("Invalid tube entry: " + kvp.Value);
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTubes.InvalidTube", 
+                        "Invalid tube entry: {0}"), kvp.Value));
                     continue;
                 }
 

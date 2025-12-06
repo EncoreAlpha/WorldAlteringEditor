@@ -40,20 +40,22 @@ namespace TSMapEditor.UI.Windows
             string filePath = (string)lbINIFiles.SelectedItem.Tag;
             if (!File.Exists(filePath))
             {
-                EditorMessageBox.Show(WindowManager, "找不到文件",
-                    "选择的INI文件不存在！ 可能已被删除", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "FileNotFound.Title", "Can't find file"),
+                    Translate(this, "FileNotFound.Description", "The selected INI file doesn't exist! Maybe it was deleted?"),
+                    MessageBoxButtons.OK);
 
                 return;
             }
 
             stagingINI = new IniFile((string)lbINIFiles.SelectedItem.Tag);
             
-            string confirmation = stagingINI.GetStringValue(EditorSection, "确认", null);
+            string confirmation = stagingINI.GetStringValue(EditorSection, "Confirmation", null);
             if (!string.IsNullOrWhiteSpace(confirmation))
             {
                 confirmation = Renderer.FixText(confirmation, Constants.UIDefaultFont, Width).Text;
 
-                var messageBox = EditorMessageBox.Show(WindowManager, "你确定吗？",
+                var messageBox = EditorMessageBox.Show(WindowManager, Translate(this, "ConfirmationTitle", "Are you sure?"),
                     confirmation, MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = (_) => ApplyCode();
             }
@@ -68,7 +70,7 @@ namespace TSMapEditor.UI.Windows
             if (stagingINI == null)
                 throw new InvalidOperationException("Staging INI is null!");
 
-            string successMessage = "INI 代码已成功添加到地图中。";
+            string successMessage = Translate(this, "CodeApplied.DefaultSuccessMessage", "INI code successfully added to map.");
             successMessage = stagingINI.GetStringValue(EditorSection, "Success", successMessage);
             successMessage = Renderer.FixText(successMessage, Constants.UIDefaultFont, Width).Text;
 
@@ -76,7 +78,10 @@ namespace TSMapEditor.UI.Windows
 
             IniFile.ConsolidateIniFiles(map.LoadedINI, stagingINI);
 
-            EditorMessageBox.Show(WindowManager, "已应用代码", successMessage, MessageBoxButtons.OK);
+            EditorMessageBox.Show(WindowManager, 
+                Translate(this, "CodeApplied.Title", "Code Applied"),
+                successMessage, 
+                MessageBoxButtons.OK);
         }
 
         public void Open()
@@ -88,7 +93,11 @@ namespace TSMapEditor.UI.Windows
             if (!Directory.Exists(directoryPath))
             {
                 Logger.Log("Map INI code directory not found!");
-                EditorMessageBox.Show(WindowManager, "错误", "地图INI目录不存在！\r\n\r\nExpected path: " + directoryPath, MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "DirectoryNotFound.Title", "Error"),
+                    string.Format(Translate(this, "DirectoryNotFound.Description", 
+                        "Map INI code directory not found!" + Environment.NewLine + Environment.NewLine + "Expected path: {0}"), directoryPath),
+                    MessageBoxButtons.OK);
                 return;
             }
 

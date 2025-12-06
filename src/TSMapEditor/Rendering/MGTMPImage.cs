@@ -20,45 +20,103 @@ namespace TSMapEditor.Rendering
     /// </summary>
     public class MGTMPImage : ISubTileImage
     {
-        public MGTMPImage(GraphicsDevice gd, TmpImage tmpImage, XNAPalette palette, int tileSetId)
+        /// <summary>
+        /// Creates a new MonoGame TMP image and copies its color data to a sprite sheet preparation object.
+        /// </summary>
+        /// <param name="tmpImage">The single-cell TMP image for this MonoGame TMP image instance.</param>
+        /// <param name="megaTexturePreparation">Mega texture preparation object.</param>
+        /// <param name="palette">The palette to use for this image.</param>
+        /// <param name="tileSetId">Index of the tile set of this image within all TileSets. Only tracked for convenience.</param>
+        public MGTMPImage(TmpImage tmpImage, GraphicsPreparationClass graphicsPreparationClass, XNAPalette palette, int tileSetId)
         {
             if (tmpImage != null)
             {
                 TmpImage = tmpImage;
                 Palette = palette;
-                Texture = TextureFromTmpImage_Paletted(gd, tmpImage);
+                byte[] data = RenderToRectangularBuffer(tmpImage);
 
-                if (tmpImage.ExtraGraphicsColorData != null && tmpImage.ExtraGraphicsColorData.Length > 0)
+                int extraWidth = tmpImage.HasExtraData() ? (int)tmpImage.ExtraWidth : 0;
+                int extraHeight = tmpImage.HasExtraData() ? (int)tmpImage.ExtraHeight : 0;
+                if (!graphicsPreparationClass.CanFitTexture(Constants.CellSizeX + extraWidth, Constants.CellSizeY + extraHeight))
                 {
-                    ExtraTexture = TextureFromExtraTmpData_Paletted(gd, tmpImage);
+                    graphicsPreparationClass.GenerateNewSpriteSheetWorkingObject();
+                }
+
+                Point offset = graphicsPreparationClass.AddImage(Constants.CellSizeX, Constants.CellSizeY, data, this);
+                SourceRectangle = new Rectangle(offset.X, offset.Y, Constants.CellSizeX, Constants.CellSizeY);
+
+                if (tmpImage.HasExtraData())
+                {
+                    byte[] extraData = RenderExtraDataToBuffer(tmpImage);
+                    offset = graphicsPreparationClass.AddImage(extraWidth, extraHeight, extraData, null); // don't add this object to the meta twice
+                    ExtraSourceRectangle = new Rectangle(offset.X, offset.Y, extraWidth, extraHeight);
                 }
             }
 
             TileSetId = tileSetId;
         }
 
-        public Texture2D Texture { get; }
-        public Texture2D ExtraTexture { get; }
+        /// <summary>
+        /// The mega-texture where this sub-tile's texture is stored.
+        /// </summary>
+        public Texture2D Texture { get; set; }
+        public Rectangle SourceRectangle { get; set; }
+        public Rectangle ExtraSourceRectangle { get; set; }
 
         public int TileSetId { get; }
         public TmpImage TmpImage { get; private set; }
         private XNAPalette Palette { get; set; }
 
-        public void Dispose()
+        private byte[] RenderToRectangularBuffer(TmpImage image)
         {
-            if (Texture == null && ExtraTexture == null)
-                return;
+            byte[] colorData = new byte[Constants.CellSizeX * Constants.CellSizeY];
 
-            // Workaround for a bug in SharpDX where it can crash when freeing a texture
-            try
+            int tmpPixelIndex = 0;
+            int w = 4;
+            for (int y = 0; y < Constants.CellSizeY; y++)
             {
-                Texture?.Dispose();
-                ExtraTexture?.Dispose();
+                int xPos = Constants.CellSizeY - (w / 2);
+                for (int x = 0; x < w; x++)
+                {
+                    if (image.ColorData[tmpPixelIndex] > 0)
+                    {
+                        colorData[y * Constants.CellSizeX + xPos] = image.ColorData[tmpPixelIndex];
+                    }
+
+                    xPos++;
+                    tmpPixelIndex++;
+                }
+
+                if (y < (Constants.CellSizeY / 2) - 1)
+                    w += 4;
+                else
+                    w -= 4;
             }
-            catch (InvalidOperationException)
+
+            return colorData;
+        }
+
+        private byte[] RenderExtraDataToBuffer(TmpImage image)
+        {
+            int width = (int)image.ExtraWidth;
+            int height = (int)image.ExtraHeight;
+
+            byte[] colorData = new byte[width * height];
+
+            for (int y = 0; y < height; y++)
             {
-                Logger.Log($"Failed to free a TMP texture! TileSet: {TileSetId}");
+                for (int x = 0; x < width; x++)
+                {
+                    int tmpExtraPixelIndex = (y * width) + x;
+
+                    if (image.ExtraGraphicsColorData[tmpExtraPixelIndex] > 0)
+                    {
+                        colorData[y * width + x] = image.ExtraGraphicsColorData[tmpExtraPixelIndex];
+                    }
+                }
             }
+
+            return colorData;
         }
 
         private Texture2D TextureFromTmpImage_Paletted(GraphicsDevice graphicsDevice, TmpImage image)

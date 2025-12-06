@@ -12,6 +12,7 @@ namespace TSMapEditor.UI.Controls
         {
             FontIndex = Constants.UIBoldFont;
             Height = Constants.UIButtonHeight;
+            AlphaRate = 0.005f; // Override default animation rate in UISettings
         }
 
         public Texture2D ExtraTexture { get; set; }

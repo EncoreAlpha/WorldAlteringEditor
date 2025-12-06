@@ -7,12 +7,14 @@ namespace TSMapEditor.UI.Windows
 {
     public class SelectThemeWindow : SelectObjectWindow<Theme>
     {
-        public SelectThemeWindow(WindowManager windowManager, Map map) : base(windowManager)
+        public SelectThemeWindow(WindowManager windowManager, Map map, bool includeNone) : base(windowManager)
         {
             this.map = map;
+            this.includeNone = includeNone;
         }
 
         private readonly Map map;
+        private readonly bool includeNone;
 
         public override void Initialize()
         {
@@ -34,6 +36,11 @@ namespace TSMapEditor.UI.Windows
         protected override void ListObjects()
         {
             lbObjectList.Clear();
+
+            if (includeNone)
+            {
+                lbObjectList.AddItem(new XNAListBoxItem() { Text = Translate(this, "None", "None") });
+            }
 
             foreach (var theme in map.Rules.Themes.List)
             {

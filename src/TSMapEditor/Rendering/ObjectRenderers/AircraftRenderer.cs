@@ -33,7 +33,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         {
             DrawVoxelModel(gameObject, drawParams.MainVoxel,
                 gameObject.Facing, RampType.None, Color.White, true, gameObject.GetRemapColor(),
-                Constants.VoxelsAffectedByLighting, drawPoint, 0f, true);
+                Constants.VoxelsAffectedByLighting, drawPoint, 0f);
         }
     }
 }

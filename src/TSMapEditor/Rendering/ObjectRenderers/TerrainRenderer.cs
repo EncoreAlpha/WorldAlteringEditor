@@ -21,23 +21,6 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             };
         }
 
-        protected override float GetDepthFromPosition(TerrainObject gameObject, Rectangle drawingBounds)
-        {
-            // Terrain objects are not meant to graphically leak to cells below themselves,
-            // unless specifically configured to (which is handled in GetSouthernmostCell).
-            // We override this method to prevent the default behaviour.
-            var southernmostCell = GetSouthernmostCell(gameObject);
-
-            int height = 0;
-            if (southernmostCell != null)
-            {
-                height = southernmostCell.Level;
-            }
-
-            return ((CellMath.CellTopLeftPointFromCellCoords(southernmostCell.CoordsToPoint(), Map).Y + Constants.CellSizeY) / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
-                (height * Constants.DepthRenderStep);
-        }
-
         protected override float GetDepthAddition(TerrainObject gameObject)
         {
             return Constants.DepthEpsilon * ObjectDepthAdjustments.Terrain;

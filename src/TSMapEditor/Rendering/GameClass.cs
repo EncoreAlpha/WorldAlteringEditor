@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿global using static TSMapEditor.Misc.Translator;
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -7,6 +9,10 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
+#if WINDOWS
+using System.Windows.Forms;
+using TSMapEditor.UI.IME;
+#endif
 using TSMapEditor.CCEngine;
 using TSMapEditor.Misc;
 using TSMapEditor.Settings;
@@ -50,8 +56,12 @@ namespace TSMapEditor.Rendering
 
             AutoLATType.InitArray();
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            TranslatorSetup.LoadTranslations();
             Constants.Init();
             new UserSettings();
+            TranslatorSetup.SetActiveTranslation(UserSettings.Instance.Language);
+
             AutosaveTimer.Purge();
 
             graphics = new GraphicsDeviceManager(this);
@@ -119,7 +129,24 @@ namespace TSMapEditor.Rendering
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
             AssetLoader.Initialize(GraphicsDevice, Content);
+            AssetLoader.AssetSearchPaths.Add(Path.Combine(Environment.CurrentDirectory, "Content", "Translations", TranslatorSetup.ActiveTranslationDirectory()));
             AssetLoader.AssetSearchPaths.Add(Environment.CurrentDirectory + DSC + "Content" + DSC);
+
+            // Hack: allow translations to override fonts
+            int i = 0;
+            while (true)
+            {
+                string spriteFontPath = Path.Combine("Translations", TranslatorSetup.ActiveTranslationDirectory(), "SpriteFont" + i + ".xnb");
+                if (AssetLoader.AssetExists(Path.Combine(Environment.CurrentDirectory, "Content", spriteFontPath)))
+                {
+                    var spriteFont = Content.Load<SpriteFont>(spriteFontPath);
+                    Renderer.GetFontList()[i] = spriteFont;
+                }
+                else
+                {
+                    break;
+                }
+            }
 
             windowManager = new WindowManager(this, graphics);
             windowManager.Initialize(Content, Environment.CurrentDirectory + DSC + "Content" + DSC);
@@ -138,6 +165,20 @@ namespace TSMapEditor.Rendering
             menuWidth = (int)(menuWidth * dpi_ratio);
             menuHeight = (int)(menuHeight * dpi_ratio);
 
+#if WINDOWS
+            // If the user has a very large display at 100% DPI, it's probably best to integer-upscale the main menu.
+            if (dpi_ratio <= 1.0)
+            {
+                const int minScaleRatio = 3;
+                if (Screen.PrimaryScreen.Bounds.Width >= menuRenderWidth * minScaleRatio &&
+                    Screen.PrimaryScreen.Bounds.Height >= menuRenderHeight * minScaleRatio)
+                {
+                    menuWidth = menuRenderWidth * 2;
+                    menuHeight = menuRenderHeight * 2;
+                }
+            }
+#endif
+
             windowManager.InitGraphicsMode(menuWidth, menuHeight, false);
 
             windowManager.SetRenderResolution(menuRenderWidth, menuRenderHeight);
@@ -153,6 +194,11 @@ namespace TSMapEditor.Rendering
                 PanelBackgroundColor = new Color(32, 32, 32),
                 PanelBorderColor = new Color(196, 196, 196)
             };
+
+#if WINDOWS
+            IMEHandler imeHandler = IMEHandler.Create(this);
+            windowManager.IMEHandler = imeHandler;
+#endif
 
             InitMainMenu();
         }

@@ -19,7 +19,6 @@ namespace TSMapEditor.UI
 {
     public class MainMenu : EditorPanel
     {
-        private const string DirectoryPrefix = "<目录> ";
         private const int BrowseButtonWidth = 70;
 
         public MainMenu(WindowManager windowManager) : base(windowManager)
@@ -51,7 +50,7 @@ namespace TSMapEditor.UI
             lblGameDirectory.Name = nameof(lblGameDirectory);
             lblGameDirectory.X = Constants.UIEmptySideSpace;
             lblGameDirectory.Y = Constants.UIEmptyTopSpace;
-            lblGameDirectory.Text = "游戏目录:";
+            lblGameDirectory.Text = Translate(this, "GameDirectoryText", "Path to the game directory:");
             AddChild(lblGameDirectory);
 
             tbGameDirectory = new EditorTextBox(WindowManager);
@@ -80,7 +79,7 @@ namespace TSMapEditor.UI
             btnBrowseGameDirectory = new EditorButton(WindowManager);
             btnBrowseGameDirectory.Name = nameof(btnBrowseGameDirectory);
             btnBrowseGameDirectory.Width = BrowseButtonWidth;
-            btnBrowseGameDirectory.Text = "浏览...";
+            btnBrowseGameDirectory.Text = Translate(this, "BrowseGameDirectoryText", "Browse...");
             btnBrowseGameDirectory.Y = tbGameDirectory.Y;
             btnBrowseGameDirectory.X = tbGameDirectory.Right + Constants.UIEmptySideSpace;
             btnBrowseGameDirectory.Height = tbGameDirectory.Height;
@@ -91,7 +90,7 @@ namespace TSMapEditor.UI
             lblMapPath.Name = nameof(lblMapPath);
             lblMapPath.X = Constants.UIEmptySideSpace;
             lblMapPath.Y = tbGameDirectory.Bottom + Constants.UIEmptyTopSpace;
-            lblMapPath.Text = "要加载的地图文件的路径（可以是相对于游戏目录的路径）:";
+            lblMapPath.Text = Translate(this, "MapPathText", "Path of the map file to load (can be relative to game directory):");
             AddChild(lblMapPath);
 
             tbMapPath = new EditorTextBox(WindowManager);
@@ -106,7 +105,7 @@ namespace TSMapEditor.UI
             btnBrowseMapPath = new EditorButton(WindowManager);
             btnBrowseMapPath.Name = nameof(btnBrowseMapPath);
             btnBrowseMapPath.Width = BrowseButtonWidth;
-            btnBrowseMapPath.Text = "浏览...";
+            btnBrowseMapPath.Text = Translate(this, "MapPathBrowse", "Browse...");
             btnBrowseMapPath.Y = tbMapPath.Y;
             btnBrowseMapPath.X = tbMapPath.Right + Constants.UIEmptySideSpace;
             btnBrowseMapPath.Height = tbMapPath.Height;
@@ -116,7 +115,7 @@ namespace TSMapEditor.UI
             btnLoad = new EditorButton(WindowManager);
             btnLoad.Name = nameof(btnLoad);
             btnLoad.Width = 150;
-            btnLoad.Text = "载入";
+            btnLoad.Text = Translate(this, "Load", "Load");
             btnLoad.Y = Height - btnLoad.Height - Constants.UIEmptyBottomSpace;
             btnLoad.X = Width - btnLoad.Width - Constants.UIEmptySideSpace;
             AddChild(btnLoad);
@@ -125,7 +124,7 @@ namespace TSMapEditor.UI
             var btnCreateNewMap = new EditorButton(WindowManager);
             btnCreateNewMap.Name = nameof(btnCreateNewMap);
             btnCreateNewMap.Width = 150;
-            btnCreateNewMap.Text = "新建地图...";
+            btnCreateNewMap.Text = Translate(this, "NewMapText", "New Map...");
             btnCreateNewMap.X = Constants.UIEmptySideSpace;
             btnCreateNewMap.Y = btnLoad.Y;
             AddChild(btnCreateNewMap);
@@ -133,7 +132,7 @@ namespace TSMapEditor.UI
 
             var lblCopyright = new XNALabel(WindowManager);
             lblCopyright.Name = nameof(lblCopyright);
-            lblCopyright.Text = "Created by Rampastring";
+            lblCopyright.Text = Translate(this, "CopyrightText", "Created by Rampastring");
             lblCopyright.TextColor = UISettings.ActiveSettings.SubtleTextColor;
             AddChild(lblCopyright);
             lblCopyright.CenterOnControlVertically(btnCreateNewMap);
@@ -149,7 +148,7 @@ namespace TSMapEditor.UI
                 lblRecentFiles.Name = nameof(lblRecentFiles);
                 lblRecentFiles.X = Constants.UIEmptySideSpace;
                 lblRecentFiles.Y = directoryListingY;
-                lblRecentFiles.Text = "最近打开文件:";
+                lblRecentFiles.Text = Translate(this, "RecentFilesText", "Recent files:");
                 AddChild(lblRecentFiles);
 
                 var recentFilesPanel = new RecentFilesPanel(WindowManager);
@@ -167,7 +166,7 @@ namespace TSMapEditor.UI
             lblDirectoryListing.Name = nameof(lblDirectoryListing);
             lblDirectoryListing.X = Constants.UIEmptySideSpace;
             lblDirectoryListing.Y = directoryListingY;
-            lblDirectoryListing.Text = "或者从下面选择地图文件:";
+            lblDirectoryListing.Text = Translate(this, "DirectoryListingText", "Alternatively, select a map file below:");
             AddChild(lblDirectoryListing);
 
             lbFileList = new FileBrowserListBox(WindowManager);
@@ -181,12 +180,19 @@ namespace TSMapEditor.UI
             AddChild(lbFileList);
 
             settingsPanel = new SettingsPanel(WindowManager);
-            settingsPanel.Name = nameof(settingsPanel);
             settingsPanel.X = Width;
             settingsPanel.Y = Constants.UIEmptyTopSpace;
-            settingsPanel.Height = Height - Constants.UIEmptyTopSpace - Constants.UIEmptyBottomSpace;
             AddChild(settingsPanel);
+            settingsPanel.Height = lbFileList.Bottom - settingsPanel.Y;
             Width += settingsPanel.Width + Constants.UIEmptySideSpace;
+
+            var lblVersion = new XNALabel(WindowManager);
+            lblVersion.Name = nameof(lblVersion);
+            lblVersion.Text = string.Format(Translate(this, "VersionText", "Version {0}"), Constants.ReleaseVersion);
+            lblVersion.TextColor = UISettings.ActiveSettings.SubtleTextColor;
+            AddChild(lblVersion);
+            lblVersion.CenterOnControlVertically(btnLoad);
+            lblVersion.X = Width - lblVersion.Width - Constants.UIEmptySideSpace;
 
             string directoryPath = string.Empty;
 
@@ -250,7 +256,7 @@ namespace TSMapEditor.UI
         {
             string error = MapSetup.InitializeMap(gameDirectory, true, null, e, WindowManager);
             if (!string.IsNullOrWhiteSpace(error))
-                throw new InvalidOperationException("创建新地图失败！错误信息: " + error);
+                throw new InvalidOperationException("Failed to create new map! Returned error message: " + error);
 
             MapSetup.LoadTheaterGraphics(WindowManager, gameDirectory);
             ((CreateNewMapWindow)sender).OnCreateNewMap -= CreateMapWindow_OnCreateNewMap;
@@ -323,7 +329,7 @@ namespace TSMapEditor.UI
             catch (Exception ex)
             {
                 tbGameDirectory.Text = string.Empty;
-                Logger.Log("从 Windows 注册表中读取游戏安装路径失败！错误信息: " + ex.Message);
+                Logger.Log("Failed to read game installation path from the Windows registry! Exception message: " + ex.Message);
             }
         }
 
@@ -357,8 +363,10 @@ namespace TSMapEditor.UI
             if (!VerifyGameDirectory())
             {
                 EditorMessageBox.Show(WindowManager,
-                    "Invalid game directory",
-                    $"{Constants.ExpectedClientExecutableNames[0]} not found, please check that you typed the correct game directory.",
+                    Translate(this, "InvalidGameDirectory.Title", "Invalid game directory"),
+                    string.Format(Translate(this, "InvalidGameDirectory.Description", 
+                        "{0} not found, please check that you typed the correct game directory."), 
+                            Constants.ExpectedClientExecutableNames[0]),
                     MessageBoxButtons.OK);
 
                 return false;
@@ -382,7 +390,7 @@ namespace TSMapEditor.UI
             bool fullscreenWindowed = UserSettings.Instance.FullscreenWindowed.GetValue();
             bool borderless = UserSettings.Instance.Borderless.GetValue();
             if (fullscreenWindowed && !borderless)
-                throw new InvalidOperationException("如果启用了全屏模式，则不能勾选无边框。");
+                throw new InvalidOperationException("Borderless= cannot be set to false if FullscreenWindowed= is enabled.");
 
             WindowManager.CenterControlOnScreen(this);
 
@@ -441,8 +449,8 @@ namespace TSMapEditor.UI
             if (!File.Exists(mapPath))
             {
                 EditorMessageBox.Show(WindowManager,
-                    "地图路径无效",
-                    "未找到指定的地图文件。请重新检查地图文件的路径。",
+                    Translate(this, "InvalidMapPath.Title", "Invalid map path"),
+                    Translate(this, "InvalidMapPath.Description", "Specified map file not found. Please re-check the path to the map file."),
                     MessageBoxButtons.OK);
 
                 return;
@@ -479,7 +487,11 @@ namespace TSMapEditor.UI
             {
                 ApplySettings();
 
-                var messageBox = new EditorMessageBox(WindowManager, "载入中", "请稍后,正在载入地图...", MessageBoxButtons.None);
+                var messageBox = new EditorMessageBox(WindowManager, 
+                    Translate(this, "Loading.Title", "Loading"),
+                    Translate(this, "Loading.Description", "Please wait, loading map..."),
+                    MessageBoxButtons.None);
+
                 var dp = new DarkeningPanel(WindowManager);
                 AddChild(dp);
                 dp.AddChild(messageBox);
@@ -488,7 +500,10 @@ namespace TSMapEditor.UI
             }
 
             loadingStage = 0;
-            EditorMessageBox.Show(WindowManager, "加载文件出错", error, MessageBoxButtons.OK);
+            EditorMessageBox.Show(WindowManager, 
+                Translate(this, "MapLoadError.Title", "Error Loading File"),
+                error,
+                MessageBoxButtons.OK);
         }
 
         private void LoadTheater()

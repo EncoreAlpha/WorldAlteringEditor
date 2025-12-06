@@ -1,5 +1,7 @@
 ﻿using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using System;
+using System.Globalization;
 using TSMapEditor.Models;
 using TSMapEditor.UI.Controls;
 
@@ -22,6 +24,8 @@ namespace TSMapEditor.UI.Windows
         private EditorNumberTextBox tbCarryOverCap;
         private EditorNumberTextBox tbPercent;
         private EditorNumberTextBox tbInitialTime;
+        private EditorNumberTextBox tbHomeCell;
+        private EditorPopUpSelector selTheme;        
         private XNACheckBox chkEndOfGame;
         private XNACheckBox chkOneTimeOnly;
         private XNACheckBox chkSkipScore;
@@ -36,8 +40,9 @@ namespace TSMapEditor.UI.Windows
         private XNACheckBox chkGrowingIce;
         private XNACheckBox chkTiberiumDeathToVisceroid;
         private XNACheckBox chkFreeRadar;
-        private XNACheckBox chkRequiredAddOn;
+        private XNACheckBox chkRequiredAddOn;        
 
+        private SelectThemeWindow selectThemeWindow;
 
         public override void Initialize()
         {
@@ -49,6 +54,11 @@ namespace TSMapEditor.UI.Windows
             tbCarryOverCap = FindChild<EditorNumberTextBox>(nameof(tbCarryOverCap));
             tbPercent = FindChild<EditorNumberTextBox>(nameof(tbPercent));
             tbInitialTime = FindChild<EditorNumberTextBox>(nameof(tbInitialTime));
+
+            tbHomeCell = FindChild<EditorNumberTextBox>(nameof(tbHomeCell));            
+            tbHomeCell.MaximumTextLength = (Constants.MaxWaypoint - 1).ToString(CultureInfo.InvariantCulture).Length;
+
+            selTheme = FindChild<EditorPopUpSelector>(nameof(selTheme));
             chkEndOfGame = FindChild<XNACheckBox>(nameof(chkEndOfGame));
             chkOneTimeOnly = FindChild<XNACheckBox>(nameof(chkOneTimeOnly));
             chkSkipScore = FindChild<XNACheckBox>(nameof(chkSkipScore));
@@ -63,7 +73,13 @@ namespace TSMapEditor.UI.Windows
             chkGrowingIce = FindChild<XNACheckBox>(nameof(chkGrowingIce));
             chkTiberiumDeathToVisceroid = FindChild<XNACheckBox>(nameof(chkTiberiumDeathToVisceroid));
             chkFreeRadar = FindChild<XNACheckBox>(nameof(chkFreeRadar));
-            chkRequiredAddOn = FindChild<XNACheckBox>(nameof(chkRequiredAddOn));
+            chkRequiredAddOn = FindChild<XNACheckBox>(nameof(chkRequiredAddOn));            
+
+            selectThemeWindow = new SelectThemeWindow(WindowManager, map, true);
+            var themeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectThemeWindow);
+            themeDarkeningPanel.Hidden += ThemeDarkeningPanel_Hidden;
+
+            selTheme.LeftClick += SelTheme_LeftClick;
 
             FindChild<EditorButton>("btnApply").LeftClick += BtnApply_LeftClick;
         }
@@ -77,6 +93,11 @@ namespace TSMapEditor.UI.Windows
             tbCarryOverCap.Value = map.Basic.CarryOverCap;
             tbPercent.Value = map.Basic.Percent;
             tbInitialTime.Value = map.Basic.InitTime;
+            tbHomeCell.Value = map.Basic.HomeCell;
+
+            selTheme.Tag = map.Rules.Themes.GetByININame(map.Basic.Theme);
+            selTheme.Text = selTheme.Tag != null ? selTheme.Tag.ToString() : Constants.NoneValue2;
+
             chkEndOfGame.Checked = map.Basic.EndOfGame;
             chkOneTimeOnly.Checked = map.Basic.OneTimeOnly;
             chkSkipScore.Checked = map.Basic.SkipScore;
@@ -103,6 +124,8 @@ namespace TSMapEditor.UI.Windows
             map.Basic.CarryOverCap = tbCarryOverCap.Value;
             map.Basic.Percent = tbPercent.Value;
             map.Basic.InitTime = tbInitialTime.Value;
+            map.Basic.HomeCell = tbHomeCell.Value;
+            map.Basic.Theme = selTheme.Tag != null ? ((Theme)selTheme.Tag).ININame : null;
             map.Basic.EndOfGame = chkEndOfGame.Checked;
             map.Basic.OneTimeOnly = chkOneTimeOnly.Checked;
             map.Basic.SkipScore = chkSkipScore.Checked;
@@ -121,6 +144,18 @@ namespace TSMapEditor.UI.Windows
             {
                 map.Basic.RequiredAddOn = chkRequiredAddOn.Checked ? 1 : 0;
             }
+        }
+
+        private void ThemeDarkeningPanel_Hidden(object sender, EventArgs e)
+        {
+            selTheme.Tag = selectThemeWindow.SelectedObject;
+            selTheme.Text = selTheme.Tag != null ? selectThemeWindow.SelectedObject.ToString() : Constants.NoneValue2;
+        }
+
+        private void SelTheme_LeftClick(object sender, EventArgs e)
+        {
+            Theme theme = (Theme)selTheme.Tag;
+            selectThemeWindow.Open(theme);
         }
     }
 }

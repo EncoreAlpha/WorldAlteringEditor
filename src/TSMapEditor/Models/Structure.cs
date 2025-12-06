@@ -337,6 +337,8 @@ namespace TSMapEditor.Models
 
             clone.UpdatePowerUpAnims();
 
+            clone.LitTiles = new List<MapTile>();
+
             return clone;
         }
     }

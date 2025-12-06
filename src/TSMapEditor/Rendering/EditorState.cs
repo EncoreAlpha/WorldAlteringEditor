@@ -202,6 +202,20 @@ namespace TSMapEditor.Rendering
             }
         }
 
+        private bool _lightDisabledLightSources = false;
+        public bool LightDisabledLightSources
+        {
+            get => _lightDisabledLightSources;
+            set
+            {
+                if (value != _lightDisabledLightSources)
+                {
+                    _lightDisabledLightSources = value;
+                    IsLightingChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
         private bool _isLighting = true;
         public bool IsLighting
         {

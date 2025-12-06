@@ -36,6 +36,14 @@ WAE supports all target games through a single executable. All submitted code _m
 
 There are 3 branches: `master` is for Dawn of the Tiberium Age, `tsclient` is for Tiberian Sun (CnCNet Client version), and `yr` is for Yuri's Revenge. Code-wise these branches are identical, but `tsclient` and `yr` have one additional commit that gives them different INI configurations compared to `master`.
 
+### Translations
+
+If your code introduces new strings that are displayed in the user interface, the strings _must_ go through the fitting `Translate` function to enable multi-language support. The codebase has a lot of examples on how to do this. Also, you need to add the new strings in a fitting location in the `Translation_en.ini` reference translation file.
+
+Strings that are generally not meant to be displayed in the user interface (such as logging calls and thrown exceptions) should not be translated, and should always be written in English.
+
+If your code significantly modifies existing strings so that their meaning is changed (fixing typos etc. does not count), you need to update the translation key for that string to signal the change to translators. A good way to do this is to append an incrementing version identifier to the translation key, or increment the key if it already exists. For example, if you modified the `ExpandMapWindow.InvalidWidth.Title` string in a significant way, you'd change its translation key to `ExpandMapWindow.InvalidWidth.Title.v2`. If then, you returned and changed its meaning again at a later date, you'd change the translation key to `ExpandMapWindow.InvalidWidth.Title.v3`.
+
 ### Pull Requests
 
 Make sure that the scope of your pull request is well defined. Pull requests can take significant developer time to review and very large pull requests or pull requests with poorly defined scope can be difficult to review.

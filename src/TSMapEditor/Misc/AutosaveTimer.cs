@@ -26,7 +26,7 @@ namespace TSMapEditor.Misc
         private void DoSave()
         {
             var now = DateTime.Now;
-            string timestamp = $"{now.Year}_{now.Month:D2}_{now.Day:D2}_{now.Hour:D2}_{now.Second:D2}";
+            string timestamp = $"{now.Year}_{now.Month:D2}_{now.Day:D2}_{now.Hour:D2}_{now.Minute:D2}_{now.Second:D2}";
             map.AutoSave(Path.Combine(Path.GetDirectoryName(Environment.ProcessPath), AutoSavesDirectory, $"autosave_{timestamp}{MapFileExtension}"));
         }
 

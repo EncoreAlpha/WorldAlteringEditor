@@ -15,7 +15,7 @@ namespace TSMapEditor.UI.CursorActions
         {
         }
 
-        public override string GetName() => "Calculate Resource Value";
+        public override string GetName() => Translate("Name", "Calculate Resource Value");
 
         public override bool DrawCellCursor => true;
 
@@ -35,7 +35,7 @@ namespace TSMapEditor.UI.CursorActions
         {
             if (StartCellCoords == null)
             {
-                DrawText(cellCoords, cameraTopLeftPoint, 60, -150, "点击选择要计算的起始单元格。", Color.Yellow);
+                DrawText(cellCoords, cameraTopLeftPoint, 60, -150, Translate("StartCellInstruction", "Click to select starting cell to calculate from."), Color.Yellow);
                 return;
             }
 
@@ -64,8 +64,8 @@ namespace TSMapEditor.UI.CursorActions
             Renderer.DrawLine(corner1.ToXNAVector(), endPoint.ToXNAVector(), lineColor, thickness);
             Renderer.DrawLine(corner2.ToXNAVector(), endPoint.ToXNAVector(), lineColor, thickness);
 
-            string text = "点击选择要计算的起始单元格。" + Environment.NewLine + Environment.NewLine +
-                "当前区域价值: " + GetTiberiumValue(startY, endY, startX, endX) + " 单位";
+            string text = Translate("StartCellInstruction", "Click to select starting cell to calculate from.") + Environment.NewLine + Environment.NewLine +
+                string.Format(Translate("ValueInArea", "Value in current area: {0} credits"), GetTiberiumValue(startY, endY, startX, endX));
             DrawText(cellCoords, cameraTopLeftPoint, 60, -150, text, Color.Yellow);
         }
 

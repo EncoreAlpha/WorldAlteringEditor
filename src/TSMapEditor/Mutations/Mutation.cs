@@ -253,5 +253,13 @@ namespace TSMapEditor.Mutations
                 }
             }
         }
+
+        protected void RefreshCellLighting(MapTile cell)
+        {
+            if (cell == null)
+                return;
+
+            cell.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState, MutationTarget.LightDisabledLightSources);
+        }
     }
 }

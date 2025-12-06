@@ -23,6 +23,15 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         protected override float GetDepthAddition(Infantry gameObject)
         {
+            if (gameObject.High)
+            {
+                // Add extra depth to the unit so it is rendered above the bridge.
+                // Why are we adding exactly this much?
+                // Because it happened to work - this is at least currently no smart mathematical formula.
+                int height = Constants.CellSizeY * 7;
+                return ((height / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace) + (4 * Constants.DepthRenderStep) + Constants.DepthEpsilon * ObjectDepthAdjustments.Vehicle;
+            }
+
             return Constants.DepthEpsilon * ObjectDepthAdjustments.Infantry;
         }
 
@@ -32,7 +41,6 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         {
             Point2D drawPoint = base.GetDrawPoint(gameObject);
             Point2D subCellOffset = CellMath.GetSubCellOffset(gameObject.SubCell);
-
             return drawPoint + subCellOffset;
         }
 

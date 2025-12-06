@@ -21,6 +21,7 @@ namespace TSMapEditor.UI
             this.map = map;
             this.theaterGraphics = theaterGraphics;
             this.editorState = editorState;
+            InputEnabled = false;
         }
 
         private readonly Map map;
@@ -78,39 +79,39 @@ namespace TSMapEditor.UI
 
             if (editorState.CursorAction != null)
             {
-                textRenderer.AddTextPart(new XNATextPart("工具: ", Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextPart(new XNATextPart(Translate(this, "SelectedTool", "Selected tool: "), Constants.UIDefaultFont, subtleTextColor));
                 textRenderer.AddTextPart(new XNATextPart(editorState.CursorAction.GetName() + Environment.NewLine, Constants.UIDefaultFont, baseTextColor));
             }
             else
             {
-                textRenderer.AddTextPart(new XNATextPart("无" + Environment.NewLine, Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextPart(new XNATextPart(Translate(this, "NoToolSelected", "No tool selected") + Environment.NewLine, Constants.UIDefaultFont, subtleTextColor));
             }
 
             textRenderer.AddTextPart(new XNATextPart(MapTile.X + ", " + MapTile.Y + Environment.NewLine, Constants.UIDefaultFont, baseTextColor));
 
             TileImage tileGraphics = theaterGraphics.GetTileGraphics(MapTile.TileIndex);
             TileSet tileSet = theaterGraphics.Theater.TileSets[tileGraphics.TileSetId];
-            textRenderer.AddTextPart(new XNATextPart("图块类型: ", Constants.UIDefaultFont, subtleTextColor));
+            textRenderer.AddTextPart(new XNATextPart(Translate(this, "TileSet", "TileSet: "), Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart(tileSet.SetName + " (" + tileGraphics.TileSetId + ")", Constants.UIDefaultFont, baseTextColor));
-            textRenderer.AddTextPart(new XNATextPart("图块 #: ", Constants.UIDefaultFont, subtleTextColor));
+            textRenderer.AddTextPart(new XNATextPart(Translate(this, "TileNumber", "Tile #: "), Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart((MapTile.TileIndex - tileSet.StartTileIndex).ToString(CultureInfo.InvariantCulture), Constants.UIDefaultFont, baseTextColor));
 
             MGTMPImage subCellImage = MapTile.SubTileIndex < tileGraphics.TMPImages.Length ? tileGraphics.TMPImages[MapTile.SubTileIndex] : null;
-            string terrainType = subCellImage != null && subCellImage.TmpImage != null ? Helpers.LandTypeToString(subCellImage.TmpImage.TerrainType) : "Unknown";
+            string terrainType = subCellImage != null && subCellImage.TmpImage != null ? Helpers.LandTypeToString(subCellImage.TmpImage.TerrainType) : Translate(this, "Unknown", "Unknown");
 
-            textRenderer.AddTextLine(new XNATextPart("地形: ", Constants.UIDefaultFont, subtleTextColor));
+            textRenderer.AddTextLine(new XNATextPart(Translate(this, "TerrainType", "Terrain Type: "), Constants.UIDefaultFont, subtleTextColor));
             textRenderer.AddTextPart(new XNATextPart(terrainType, Constants.UIDefaultFont, baseTextColor));
 
             if (!Constants.IsFlatWorld)
             {
-                textRenderer.AddTextLine(new XNATextPart("地表高度: ", Constants.UIDefaultFont, subtleTextColor));
+                textRenderer.AddTextLine(new XNATextPart(Translate(this, "Height", "Height: "), Constants.UIDefaultFont, subtleTextColor));
                 textRenderer.AddTextPart(new XNATextPart(MapTile.Level.ToString(), Constants.UIDefaultFont, baseTextColor));
             }
 
             CellTag cellTag = MapTile.CellTag;
             if (cellTag != null)
             {
-                textRenderer.AddTextLine(new XNATextPart("单元标记: ",
+                textRenderer.AddTextLine(new XNATextPart(Translate(this, "CellTag", "CellTag: "),
                     Constants.UIDefaultFont, subtleTextColor));
                 textRenderer.AddTextPart(new XNATextPart(cellTag.Tag.Name + " (" + cellTag.Tag.ID + ")",
                     Constants.UIDefaultFont, cellTag.Tag.Trigger.EditorColor == null ? baseTextColor : cellTag.Tag.Trigger.XNAColor));
@@ -120,19 +121,23 @@ namespace TSMapEditor.UI
             if (overlay != null)
             {
                 textRenderer.AddTextLine(new XNATextPart(
-                    "覆盖物: ",
+                    Translate(this, "Overlay", "Overlay: "),
                     Constants.UIDefaultFont, subtleTextColor));
 
                 textRenderer.AddTextPart(new XNATextPart(
-                    overlay.OverlayType.Name + " (" + overlay.OverlayType.Index + " " + overlay.OverlayType.ININame + "), 帧: " + overlay.FrameIndex + ", 类型: " + overlay.OverlayType.Land,
+                    string.Format(Translate(this, "OverlayDetails",
+                    "{0} ({1} {2}), Frame: {3}, Terrain Type: {4}"),
+                    overlay.OverlayType.Name, overlay.OverlayType.Index, overlay.OverlayType.ININame, overlay.FrameIndex, overlay.OverlayType.Land),
                     Constants.UIDefaultFont, baseTextColor));
             }
 
-            MapTile.DoForAllAircraft(aircraft => AddObjectInformation("飞行器: ", aircraft));
-            MapTile.DoForAllVehicles(unit => AddObjectInformation("载具: ", unit));
-            MapTile.DoForAllBuildings(structure => AddObjectInformation("建筑物: ", structure));
-            MapTile.DoForAllInfantry(inf => AddObjectInformation("步兵: ", inf));
+            MapTile.DoForAllAircraft(aircraft => AddObjectInformation(Translate(this, "Aircraft", "Aircraft: "), aircraft));
+            MapTile.DoForAllVehicles(unit => AddObjectInformation(Translate(this, "Vehicle", "Vehicle: "), unit));
+            MapTile.DoForAllBuildings(structure => AddObjectInformation(Translate(this, "Structure", "Structure: "), structure));
+            MapTile.DoForAllInfantry(inf => AddObjectInformation(Translate(this, "Infantry", "Infantry: "), inf));
             MapTile.DoForAllWaypoints(waypoint => AddWaypointInfo(waypoint));
+            AddBaseNodeInformation(map.GetBaseNodes(MapTile.CoordsToPoint()));
+            AddTerrainObjectInformation(MapTile.TerrainObject);
 
             textRenderer.PrepareTextParts();
 
@@ -205,7 +210,7 @@ namespace TSMapEditor.UI
                 }
 
                 if (usageFound)
-                    usages.Add("触发 '" + trigger.Name + "', ");
+                    usages.Add(string.Format(Translate(this, "TriggerInWaypoint", "trigger '{0}', "), trigger.Name));
             }
 
             foreach (Script script in map.Scripts)
@@ -221,7 +226,8 @@ namespace TSMapEditor.UI
 
                     if (scriptAction.ParamType == TriggerParamType.Waypoint && actionEntry.Argument == waypoint.Identifier)
                     {
-                        usages.Add("脚本 '" + script.Name + "', ");
+                        usages.Add(string.Format(Translate(this, "ScriptInWaypoint", 
+                            "script '{0}', "), script.Name));
                     }
                 }
             }
@@ -230,7 +236,8 @@ namespace TSMapEditor.UI
             {
                 if (team.Waypoint == Helpers.WaypointNumberToAlphabeticalString(waypoint.Identifier))
                 {
-                    usages.Add("小队 '" + team.Name + "', ");
+                    usages.Add(string.Format(Translate(this, "TeamTypeInwaypoint", 
+                        "team '{0}', "), team.Name));
                 }
             }
 
@@ -239,7 +246,10 @@ namespace TSMapEditor.UI
                 string lastUsage = usages[usages.Count - 1];
                 usages[usages.Count - 1] = lastUsage.Substring(0, lastUsage.Length - 2);
 
-                textRenderer.AddTextLine(new XNATextPart("路径点使用 " + waypoint.Identifier + ":", Constants.UIDefaultFont, Color.Gray));
+                textRenderer.AddTextLine(new XNATextPart(string.Format(Translate(this, "UsagesOfWaypoint", 
+                    "Usages of waypoint {0}:"), waypoint.Identifier), 
+                    Constants.UIDefaultFont, 
+                    Color.Gray));
 
                 foreach (var usage in usages)
                 {
@@ -252,21 +262,27 @@ namespace TSMapEditor.UI
         {
             textRenderer.AddTextLine(new XNATextPart(objectTypeLabel,
                 Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart(techno.ObjectType.Name + " (" + techno.ObjectType.ININame + "), 归属于:",
-                    Constants.UIDefaultFont, Color.White));
+            textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoInformation", 
+                "{0} ({1}), Owner:"),
+                techno.ObjectType.GetEditorDisplayName(), techno.ObjectType.ININame),
+                Constants.UIDefaultFont, Color.White));
             textRenderer.AddTextPart(new XNATextPart(techno.Owner.ININame, Constants.UIBoldFont, techno.Owner.XNAColor));
 
             if (techno.IsFoot())
             {
                 var technoAsFoot = techno as Foot<T>;
-                textRenderer.AddTextPart(new XNATextPart("状态: " + technoAsFoot.Mission, Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoMission", 
+                    "Mission: {0}"), technoAsFoot.Mission),
+                    Constants.UIDefaultFont, Color.White));
             }
 
             if (techno.WhatAmI() == RTTIType.Unit)
             {
                 var unit = techno as Unit;
                 int id = map.Units.IndexOf(unit);
-                textRenderer.AddTextPart(new XNATextPart("朝向: " + techno.Facing, Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoFacing",
+                    "Facing: {0}"), techno.Facing),
+                    Constants.UIDefaultFont, Color.White));
 
                 if (unit.FollowerUnit != null)
                 {
@@ -274,7 +290,9 @@ namespace TSMapEditor.UI
                     if (followerId > -1)
                     {
                         string followerName = unit.FollowerUnit.UnitType.GetEditorDisplayName();
-                        textRenderer.AddTextPart(new XNATextPart("跟随者: " + followerName + " 在 " + unit.FollowerUnit.Position, Constants.UIDefaultFont, Color.White));
+                        textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "UnitFollower",
+                            "Follower: {0} at {1}"), followerName, unit.FollowerUnit.Position),
+                            Constants.UIDefaultFont, Color.White));
                     }
                 }
             }
@@ -282,9 +300,39 @@ namespace TSMapEditor.UI
             if (techno.AttachedTag != null)
             {
                 textRenderer.AddTextPart(new XNATextPart(",", Constants.UIDefaultFont, Color.White));
-                textRenderer.AddTextPart(new XNATextPart("标签:", Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart(Translate(this, "TechnoTag", "Tag:"), Constants.UIDefaultFont, Color.White));
                 textRenderer.AddTextPart(new XNATextPart(techno.AttachedTag.Name + " (" + techno.AttachedTag.ID + ")", Constants.UIBoldFont, Color.White));
             }
+        }
+
+        private void AddBaseNodeInformation(List<BaseNode> baseNodes)
+        {
+            foreach (var baseNode in baseNodes)
+            {
+                var nodeBuildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == baseNode.StructureTypeName);
+                var house = map.Houses.Find(house => house.BaseNodes.Contains(baseNode));
+
+                if (nodeBuildingType == null || house == null)
+                    return;
+
+                textRenderer.AddTextLine(new XNATextPart(Translate(this, "HouseBaseNodesHeader", "Base Node: "), Constants.UIDefaultFont, Color.Gray));
+                textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "HouseBaseNodesInfo",
+                    "{0} ({1}), Owner:"), nodeBuildingType.Name, nodeBuildingType.ININame),
+                    Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart(house.ININame, Constants.UIBoldFont, house.XNAColor));
+            }
+        }
+
+        private void AddTerrainObjectInformation(TerrainObject terrainObject)
+        {
+            if (terrainObject == null)
+                return;
+
+            textRenderer.AddTextLine(new XNATextPart(Translate(this, "TerrainObjectHeader", "Terrain Object: "), Constants.UIDefaultFont, Color.Gray));
+            textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TerrainObjectInfo", 
+                "{0} ({1})"),
+                terrainObject.TerrainType.Name, terrainObject.TerrainType.ININame),
+                Constants.UIDefaultFont, Color.White));
         }
     }
 }

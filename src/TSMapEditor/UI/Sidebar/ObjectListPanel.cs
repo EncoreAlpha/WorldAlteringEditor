@@ -55,7 +55,7 @@ namespace TSMapEditor.UI.Sidebar
             lblOwner.Name = nameof(lblOwner);
             lblOwner.X = Constants.UIEmptySideSpace;
             lblOwner.Y = Constants.UIEmptyTopSpace;
-            lblOwner.Text = "归属于:";
+            lblOwner.Text = Translate(this, "Owner", "Owner:");
             AddChild(lblOwner);
 
             ddOwner = new XNADropDown(WindowManager);
@@ -72,7 +72,7 @@ namespace TSMapEditor.UI.Sidebar
             SearchBox.Y = ddOwner.Bottom + Constants.UIEmptyTopSpace;
             SearchBox.Width = Width - Constants.UIEmptySideSpace * 2;
             SearchBox.Height = Constants.UITextBoxHeight;
-            SearchBox.Suggestion = "搜索单位... (CTRL + F)";
+            SearchBox.Suggestion = Translate(this, "SearchObject", "Search object... (CTRL + F)");
             AddChild(SearchBox);
             SearchBox.TextChanged += SearchBox_TextChanged;
             SearchBox.EnterPressed += SearchBox_EnterPressed;
@@ -225,7 +225,7 @@ namespace TSMapEditor.UI.Sidebar
 
                 if (string.IsNullOrWhiteSpace(categoriesString))
                 {
-                    categories.Add(new ObjectCategory("未分类", Color.White));
+                    categories.Add(new ObjectCategory("Uncategorized", Color.White));
                 }
                 else
                 {

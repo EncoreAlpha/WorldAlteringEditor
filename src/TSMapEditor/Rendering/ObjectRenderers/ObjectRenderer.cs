@@ -66,9 +66,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         public bool IsWithinCamera(T gameObject)
         {
-            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-            var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
+            var mapCell = Map.GetTile(gameObject.Position);
             int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
             Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
@@ -87,10 +87,19 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         public virtual Point2D GetDrawPoint(T gameObject)
         {
-            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-            var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
-            int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
+            var mapCell = Map.GetTile(gameObject.Position);
+            int heightOffset = 0;
+
+            if (!RenderDependencies.EditorState.Is2DMode)
+            {
+                heightOffset = mapCell.Level * Constants.CellHeight;
+
+                if (gameObject.IsOnBridge())
+                    heightOffset += Constants.CellHeight * Constants.HighBridgeHeight;
+            }
+
             Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
             return drawPoint;
@@ -117,9 +126,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         {
             if (ShouldRenderReplacementText(gameObject))
             {
-                Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+                Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-                var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
+                var mapCell = Map.GetTile(gameObject.Position);
                 int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
                 Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
@@ -194,9 +203,21 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             // compass it points to top-right / northeast
             rad -= (float)Math.PI / 4.0f;
 
-            var arrowEndPoint = Helpers.VectorFromLengthAndAngle(Constants.CellSizeX / 4, rad);
+            var arrowEndPoint = Helpers.VectorFromLengthAndAngle(Constants.CellSizeY, rad);
             arrowEndPoint += new Vector2(arrowEndPoint.X, 0f); // Isometric perspective
-            RendererExtensions.DrawArrow(cellCenterPoint, cellCenterPoint + arrowEndPoint, Color.Yellow, 1f, 10f, 2);
+
+            Vector2 line = cellCenterPoint + arrowEndPoint - cellCenterPoint;
+            float angle = Helpers.AngleFromVector(line) - (float)Math.PI;
+
+            Vector2 start = cellCenterPoint;
+            Vector2 end = cellCenterPoint + arrowEndPoint;
+            float sideLineLength = 10f;
+            float angleDiff = 1f;
+            int thickness = 2;
+
+            RenderDependencies.ObjectSpriteRecord.AddLineEntry(new LineEntry(start, end, Color.Yellow, thickness, 1f));
+            RenderDependencies.ObjectSpriteRecord.AddLineEntry(new LineEntry(end, end + Helpers.VectorFromLengthAndAngle(sideLineLength, angle + angleDiff), Color.Yellow, thickness, 1f));
+            RenderDependencies.ObjectSpriteRecord.AddLineEntry(new LineEntry(end, end + Helpers.VectorFromLengthAndAngle(sideLineLength, angle - angleDiff), Color.Yellow, thickness, 1f));
         }
 
         private bool IsObjectInCamera(Rectangle drawingBounds)
@@ -235,7 +256,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             return null;
         }
 
-        protected Rectangle GetTextureDrawCoords(T gameObject,
+        protected Rectangle GetTextureDrawCoords(GameObject gameObject,
             PositionedTexture frame,
             Point2D initialDrawPoint)
         {
@@ -258,7 +279,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             }
 
             return new Rectangle(finalDrawPointX, finalDrawPointY,
-                frame?.Texture.Width ?? 1, frame?.Texture.Height ?? 1);
+                frame?.SourceRectangle.Width ?? 1, frame?.SourceRectangle.Height ?? 1);
         }
 
         public virtual void DrawShadow(T gameObject)
@@ -287,48 +308,34 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             Rectangle drawingBounds = GetTextureDrawCoords(gameObject, shadowFrame, drawPoint);
 
-            float textureHeight = (regularFrame != null && regularFrame.Texture != null) ? (float)regularFrame.Texture.Height : shadowFrame.Texture.Height;
+            float textureHeight = (regularFrame != null && regularFrame.Texture != null) ? regularFrame.SourceRectangle.Height : shadowFrame.SourceRectangle.Height;
 
-            float depth = GetDepthFromPosition(gameObject, drawingBounds);
-            // depth += GetDepthAddition(gameObject);
-            depth += textureHeight / Map.HeightInPixelsWithCellHeight;
+            DepthRectangle depth = GetShadowDepthFromPosition(gameObject, drawingBounds);
+            depth += Constants.DepthEpsilon * ObjectDepthAdjustments.Shadow;
 
-            RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(null, texture, drawingBounds, new Color(255, 255, 255, 128), false, true, depth));
+            RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(null, shadowFrame, drawingBounds, new Color(255, 255, 255, 128), false, true, depth));
         }
 
-        protected virtual float GetDepthFromPosition(T gameObject, Rectangle drawingBounds)
+        protected virtual DepthRectangle GetDepthFromPosition(T gameObject, Rectangle drawingBounds)
         {
             // Calculate position-related depth from the southernmost edge of the cell of the southernmost texture coordinate of the object.
-            var cellPixelCoords = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
-            int dy = drawingBounds.Bottom - cellPixelCoords.Y;
-            int wholeCells = dy / Constants.CellSizeY;
-            int fraction = dy % Constants.CellSizeY;
-            int cellY = cellPixelCoords.Y + (wholeCells + 1) * Constants.CellSizeY;
-
-            if (fraction > Constants.CellSizeY / 2)
+            var cell = Map.GetTile(gameObject.Position);
+            int y = drawingBounds.Y;
+            int bottom = drawingBounds.Bottom;
+            int yReference = CellMath.CellBottomPointFromCellCoords(gameObject.Position, Map);
+            if (cell != null && !RenderDependencies.EditorState.Is2DMode)
             {
-                int fractionBeyondHalfCell = fraction - Constants.CellSizeY / 2;
-
-                // Take the cell's diamond shape into account by measuring based on the Y coordinate (fraction)
-                if (drawingBounds.X - (fractionBeyondHalfCell * 2) < cellPixelCoords.X ||
-                    drawingBounds.Right + (fractionBeyondHalfCell * 2) > cellPixelCoords.X + Constants.CellSizeX)
-                {
-                    // This object leaks into the neighbouring cells - to another "isometric row"
-                    cellY += Constants.CellSizeY / 2;
-                }
+                y += cell.Level * Constants.CellHeight;
+                bottom += cell.Level * Constants.CellHeight;
             }
 
-            // Use height from the cell where the object has been placed.
-            var heightLookupCell = Map.GetTile(gameObject.Position);
-            int height = 0;
-            if (heightLookupCell != null)
-            {
-                height = heightLookupCell.Level;
-            }
+            float depthTop = CellMath.GetDepthForPixel(y, yReference, cell, Map);
+            float depthBottom = CellMath.GetDepthForPixel(bottom, yReference, cell, Map);
 
-            return ((cellY + (height * Constants.CellHeight)) / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
-                (height * Constants.DepthRenderStep);
+            return new DepthRectangle(depthTop, depthBottom);
         }
+
+        protected virtual DepthRectangle GetShadowDepthFromPosition(T gameObject, Rectangle drawingBounds) => GetDepthFromPosition(gameObject, drawingBounds);
 
         protected MapTile GetSouthernmostCell(T gameObject)
         {
@@ -395,7 +402,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         protected void DrawShapeImage(T gameObject, ShapeImage image, int frameIndex, Color color,
             bool drawRemap, Color remapColor, bool affectedByLighting, bool affectedByAmbient, Point2D drawPoint,
-            float depthAddition = 0f, float textureWidthCenterPoint = 0.5f)
+            float depthAddition = 0f)
         {
             if (image == null)
                 return;
@@ -420,25 +427,26 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 if (affectedByLighting && image.SubjectToLighting)
                 {
                     lighting = mapCell.CellLighting.ToXNAVector4(extraLight);
-                    remapColor = ScaleColorToAmbient(remapColor, mapCell.CellLighting);
+                    remapColor = ScaleColorToAmbient(remapColor, lighting);
                 }
                 else if (affectedByAmbient)
                 {
                     lighting = mapCell.CellLighting.ToXNAVector4Ambient(extraLight);
-                    remapColor = ScaleColorToAmbient(remapColor, mapCell.CellLighting);
+                    remapColor = ScaleColorToAmbient(remapColor, lighting);
                 }
             }
 
-            depthAddition += GetDepthFromPosition(gameObject, drawingBounds);
-            depthAddition += GetDepthAddition(gameObject);
+            var depthRectangle = GetDepthFromPosition(gameObject, drawingBounds);
+            depthRectangle += depthAddition;
+            depthRectangle += GetDepthAddition(gameObject);
 
             RenderFrame(gameObject, frame, remapFrame, color, drawRemap, remapColor,
-                drawingBounds, image.GetPaletteTexture(), lighting, depthAddition, textureWidthCenterPoint, true);
+                drawingBounds, image.GetPaletteTexture(), lighting, depthRectangle);
         }
 
         protected void DrawVoxelModel(T gameObject, VoxelModel model, byte facing, RampType ramp,
             Color color, bool drawRemap, Color remapColor, bool affectedByLighting, Point2D drawPoint, 
-            float depthAddition, bool compensateForBottomGap)
+            float depthAddition)
         {
             if (model == null)
                 return;
@@ -470,44 +478,26 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             Rectangle drawingBounds = GetTextureDrawCoords(gameObject, frame, drawPoint);
 
-            depthAddition += GetDepthFromPosition(gameObject, drawingBounds);
-            depthAddition += GetDepthAddition(gameObject);
+            DepthRectangle depthRectangle = GetDepthFromPosition(gameObject, drawingBounds) + depthAddition;
+            depthRectangle += GetDepthAddition(gameObject);
 
-            remapColor = ScaleColorToAmbient(remapColor, mapCell.CellLighting);
+            remapColor = ScaleColorToAmbient(remapColor, lighting);
+
+            // Shader scales lighting by 2x
+            remapColor = new Color(remapColor.R / 2, remapColor.G / 2, remapColor.B / 2, remapColor.A);
 
             RenderFrame(gameObject, frame, remapFrame, color, drawRemap, remapColor,
-                drawingBounds, null, lighting, depthAddition, 0.5f, compensateForBottomGap);
+                drawingBounds, null, lighting, depthRectangle);
         }
 
-        private void RenderFrame(T gameObject, PositionedTexture frame, PositionedTexture remapFrame, Color color, bool drawRemap, Color remapColor,
-            Rectangle drawingBounds, Texture2D paletteTexture, Vector4 lightingColor, float depthAddition, float textureWidthCenterPoint,
-            bool compensateForBottomGap)
+        protected void RenderFrame(T gameObject, PositionedTexture frame, PositionedTexture remapFrame, Color color, bool drawRemap, Color remapColor,
+            Rectangle drawingBounds, Texture2D paletteTexture, Vector4 lightingColor, DepthRectangle depthRectangle)
         {
-            Texture2D texture = frame.Texture;
-
-            if (depthAddition > 1.0f)
-                depthAddition = 1.0f;
-
-            // Add extra depth so objects show above terrain despite float imprecision
-            // depthAddition += Constants.DepthEpsilon;
-
-            // There can be a gap between the end of the texture and the bottom-most cell for objects,
-            // with more "circular" graphics. This can reduce depth when it's calculated in the shader.
-            // Compensate for the effect here as necessary.
-            if (compensateForBottomGap)
-            {
-                int southermostCellBottomPixelCoord = GetSouthernmostCellBottomPixelCoord(gameObject);
-                if (drawingBounds.Bottom < southermostCellBottomPixelCoord)
-                {
-                    depthAddition += ((southermostCellBottomPixelCoord - drawingBounds.Bottom) / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace;
-                }
-            }
-
             color = new Color((color.R / 255.0f) * lightingColor.X / 2f,
                 (color.B / 255.0f) * lightingColor.Y / 2f,
-                (color.B / 255.0f) * lightingColor.Z / 2f, textureWidthCenterPoint);
+                (color.B / 255.0f) * lightingColor.Z / 2f, color.A);
 
-            RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(paletteTexture, texture, drawingBounds, color, false, false, depthAddition));
+            RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(paletteTexture, frame, drawingBounds, color, false, false, depthRectangle));
 
             if (drawRemap && remapFrame != null)
             {
@@ -515,10 +505,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                     (remapColor.R / 255.0f),
                     (remapColor.G / 255.0f),
                     (remapColor.B / 255.0f),
-                    textureWidthCenterPoint);
+                    color.A);
 
-                // RenderDependencies.PalettedColorDrawEffect.Parameters["UseRemap"].SetValue(true);
-                RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(paletteTexture, remapFrame.Texture, drawingBounds, remapColor, true, false, depthAddition));
+                RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(paletteTexture, remapFrame, drawingBounds, remapColor, true, false, depthRectangle + Constants.DepthEpsilon));
             }
         }
 
@@ -528,6 +517,16 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         protected Color ScaleColorToAmbient(Color color, MapColor mapColor)
         {
             double highestComponent = Math.Max(mapColor.R, Math.Max(mapColor.G, mapColor.B));
+
+            return new Color((int)(color.R * highestComponent),
+                (int)(color.G * highestComponent),
+                (int)(color.B * highestComponent),
+                color.A);
+        }
+
+        protected Color ScaleColorToAmbient(Color color, Vector4 vector)
+        {
+            double highestComponent = Math.Max(vector.X, Math.Max(vector.Y, vector.Z));
 
             return new Color((int)(color.R * highestComponent),
                 (int)(color.G * highestComponent),

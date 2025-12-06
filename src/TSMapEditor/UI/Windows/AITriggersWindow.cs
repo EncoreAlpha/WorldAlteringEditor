@@ -2,11 +2,21 @@
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using TSMapEditor.Models;
 using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows
 {
+    public enum AITriggerSortMode
+    {
+        ID,
+        Name,
+        Color,
+        ColorThenName,
+    }
+
     public class TeamTypeEventArgs : EventArgs
     {
         public TeamTypeEventArgs(TeamType teamType)
@@ -29,10 +39,12 @@ namespace TSMapEditor.UI.Windows
         public event EventHandler<TeamTypeEventArgs> TeamTypeOpened;
 
         private EditorListBox lbAITriggers;
+        private EditorSuggestionTextBox tbFilter;
         private XNADropDown ddActions;
         private EditorTextBox tbName;
         private XNADropDown ddSide;
         private XNADropDown ddHouseType;
+        private XNACheckBox chkEnabled;
         private XNADropDown ddConditionType;
         private XNADropDown ddComparator;
         private EditorNumberTextBox tbQuantity;
@@ -51,6 +63,20 @@ namespace TSMapEditor.UI.Windows
 
         private AITriggerType editedAITrigger;
 
+        private AITriggerSortMode _aiTriggerSortMode;
+        private AITriggerSortMode AiTriggerSortMode
+        {
+            get => _aiTriggerSortMode;
+            set
+            {
+                if (value != _aiTriggerSortMode)
+                {
+                    _aiTriggerSortMode = value;                    
+                }
+                ListAITriggers();
+            }
+        }
+
         public override void Initialize()
         {
             Name = nameof(AITriggersWindow);
@@ -61,6 +87,7 @@ namespace TSMapEditor.UI.Windows
             tbName = FindChild<EditorTextBox>(nameof(tbName));
             ddSide = FindChild<XNADropDown>(nameof(ddSide));
             ddHouseType = FindChild<XNADropDown>(nameof(ddHouseType));
+            chkEnabled = FindChild<XNACheckBox>(nameof(chkEnabled));
             ddConditionType = FindChild<XNADropDown>(nameof(ddConditionType));
             ddComparator = FindChild<XNADropDown>(nameof(ddComparator));
             tbQuantity = FindChild<EditorNumberTextBox>(nameof(tbQuantity));
@@ -73,6 +100,9 @@ namespace TSMapEditor.UI.Windows
             chkEnabledOnEasy = FindChild<XNACheckBox>(nameof(chkEnabledOnEasy));
             chkEnabledOnMedium = FindChild<XNACheckBox>(nameof(chkEnabledOnMedium));
             chkEnabledOnHard = FindChild<XNACheckBox>(nameof(chkEnabledOnHard));
+
+            tbFilter = FindChild<EditorSuggestionTextBox>(nameof(tbFilter));
+            tbFilter.TextChanged += TbFilter_TextChanged;
 
             FindChild<EditorButton>("btnNew").LeftClick += BtnNew_LeftClick;
             FindChild<EditorButton>("btnDelete").LeftClick += BtnDelete_LeftClick;
@@ -91,10 +121,21 @@ namespace TSMapEditor.UI.Windows
             var technoTypeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectTechnoTypeWindow);
             technoTypeDarkeningPanel.Hidden += TechnoTypeDarkeningPanel_Hidden;
 
-            ddActions.AddItem("高级...");
-            ddActions.AddItem(new XNADropDownItem() { Text = "为更简单的难度复制", Tag = new Action(CloneForEasierDifficulties) });
+            ddActions.AddItem(Translate(this, "Actions.Advanced", "Advanced..."));
+            ddActions.AddItem(new XNADropDownItem() { Text = Translate(this, "Actions.CloneForEasierDiffs", "Clone for Easier Difficulties"), Tag = new Action(CloneForEasierDifficulties) });
             ddActions.SelectedIndex = 0;
-            ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;            
+            ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;
+
+            var sortContextMenu = new EditorContextMenu(WindowManager);
+            sortContextMenu.Name = nameof(sortContextMenu);
+            sortContextMenu.Width = lbAITriggers.Width;
+            sortContextMenu.AddItem(Translate(this, "SortByID", "Sort by ID"), () => AiTriggerSortMode = AITriggerSortMode.ID);
+            sortContextMenu.AddItem(Translate(this, "SortByName", "Sort by Name"), () => AiTriggerSortMode = AITriggerSortMode.Name);
+            sortContextMenu.AddItem(Translate(this, "SortByColor", "Sort by Color"), () => AiTriggerSortMode = AITriggerSortMode.Color);
+            sortContextMenu.AddItem(Translate(this, "SortByColorName", "Sort by Color, then by Name"), () => AiTriggerSortMode = AITriggerSortMode.ColorThenName);
+            AddChild(sortContextMenu);
+
+            FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
 
             lbAITriggers.SelectedIndexChanged += LbAITriggers_SelectedIndexChanged;
         }
@@ -105,18 +146,20 @@ namespace TSMapEditor.UI.Windows
                 return;
 
             var messageBox = EditorMessageBox.Show(WindowManager,
-                "你确定吗？",
-                "为低难度复制此AI触发将创建副本，副本将每个AI触发" + Environment.NewLine +
-                "的难度设置分别设为 <中等> 和 <简单>。" + Environment.NewLine +
-                "这将把当前AI触发的难度设置为 <困难>。" + Environment.NewLine +
-                "如果AI触发设置了第一或第二作战小队，则" + Environment.NewLine + Environment.NewLine +
-                "这些作战小队及其特遣部队将被复制到低难度中。," + Environment.NewLine +
-                "如果这些副本已经存在，此操作将设置AI触发使用这些作战小队。" + Environment.NewLine +
-                "脚本假定该AI触发的名称及其各自的 <作战小队> 和 <特遣部队> 中含有 <H> 或 <Hard> 字样。" + Environment.NewLine +
-                "" + Environment.NewLine + Environment.NewLine +
-                "" + Environment.NewLine +
-                "" + Environment.NewLine + Environment.NewLine +
-                "无法撤销。你想继续吗？", MessageBoxButtons.YesNo);
+                Translate(this, "CloneForEasierDiffs.Title", "Are you sure?"),
+                Translate(this, "CloneForEasierDiffs.Description", "Cloning this AI trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
+                "of this AI trigger for Medium and Easy difficulties, setting the difficulty" + Environment.NewLine +
+                "setting for each AI trigger to Medium and Easy, respectively." + Environment.NewLine +
+                "This will set the current AI trigger's difficulty to Hard only." + Environment.NewLine + Environment.NewLine +
+                "In case the AI trigger references a Primary or Secondary TeamTypes," + Environment.NewLine +
+                "those TeamTypes and their TaskForces will be duplicated for easier" + Environment.NewLine +
+                "difficulties. If those duplicates already exist, this action will set" + Environment.NewLine +
+                "the AI triggers to use those TeamTypes instead." + Environment.NewLine + Environment.NewLine +
+                "The script assumes that this AI Trigger has the words 'H' or 'Hard'" + Environment.NewLine +
+                "in their name and in their respective TeamTypes and TaskForces." + Environment.NewLine + Environment.NewLine +
+                "No un-do is available. Do you want to continue?"),
+				MessageBoxButtons.YesNo
+			);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties();
         }
@@ -242,7 +285,7 @@ namespace TSMapEditor.UI.Windows
         {
             var aiTrigger = new AITriggerType(map.GetNewUniqueInternalId());
             aiTrigger.Name = "New AITrigger";
-            aiTrigger.OwnerName = "<all>";            
+            aiTrigger.OwnerName = "<all>";
             map.AITriggerTypes.Add(aiTrigger);
             ListAITriggers();
             SelectAITrigger(aiTrigger);
@@ -317,6 +360,7 @@ namespace TSMapEditor.UI.Windows
             tbName.TextChanged -= TbName_TextChanged;
             ddSide.SelectedIndexChanged -= DdSide_SelectedIndexChanged;
             ddHouseType.SelectedIndexChanged -= DdHouse_SelectedIndexChanged;
+            chkEnabled.CheckedChanged -= chkEnabled_CheckedChanged;
             ddConditionType.SelectedIndexChanged -= DdConditionType_SelectedIndexChanged;
             ddComparator.SelectedIndexChanged -= DdComparator_SelectedIndexChanged;
             tbQuantity.TextChanged -= TbQuantity_TextChanged;
@@ -337,6 +381,7 @@ namespace TSMapEditor.UI.Windows
                 tbName.Text = string.Empty;
                 ddSide.SelectedIndex = -1;
                 ddHouseType.SelectedIndex = -1;
+                chkEnabled.Checked = false;
                 ddConditionType.SelectedIndex = -1;
                 ddComparator.SelectedIndex = -1;
                 tbQuantity.Text = string.Empty;
@@ -358,6 +403,7 @@ namespace TSMapEditor.UI.Windows
             tbName.Text = editedAITrigger.Name;
             ddSide.SelectedIndex = editedAITrigger.Side < ddSide.Items.Count ? editedAITrigger.Side : 0;
             ddHouseType.SelectedIndex = ddHouseType.Items.FindIndex(ddi => ddi.Text == editedAITrigger.OwnerName);
+            chkEnabled.Checked = editedAITrigger.Enabled;
             ddConditionType.SelectedIndex = ((int)aiTriggerType.ConditionType + 1);
             ddComparator.SelectedIndex = (int)aiTriggerType.Comparator.ComparatorOperator;
             tbQuantity.Value = aiTriggerType.Comparator.Quantity;
@@ -377,6 +423,7 @@ namespace TSMapEditor.UI.Windows
             tbName.TextChanged += TbName_TextChanged;
             ddSide.SelectedIndexChanged += DdSide_SelectedIndexChanged;
             ddHouseType.SelectedIndexChanged += DdHouse_SelectedIndexChanged;
+            chkEnabled.CheckedChanged += chkEnabled_CheckedChanged;
             ddConditionType.SelectedIndexChanged += DdConditionType_SelectedIndexChanged;
             ddComparator.SelectedIndexChanged += DdComparator_SelectedIndexChanged;
             tbQuantity.TextChanged += TbQuantity_TextChanged;
@@ -390,6 +437,8 @@ namespace TSMapEditor.UI.Windows
             chkEnabledOnMedium.CheckedChanged += ChkEnabledOnMedium_CheckedChanged;
             chkEnabledOnHard.CheckedChanged += ChkEnabledOnHard_CheckedChanged;
         }
+
+        private void TbFilter_TextChanged(object sender, EventArgs e) => ListAITriggers();
 
         private void TbName_TextChanged(object sender, EventArgs e)
         {
@@ -471,6 +520,11 @@ namespace TSMapEditor.UI.Windows
             editedAITrigger.Hard = chkEnabledOnHard.Checked;
         }
 
+        private void chkEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            editedAITrigger.Enabled = chkEnabled.Checked;
+        }
+
         public void Open()
         {
             ListAITriggers();
@@ -483,10 +537,44 @@ namespace TSMapEditor.UI.Windows
             ddSide.Items.Clear();
             ddHouseType.Items.Clear();
 
-            map.AITriggerTypes.ForEach(aitt =>
+            IEnumerable<AITriggerType> sortedAITriggers = map.AITriggerTypes;
+
+            var shouldViewTop = false; // when filtering the scroll bar should update so we use a flag here
+            if (tbFilter.Text != string.Empty && tbFilter.Text != tbFilter.Suggestion)
             {
-                lbAITriggers.AddItem(new XNAListBoxItem() { Text = aitt.Name, Tag = aitt, TextColor = GetAITriggerUIColor(aitt) });
-            });
+                sortedAITriggers = sortedAITriggers.Where(sortedAITrigger => sortedAITrigger.Name.Contains(tbFilter.Text, StringComparison.CurrentCultureIgnoreCase));
+                shouldViewTop = true;
+            }
+
+            switch (AiTriggerSortMode)
+            {
+                case AITriggerSortMode.Color:
+                    sortedAITriggers = sortedAITriggers.OrderBy(aiTrigger => GetAITriggerUIColor(aiTrigger).ToString()).ThenBy(aiTrigger => aiTrigger.ININame);
+                    break;
+                case AITriggerSortMode.Name:
+                    sortedAITriggers = sortedAITriggers.OrderBy(aiTrigger => aiTrigger.Name).ThenBy(aiTrigger => aiTrigger.ININame);
+                    break;
+                case AITriggerSortMode.ColorThenName:
+                    sortedAITriggers = sortedAITriggers.OrderBy(aiTrigger => GetAITriggerUIColor(aiTrigger).ToString()).ThenBy(aiTrigger => aiTrigger.Name);
+                    break;
+                case AITriggerSortMode.ID:
+                default:
+                    sortedAITriggers = sortedAITriggers.OrderBy(aiTrigger => aiTrigger.ININame);
+                    break;
+            }
+
+            foreach (AITriggerType aiTriggerType in sortedAITriggers)
+            {
+                lbAITriggers.AddItem(new XNAListBoxItem()
+                {
+                    Text = aiTriggerType.Name,
+                    Tag = aiTriggerType,
+                    TextColor = GetAITriggerUIColor(aiTriggerType)
+                });
+            }
+
+            if (shouldViewTop)
+                lbAITriggers.TopIndex = 0;
 
             ddSide.AddItem("0 all sides");
             for (int i = 0; i < map.Rules.Sides.Count; i++)

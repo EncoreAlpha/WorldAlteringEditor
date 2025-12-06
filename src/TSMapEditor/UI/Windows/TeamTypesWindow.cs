@@ -83,9 +83,9 @@ namespace TSMapEditor.UI.Windows
             {
                 if (value != _teamTypeSortMode)
                 {
-                    _teamTypeSortMode = value;
-                    ListTeamTypes();
+                    _teamTypeSortMode = value;                    
                 }
+                ListTeamTypes();
             }
         }
 
@@ -111,10 +111,10 @@ namespace TSMapEditor.UI.Windows
             selTag = FindChild<EditorPopUpSelector>(nameof(selTag));
             ddTeamTypeColor = FindChild<XNADropDown>(nameof(ddTeamTypeColor));
 
-            ddTeamTypeColor.AddItem("House Color");
+            ddTeamTypeColor.AddItem(Translate(this, "HouseColor", "House Color"));
             foreach (var supportedColor in TeamType.SupportedColors)
             {
-                ddTeamTypeColor.AddItem(supportedColor.Name, supportedColor.Value);
+                ddTeamTypeColor.AddItem(Translate("NamedColors." + supportedColor.Name, supportedColor.Name), supportedColor.Value);
             }
             ddTeamTypeColor.SelectedIndexChanged += DdTeamTypeColor_SelectedIndexChanged;
 
@@ -180,10 +180,10 @@ namespace TSMapEditor.UI.Windows
             var sortContextMenu = new EditorContextMenu(WindowManager);
             sortContextMenu.Name = nameof(sortContextMenu);
             sortContextMenu.Width = lbTeamTypes.Width;
-            sortContextMenu.AddItem("根据ID排序", () => TeamTypeSortMode = TeamTypeSortMode.ID);
-            sortContextMenu.AddItem("根据名称排序", () => TeamTypeSortMode = TeamTypeSortMode.Name);
-            sortContextMenu.AddItem("根据颜色排序", () => TeamTypeSortMode = TeamTypeSortMode.Color);
-            sortContextMenu.AddItem("先根据颜色,再根据名称排序", () => TeamTypeSortMode = TeamTypeSortMode.ColorThenName);
+            sortContextMenu.AddItem(Translate(this, "SortByID", "Sort by ID"), () => TeamTypeSortMode = TeamTypeSortMode.ID);
+            sortContextMenu.AddItem(Translate(this, "SortByName", "Sort by Name"), () => TeamTypeSortMode = TeamTypeSortMode.Name);
+            sortContextMenu.AddItem(Translate(this, "SortByColor", "Sort by Color"), () => TeamTypeSortMode = TeamTypeSortMode.Color);
+            sortContextMenu.AddItem(Translate(this, "SortByColorName", "Sort by Color, then by Name"), () => TeamTypeSortMode = TeamTypeSortMode.ColorThenName);
             AddChild(sortContextMenu);
 
             FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
@@ -191,7 +191,7 @@ namespace TSMapEditor.UI.Windows
             var teamTypeContextMenu = new EditorContextMenu(WindowManager);
             teamTypeContextMenu.Name = nameof(teamTypeContextMenu);
             teamTypeContextMenu.Width = lbTeamTypes.Width;
-            teamTypeContextMenu.AddItem("查看已关联", ShowTeamTypeReferences);
+            teamTypeContextMenu.AddItem(Translate(this, "ViewReferences", "View References"), ShowTeamTypeReferences);
             AddChild(teamTypeContextMenu);
 
             lbTeamTypes.AllowRightClickUnselect = false;
@@ -297,12 +297,16 @@ namespace TSMapEditor.UI.Windows
 
                 if (refActionCount > 0)
                 {
-                    stringBuilder.AppendLine($"- 触发 \"{trigger.Name}\" ({trigger.ID}) 的 {refActionCount} 结果参数");
+                    stringBuilder.AppendLine(
+                        string.Format(Translate(this, "RefActions", "- Trigger \"{0}\" ({1}) in {2} action parameter(s)"), 
+                            trigger.Name, trigger.ID, refActionCount));
                 }
 
                 if (refConditionCount > 0)
                 {
-                    stringBuilder.AppendLine($"- 触发 \"{trigger.Name}\" ({trigger.ID}) 的 {refConditionCount} 条件参数");
+                    stringBuilder.AppendLine(
+                        string.Format(Translate(this, "RefEvents", "- Trigger \"{0}\" ({1}) in {2} event parameter(s)"),
+                            trigger.Name, trigger.ID, refConditionCount));
                 }
             }
 
@@ -310,31 +314,42 @@ namespace TSMapEditor.UI.Windows
             {
                 if (aiTrigger.PrimaryTeam == editedTeamType)
                 {
-                    stringBuilder.AppendLine($"- 局部AI触发 \"{aiTrigger.Name}\" ({aiTrigger.ININame}) 作为第一小队");
+                    stringBuilder.AppendLine(
+                        string.Format(Translate(this, "AITriggerPrimaryTeamReference", "- Local AITrigger \"{0}\" ({1}) as primary team"), 
+                            aiTrigger.Name, aiTrigger.ININame));
                 }
 
                 if (aiTrigger.SecondaryTeam == editedTeamType)
                 {
-                    stringBuilder.AppendLine($"- 局部AI触发 \"{aiTrigger.Name}\" ({aiTrigger.ININame}) 作为第二小队");
+                    stringBuilder.AppendLine(
+                        string.Format(Translate(this, "AITriggerSecondaryTeamReference", "- Local AITrigger \"{0}\" ({1}) as secondary team"),
+                            aiTrigger.Name, aiTrigger.ININame));
                 }
             }
 
             var globalTeamType = map.Rules.TeamTypes.Find(tt => tt.ININame == editedTeamType.ININame);
             if (globalTeamType != null)
             {
-                stringBuilder.AppendLine($"- 这个作战小队覆盖了全局作战小队 {globalTeamType.ININame}. 因此，它可能会被全局AI触发使用");
+                stringBuilder.AppendLine(
+                    string.Format(Translate(this, "GlobalTeamTypeOverridden", "- This TeamType overrides a global TeamType {0}. As such, it may be used by global AI Triggers."),
+                        globalTeamType.ININame));
             }
 
             if (stringBuilder.Length == 0)
             {
-                EditorMessageBox.Show(WindowManager, "未找到关联",
-                    $"所选作战小队 \"{editedTeamType.Name}\" ({editedTeamType.ININame}) 未被任何触发和AI触发使用", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "NoReferences.Title", "No references found"),
+                    string.Format(Translate(this, "NoReferences.Description", "The selected TeamType \"{0}\" ({1}) is not used by any Triggers or AITriggers."),
+                        editedTeamType.Name, editedTeamType.ININame),
+                    MessageBoxButtons.OK);
             }
             else
             {
-                EditorMessageBox.Show(WindowManager, "作战小队关联",
-                    $"所选作战小队 \"{editedTeamType.Name}\" ({editedTeamType.ININame}) 被以下触发使用：" + Environment.NewLine + Environment.NewLine +
-                    stringBuilder.ToString(), MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, 
+                    Translate(this, "TeamTypeReferences.Title", "TeamType References"),
+                    string.Format(Translate(this, "TeamTypeReferences.Description", "The selected TeamType \"{0}\" ({1}) is used by the following scripting elements:" + Environment.NewLine + Environment.NewLine + "{2}"),
+                        editedTeamType.Name, editedTeamType.ININame, stringBuilder.ToString()),
+                    MessageBoxButtons.OK);
             }
         }
 
@@ -363,10 +378,11 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var messageBox = EditorMessageBox.Show(WindowManager,
-                    "确认",
-                    $"您确定要删除 '{editedTeamType.Name}'?" + Environment.NewLine + Environment.NewLine +
-                    $"您需要手动修复任何使用该作战小队的触发和AI触发。" + Environment.NewLine + Environment.NewLine +
-                    "(您可以按住 Shift 键跳过该确认对话框。)",
+                    Translate(this, "DeletionConfirmation.Title", "Confirm"),
+                    string.Format(Translate(this, "DeletionConfirmation.Description", "Are you sure you wish to delete '{0}'?" + Environment.NewLine + Environment.NewLine +
+                        "You'll need to manually fix any Triggers and AITriggers using the TeamType." + Environment.NewLine + Environment.NewLine +
+                        "(You can hold Shift to skip this confirmation dialog.)"),
+                        editedTeamType.Name),
                     MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = _ => DeleteTeamType();
             }
@@ -436,7 +452,7 @@ namespace TSMapEditor.UI.Windows
             {
                 var checkBox = new XNACheckBox(WindowManager);
                 checkBox.Tag = teamTypeFlag.Name;
-                checkBox.Text = teamTypeFlag.Name;
+                checkBox.Text = teamTypeFlag.UIName;
                 panelBooleans.AddChild(checkBox);
                 checkBoxes.Add(checkBox);
 

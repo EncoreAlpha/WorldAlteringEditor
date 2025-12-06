@@ -133,7 +133,7 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
             {
                 var cellCoords = totalProcessedCells[i];
                 var cell = Map.GetTile(cellCoords);
-                cell?.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                RefreshCellLighting(cell);
             }
         }
 
@@ -144,7 +144,7 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
                 var cell = Map.GetTile(entry.CellCoords);
                 cell.ChangeTileIndex(entry.TileIndex, (byte)entry.SubTileIndex);
                 cell.Level = (byte)entry.HeightLevel;
-                cell.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                RefreshCellLighting(cell);
             }
 
             MutationTarget.InvalidateMap();

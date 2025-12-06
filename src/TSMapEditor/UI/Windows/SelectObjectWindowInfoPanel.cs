@@ -73,6 +73,12 @@ namespace TSMapEditor.UI.Windows
 
             if (!Detached)
                 Detach();
+
+            if (GetWindowPoint().Y + Height > WindowManager.RenderResolutionY)
+            {
+                Y = 0; // Set to 0 so it GetWindowPoint().Y gives us our parent's Y coordinate
+                Y = WindowManager.RenderResolutionY - GetWindowPoint().Y - Height;
+            }
         }
 
         public void Hide()

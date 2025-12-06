@@ -18,7 +18,7 @@ namespace TSMapEditor.UI.CursorActions
         {
         }
 
-        public override string GetName() => "Place Tube";
+        public override string GetName() => Translate("Name", "Place Tube");
 
         public override bool HandlesKeyboardInput => true;
 
@@ -73,12 +73,12 @@ namespace TSMapEditor.UI.CursorActions
 
             cellTopLeftPoint = cellTopLeftPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
 
-            const string text = "点击单元格绘制隧道后，可用以下操作:\r\n\r\n" +
-                "双击确认\r\n" +
-                "按住 Shift 键的同时双击创建双向隧道\r\n" +
-                "按 ESC 清除\r\n" +
-                "按 B 撤销\r\n" +
-                "右键单击退出";
+            string text = Translate("DrawText", "Click on cells to draw a tunnel. Once ready, use one of the options below:\r\n\r\n") +
+                Translate("ConfirmText", "Double-click to confirm\r\n") +
+                Translate("BidirectionalText", "Double-click while holding Shift to create bidirectional tunnel\r\n") +
+                Translate("ClearText", "Press ESC to clear\r\n") +
+                Translate("BackText", "Press B to step back\r\n") +
+                Translate("ExitText", "Right-click to exit");
             var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
             int x = cellTopLeftPoint.X - (int)(textDimensions.X - Constants.CellSizeX) / 2;
 
@@ -215,7 +215,7 @@ namespace TSMapEditor.UI.CursorActions
                     }
 
                     if (!nextTubeDirection.HasValue)
-                        throw new ApplicationException("无法找到隧道方向！从: " + previousStep + " 到: " + newPoint);
+                        throw new ApplicationException("Unable to find tunnel tube direction! From: " + previousStep + " To: " + newPoint);
 
                     tube.Directions.Add(nextTubeDirection.Value);
                     tubeCells.Add(newPoint);
@@ -241,14 +241,18 @@ namespace TSMapEditor.UI.CursorActions
                 points.Add(cellCoords);
                 RefreshTube();
                 TubeRefreshHelper.MapViewRefreshTube(tube, CursorActionTarget.MutationTarget);
-                lastClickedCell = cellCoords;
-                lastClickedCellDateTime = DateTime.Now;
             }
             else
             {
                 if (points.Count > 1 && lastClickedCell == cellCoords && DateTime.Now - lastClickedCellDateTime < TimeSpan.FromSeconds(DoubleClickTime))
+                {
                     ConfirmTube();
+                    return;
+                }
             }
+
+            lastClickedCell = cellCoords;
+            lastClickedCellDateTime = DateTime.Now;
         }
     }
 }

@@ -8,6 +8,14 @@ namespace TSMapEditor.GameMath
     /// </summary>
     public static class CellMath
     {
+        public static int CellBottomPointFromCellCoords(Point2D cellCoords, Map map)
+        {
+            int cy = (cellCoords.X - 1) * (Constants.CellSizeY / 2);
+            int diff = map.Size.X - cellCoords.Y;
+            cy -= diff * (Constants.CellSizeY / 2);
+            return cy + Constants.MapYBaseline + Constants.CellSizeY;
+        }
+
         public static Point2D CellTopLeftPointFromCellCoords_NoBaseline(Point2D cellCoords, Map map)
         {
             int cx = (cellCoords.X - 1) * (Constants.CellSizeX / 2);
@@ -234,8 +242,49 @@ namespace TSMapEditor.GameMath
                 height = tile.Level;
             }
 
-            return ((CellTopLeftPointFromCellCoords(tile.CoordsToPoint(), map).Y + Constants.CellSizeY) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+            return ((CellTopLeftPointFromCellCoords(cellCoords, map).Y + Constants.CellSizeY) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
                 (height * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForCellTop(MapTile cell, Map map)
+        {
+            return ((CellTopLeftPointFromCellCoords(cell.CoordsToPoint(), map).Y) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                (cell.Level * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForCellBottom(MapTile cell, Map map)
+        {
+            return ((CellTopLeftPointFromCellCoords(cell.CoordsToPoint(), map).Y) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                (cell.Level * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForPixelInCube(int y, int x, int topYReference, MapTile cell, Map map)
+        {
+            // This is a graphic that grows upwards -> increase depth
+            if (y < topYReference)
+                y = topYReference + (topYReference - y);
+
+            y -= x;
+
+            return (y / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                ((cell != null ? cell.Level : Constants.MaxMapHeightLevel) * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForPixel(int y, int topYReference, MapTile cell, Map map)
+        {
+            // This is a graphic that grows upwards -> increase depth
+            if (y < topYReference)
+                y = topYReference + (topYReference - y);
+
+            return (y / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                (cell.Level * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForPixel(int y, Point2D cellCoords, Map map)
+        {
+            var cell = map.GetTile(cellCoords);
+            int topYReference = CellTopLeftPointFromCellCoords(cellCoords, map).Y;
+            return GetDepthForPixel(y, topYReference, cell, map);
         }
     }
 }

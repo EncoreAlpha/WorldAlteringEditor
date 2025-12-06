@@ -26,7 +26,7 @@ namespace TSMapEditor.CCEngine
             AIIni = IniFileEx.FromPathOrMix(Constants.AIIniPath, gameDirectory, fileManager);
             AIFSIni = IniFileEx.FromPathOrMix(Constants.FirestormAIIniPath, gameDirectory, fileManager);
 
-            IniFile artOverridesIni = new(Path.Combine(Environment.CurrentDirectory, "Config/ArtOverrides.ini"));
+            IniFile artOverridesIni = Helpers.ReadConfigINI("ArtOverrides.ini");
             IniFile.ConsolidateIniFiles(ArtFSIni, artOverridesIni);
         }
 

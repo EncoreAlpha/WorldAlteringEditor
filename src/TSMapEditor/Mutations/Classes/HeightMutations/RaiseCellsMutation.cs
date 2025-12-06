@@ -25,7 +25,9 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
 
         public override string GetDisplayString()
         {
-            return $"Raise cell height at {targetCellCoords} with a brush size of {brushSize}";
+            return string.Format(Translate(this, "DisplayString", 
+                "Raise cell height at {0} with a brush size of {1}"),
+                    targetCellCoords, brushSize);
         }
 
         public override void Perform()
@@ -65,7 +67,7 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
             if (cell.Level < Constants.MaxMapHeightLevel)
             {
                 cell.Level++;
-                cell.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                RefreshCellLighting(cell);
                 affectedCells.Add(cell.CoordsToPoint());
             }
         }
@@ -81,7 +83,7 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
                 if (cell.Level > 0)
                 {
                     cell.Level--;
-                    cell.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                    RefreshCellLighting(cell);
                 }
             }
 

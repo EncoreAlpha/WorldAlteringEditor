@@ -1,5 +1,7 @@
 ﻿using Rampastring.Tools;
 using System;
+using System.IO;
+using TSMapEditor.CCEngine;
 
 namespace TSMapEditor.Models
 {
@@ -9,14 +11,36 @@ namespace TSMapEditor.Models
     public class TriggerCondition : ICloneable
     {
         public const int DEF_PARAM_COUNT = 2;
-        public const int MAX_PARAM_COUNT = 3;
+        public const int MAX_PARAM_COUNT = 4;
 
         public TriggerCondition()
         {
-            for (int i = 0; i < Parameters.Length - 1; i++)
-                Parameters[i] = "0";
+            for (int i = 0; i < Parameters.Length; i++)
+            {
+                if (i < DEF_PARAM_COUNT)
+                    Parameters[i] = "0";
+                else
+                    Parameters[i] = string.Empty;
+            }
+        }
 
-            Parameters[MAX_PARAM_COUNT - 1] = string.Empty;
+        public TriggerCondition(TriggerEventType triggerEventType)
+        {
+            for (int i = 0; i < Parameters.Length; i++)
+            {
+                if (i < DEF_PARAM_COUNT)
+                {
+                    Parameters[i] = "0";                    
+                }
+                else if (i < DEF_PARAM_COUNT + triggerEventType.AdditionalParams)
+                {
+                    Parameters[i] = "0";
+                }
+                else
+                {
+                    Parameters[i] = string.Empty;
+                }
+            }
         }
 
         public int ConditionIndex { get; set; }
@@ -26,12 +50,7 @@ namespace TSMapEditor.Models
         public string ParamToString(int index)
         {
             if (string.IsNullOrWhiteSpace(Parameters[index]))
-            {
-                if (index == MAX_PARAM_COUNT - 1)
-                    return string.Empty;
-
                 return "0";
-            }
 
             return Parameters[index];
         }
@@ -47,7 +66,7 @@ namespace TSMapEditor.Models
             return clone;
         }
 
-        public static TriggerCondition ParseFromArray(string[] array, int startIndex, bool useP3)
+        public static TriggerCondition ParseFromArray(string[] array, int startIndex, int additionalParams)
         {
             if (startIndex + DEF_PARAM_COUNT >= array.Length)
                 return null;
@@ -57,18 +76,38 @@ namespace TSMapEditor.Models
             for (int i = 0; i < DEF_PARAM_COUNT; i++)
                 triggerCondition.Parameters[i] = array[startIndex + 1 + i];
 
-            if (useP3)
-            {
-                if (startIndex + MAX_PARAM_COUNT >= array.Length)
-                    return null;
+            if (startIndex + DEF_PARAM_COUNT + additionalParams >= array.Length)
+                return null;
 
-                triggerCondition.Parameters[MAX_PARAM_COUNT - 1] = array[startIndex + MAX_PARAM_COUNT];
+            for (int i = 0; i < additionalParams; i++)
+            {
+                triggerCondition.Parameters[i + DEF_PARAM_COUNT] = array[startIndex + DEF_PARAM_COUNT + 1 + i];
             }
 
             if (triggerCondition.ConditionIndex < 0)
                 return null;
 
             return triggerCondition;
+        }
+
+        public void Serialize(MemoryStream memoryStream)
+        {
+            StreamHelpers.WriteInt(memoryStream, ConditionIndex);
+
+            foreach (var parameter in Parameters)
+            {
+                StreamHelpers.WriteUnicodeString(memoryStream, parameter);
+            }
+        }
+
+        public void Deserialize(MemoryStream memoryStream)
+        {   
+            ConditionIndex = StreamHelpers.ReadInt(memoryStream);
+
+            for (int i = 0; i < Parameters.Length; i++)
+            {
+                Parameters[i] = StreamHelpers.ReadUnicodeString(memoryStream);
+            }
         }
     }
 }

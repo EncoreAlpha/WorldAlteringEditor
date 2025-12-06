@@ -38,9 +38,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 position = gameObject.ParentBuilding.Position;
             }
 
-            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(position, RenderDependencies.Map);
+            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(position, Map);
 
-            var mapCell = RenderDependencies.Map.GetTile(position);
+            var mapCell = Map.GetTile(position);
             int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
             Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
@@ -68,16 +68,16 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 case 0:
                     break;
                 default:
-                    return; // TODO Renderer does not currently support transparency for anims
-                // case 75:
-                //     alpha = 0.1f;
-                //     break;
-                // case 50:
-                //     alpha = 0.2f;
-                //     break;
-                // case 25:
-                //     alpha = 0.5f;
-                //     break;
+                    return;
+                case 75:
+                     alpha = 0.1f;
+                     break;
+                case 50:
+                     alpha = 0.2f;
+                     break;
+                case 25:
+                     alpha = 0.5f;
+                     break;
             }
 
             bool affectedByLighting = RenderDependencies.EditorState.IsLighting;
@@ -120,7 +120,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 {
                     Rectangle drawingBounds = GetTextureDrawCoords(gameObject, frame, drawPoint);
 
-                    RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(null, frame.Texture, drawingBounds, Color.White, false, true, GetDepthAddition(gameObject)));
+                    RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(null, frame, drawingBounds, Color.White, false, true, GetDepthFromPosition(gameObject, drawingBounds)));
                 }
             }
         }

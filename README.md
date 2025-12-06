@@ -1,14 +1,15 @@
-[![Donate on Ko-Fi](https://img.shields.io/badge/Donate-KoFi-green.svg)](https://ko-fi.com/rampastring)
-[![Donate on Patreon](https://img.shields.io/badge/Donate-Patreon-red.svg)](https://www.patreon.com/rampastring)
-[![GitHub Releases](https://img.shields.io/github/downloads/CnCNet/WorldAlteringEditor/total.svg)](https://github.com/CnCNet/WorldAlteringEditor/releases)
+<p align="center">
+  <img alt="World-Altering Editor Logo" src="https://raw.githubusercontent.com/CnCNet/WorldAlteringEditor/refs/heads/master/docs/images/waelogotype.png" width=600 />
+</p>
+<p align="center">
+  <a href="https://ko-fi.com/rampastring"><img alt="Donate on Ko-Fi" src="https://img.shields.io/badge/Donate-KoFi-green.svg"></a>
+  <a href="https://www.patreon.com/rampastring"><img alt="Donate on Patreon" src="https://img.shields.io/badge/Donate-Patreon-red.svg"></a>
+  <a href="https://github.com/CnCNet/WorldAlteringEditor/releases"><img alt="Total Downloads" src="https://img.shields.io/github/downloads/CnCNet/WorldAlteringEditor/total.svg"></a>
+</p>
 
-# C&C World-Altering Editor (WAE)
-
-Modern open-source map and scenario editor for
-
-- Command & Conquer: Red Alert 2 Yuri's Revenge
-- Command & Conquer: Tiberian Sun
-- [Dawn of the Tiberium Age (DTA)](https://www.moddb.com/mods/the-dawn-of-the-tiberium-age)
+<p align="center">
+  Modern open-source map and scenario editor for Command & Conquer: Red Alert 2, Command & Conquer: Tiberian Sun and the <a href="https://www.moddb.com/mods/the-dawn-of-the-tiberium-age">Dawn of the Tiberium Age</a> mod.
+</p>
 
 ## About
 
