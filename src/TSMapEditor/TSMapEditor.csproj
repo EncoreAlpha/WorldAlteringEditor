@@ -28,6 +28,7 @@
   <ItemGroup>
     <Compile Remove="Config\Scripts\Activate Assign Mission Cursor Action.cs" />
     <Compile Remove="Config\Scripts\Disable All Debug Triggers.cs" />
+    <Compile Remove="Config\Scripts\List Unused Scripting Elements.cs" />
     <Compile Remove="Config\Scripts\Make Civilian Vehicles Sleep.cs" />
     <Compile Remove="Config\Scripts\Remove All Terrain Objects.cs" />
     <Compile Remove="Config\Scripts\Set Map Difficulty Settings.cs" />
@@ -515,6 +516,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Config\Scripts\Disable All Debug Triggers.cs" />
+    <None Include="Config\Scripts\List Unused Scripting Elements.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Config\Scripts\Make Civilian Vehicles Sleep.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
